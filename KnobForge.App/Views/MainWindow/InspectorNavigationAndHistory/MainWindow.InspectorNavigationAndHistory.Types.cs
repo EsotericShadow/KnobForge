@@ -86,6 +86,8 @@ namespace KnobForge.App.Views
             public string SliderBackplateImportedMeshPath { get; set; } = string.Empty;
             public string SliderThumbImportedMeshPath { get; set; } = string.Empty;
             public ToggleAssemblyMode ToggleMode { get; set; } = ToggleAssemblyMode.Auto;
+            public string ToggleBaseImportedMeshPath { get; set; } = string.Empty;
+            public string ToggleLeverImportedMeshPath { get; set; } = string.Empty;
             public ToggleAssemblyStateCount ToggleStateCount { get; set; } = ToggleAssemblyStateCount.TwoPosition;
             public int ToggleStateIndex { get; set; }
             public float ToggleMaxAngleDeg { get; set; } = 24f;

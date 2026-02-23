@@ -435,6 +435,7 @@ namespace KnobForge.App.Views
                     _bodyBulgeSlider.Value = model.BodyBulge;
                     _modelSegmentsSlider.Value = model.RadialSegments;
                     RebuildSliderMeshOptions();
+                    RebuildToggleMeshOptions();
                     if (_sliderAssemblyModeCombo != null)
                     {
                         _sliderAssemblyModeCombo.SelectedItem = project.SliderMode;
@@ -484,6 +485,18 @@ namespace KnobForge.App.Views
                     if (_toggleAssemblyModeCombo != null)
                     {
                         _toggleAssemblyModeCombo.SelectedItem = project.ToggleMode;
+                    }
+
+                    if (_toggleBaseMeshCombo != null)
+                    {
+                        _toggleBaseMeshCombo.SelectedItem =
+                            ResolveToggleMeshOption(_toggleBaseMeshOptions, project.ToggleBaseImportedMeshPath);
+                    }
+
+                    if (_toggleLeverMeshCombo != null)
+                    {
+                        _toggleLeverMeshCombo.SelectedItem =
+                            ResolveToggleMeshOption(_toggleLeverMeshOptions, project.ToggleLeverImportedMeshPath);
                     }
 
                     if (_toggleStateCountCombo != null)
@@ -730,6 +743,21 @@ namespace KnobForge.App.Views
                 if (_toggleAssemblyModeCombo != null)
                 {
                     _toggleAssemblyModeCombo.IsEnabled = hasModel;
+                }
+
+                if (_refreshToggleLibraryButton != null)
+                {
+                    _refreshToggleLibraryButton.IsEnabled = hasModel;
+                }
+
+                if (_toggleBaseMeshCombo != null)
+                {
+                    _toggleBaseMeshCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleLeverMeshCombo != null)
+                {
+                    _toggleLeverMeshCombo.IsEnabled = hasModel;
                 }
 
                 if (_toggleStateCountCombo != null)

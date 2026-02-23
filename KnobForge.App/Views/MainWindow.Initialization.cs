@@ -146,6 +146,7 @@ namespace KnobForge.App.Views
                 _toggleStateCountCombo.ItemsSource = Enum.GetValues<ToggleAssemblyStateCount>().Cast<ToggleAssemblyStateCount>().ToList();
             }
             RebuildSliderMeshOptions();
+            RebuildToggleMeshOptions();
             _gripStyleCombo.ItemsSource = Enum.GetValues<GripStyle>().Cast<GripStyle>().ToList();
             _gripTypeCombo.ItemsSource = Enum.GetValues<GripType>().Cast<GripType>().ToList();
             RebuildCollarPresetOptions();
@@ -239,6 +240,10 @@ namespace KnobForge.App.Views
             {
                 _refreshSliderLibraryButton.Click += OnRefreshSliderLibraryButtonClicked;
             }
+            if (_refreshToggleLibraryButton != null)
+            {
+                _refreshToggleLibraryButton.Click += OnRefreshToggleLibraryButtonClicked;
+            }
             _resetViewButton.Click += (_, _) => _metalViewport?.ResetCamera();
             _clearPaintMaskButton.Click += (_, _) => OnClearPaintMask();
             _renderButton.Click += OnRenderButtonClick;
@@ -330,6 +335,14 @@ namespace KnobForge.App.Views
             if (_toggleAssemblyModeCombo != null)
             {
                 _toggleAssemblyModeCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleBaseMeshCombo != null)
+            {
+                _toggleBaseMeshCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLeverMeshCombo != null)
+            {
+                _toggleLeverMeshCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleStateCountCombo != null)
             {

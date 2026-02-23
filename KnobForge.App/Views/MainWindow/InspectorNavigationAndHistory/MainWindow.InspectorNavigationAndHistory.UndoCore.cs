@@ -262,6 +262,8 @@ namespace KnobForge.App.Views
                 SliderBackplateImportedMeshPath = _project.SliderBackplateImportedMeshPath,
                 SliderThumbImportedMeshPath = _project.SliderThumbImportedMeshPath,
                 ToggleMode = _project.ToggleMode,
+                ToggleBaseImportedMeshPath = _project.ToggleBaseImportedMeshPath,
+                ToggleLeverImportedMeshPath = _project.ToggleLeverImportedMeshPath,
                 ToggleStateCount = _project.ToggleStateCount,
                 ToggleStateIndex = _project.ToggleStateIndex,
                 ToggleMaxAngleDeg = _project.ToggleMaxAngleDeg,

@@ -11,6 +11,8 @@ namespace KnobForge.App.Views
         {
             if (_updatingUi ||
                 _toggleAssemblyModeCombo == null ||
+                _toggleBaseMeshCombo == null ||
+                _toggleLeverMeshCombo == null ||
                 _toggleStateCountCombo == null ||
                 _toggleStateIndexSlider == null ||
                 _toggleMaxAngleSlider == null ||
@@ -34,6 +36,14 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
+            else if (ReferenceEquals(sender, _toggleBaseMeshCombo) ||
+                     ReferenceEquals(sender, _toggleLeverMeshCombo))
+            {
+                if (e.Property != ComboBox.SelectedItemProperty)
+                {
+                    return;
+                }
+            }
             else if (e.Property != Slider.ValueProperty)
             {
                 return;
@@ -50,6 +60,8 @@ namespace KnobForge.App.Views
         private void ApplyToggleAssemblyUiToProject(bool requestHeavyRefresh)
         {
             if (_toggleAssemblyModeCombo == null ||
+                _toggleBaseMeshCombo == null ||
+                _toggleLeverMeshCombo == null ||
                 _toggleStateCountCombo == null ||
                 _toggleStateIndexSlider == null ||
                 _toggleMaxAngleSlider == null ||
@@ -68,6 +80,8 @@ namespace KnobForge.App.Views
             _project.ToggleMode = _toggleAssemblyModeCombo.SelectedItem is ToggleAssemblyMode mode
                 ? mode
                 : ToggleAssemblyMode.Auto;
+            _project.ToggleBaseImportedMeshPath = ResolveSelectedToggleMeshPath(_toggleBaseMeshCombo.SelectedItem);
+            _project.ToggleLeverImportedMeshPath = ResolveSelectedToggleMeshPath(_toggleLeverMeshCombo.SelectedItem);
             _project.ToggleStateCount = _toggleStateCountCombo.SelectedItem is ToggleAssemblyStateCount stateCount
                 ? stateCount
                 : ToggleAssemblyStateCount.TwoPosition;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using KnobForge.Core;
@@ -25,7 +26,11 @@ public readonly record struct ToggleAssemblyConfig(
     float BushingHeight,
     float LeverLength,
     float LeverRadius,
-    float TipRadius);
+    float TipRadius,
+    string BaseImportedMeshPath,
+    long BaseImportedMeshTicks,
+    string LeverImportedMeshPath,
+    long LeverImportedMeshTicks);
 
 public sealed class TogglePartMesh
 {
@@ -38,6 +43,17 @@ public sealed class TogglePartMesh
 
 public static class ToggleAssemblyMeshBuilder
 {
+    private static readonly string[] ToggleRootDirectoryCandidates =
+    {
+        Path.Combine("models", "switch_models"),
+        Path.Combine("models", "toggle_models"),
+        "switch_models",
+        "toggle_models"
+    };
+    private static readonly string[] SupportedExtensions = { ".glb", ".stl" };
+    private static readonly string[] BaseDirectoryNames = { "base_models", "bases", "base" };
+    private static readonly string[] LeverDirectoryNames = { "lever_models", "levers", "lever" };
+
     public static ToggleAssemblyConfig ResolveConfig(KnobProject? project)
     {
         if (project is null)
@@ -51,7 +67,10 @@ public static class ToggleAssemblyMeshBuilder
             return default;
         }
 
-        bool enabled = ResolveEnabled(project.ToggleMode, IsFeatureEnabledByEnvironmentVariable());
+        string root = ResolveToggleRootDirectory();
+        bool toggleRootExists = Directory.Exists(root);
+        bool envEnabled = IsFeatureEnabledByEnvironmentVariable();
+        bool enabled = ResolveEnabled(project.ToggleMode, toggleRootExists, envEnabled);
         if (!enabled)
         {
             return default;
@@ -71,6 +90,16 @@ public static class ToggleAssemblyMeshBuilder
         int stateIndex = ClampStateIndex(project.ToggleStateIndex, stateCount);
         float maxAngle = Math.Clamp(project.ToggleMaxAngleDeg, 5f, 85f);
         float leverAngleDeg = ResolveLeverAngleDeg(stateCount, stateIndex, maxAngle);
+        string baseImportedPath = ResolveImportedMeshPath(
+            project.ToggleBaseImportedMeshPath,
+            root,
+            TogglePartKind.Base);
+        string leverImportedPath = ResolveImportedMeshPath(
+            project.ToggleLeverImportedMeshPath,
+            root,
+            TogglePartKind.Lever);
+        long baseTicks = ResolveFileTicks(baseImportedPath);
+        long leverTicks = ResolveFileTicks(leverImportedPath);
 
         return new ToggleAssemblyConfig(
             Enabled: true,
@@ -84,7 +113,11 @@ public static class ToggleAssemblyMeshBuilder
             BushingHeight: bushingHeight,
             LeverLength: leverLength,
             LeverRadius: leverRadius,
-            TipRadius: tipRadius);
+            TipRadius: tipRadius,
+            BaseImportedMeshPath: baseImportedPath,
+            BaseImportedMeshTicks: baseTicks,
+            LeverImportedMeshPath: leverImportedPath,
+            LeverImportedMeshTicks: leverTicks);
     }
 
     public static TogglePartMesh BuildBaseMesh(in ToggleAssemblyConfig config)
@@ -94,9 +127,21 @@ public static class ToggleAssemblyMeshBuilder
             return new TogglePartMesh();
         }
 
+        Vector3 plateCenter = ResolvePlateCenter(config);
+        TogglePartMesh? imported = TryBuildImportedPart(
+            config.BaseImportedMeshPath,
+            config.PlateWidth,
+            config.PlateHeight,
+            config.PlateThickness,
+            plateCenter,
+            null);
+        if (imported is not null)
+        {
+            return imported;
+        }
+
         var vertices = new List<MetalVertex>(420);
         var indices = new List<uint>(900);
-        Vector3 plateCenter = ResolvePlateCenter(config);
         AddBox(vertices, indices, config.PlateWidth, config.PlateHeight, config.PlateThickness, plateCenter);
 
         Vector3 bushingCenter = plateCenter + new Vector3(
@@ -124,8 +169,27 @@ public static class ToggleAssemblyMeshBuilder
             (config.PlateThickness * 0.5f) + (config.BushingHeight * 0.95f));
 
         float angleRadians = MathF.PI * config.LeverAngleDeg / 180f;
-        Vector3 direction = Vector3.TransformNormal(Vector3.UnitZ, Matrix4x4.CreateRotationX(-angleRadians));
+        Matrix4x4 leverRotation = Matrix4x4.CreateRotationX(-angleRadians);
+        Vector3 direction = Vector3.TransformNormal(Vector3.UnitZ, leverRotation);
         direction = SafeNormalize(direction, Vector3.UnitZ);
+        Vector3 importedCenter = pivot + (direction * (config.LeverLength * 0.5f));
+        float leverDiameter = MathF.Max(1f, config.LeverRadius * 2f);
+        float tipDiameter = MathF.Max(1f, config.TipRadius * 2f);
+        float targetLeverWidth = MathF.Max(leverDiameter, tipDiameter);
+        float targetLeverHeight = MathF.Max(leverDiameter, tipDiameter);
+        float targetLeverDepth = MathF.Max(targetLeverWidth, config.LeverLength + tipDiameter);
+        TogglePartMesh? imported = TryBuildImportedPart(
+            config.LeverImportedMeshPath,
+            targetLeverWidth,
+            targetLeverHeight,
+            targetLeverDepth,
+            importedCenter,
+            leverRotation);
+        if (imported is not null)
+        {
+            return imported;
+        }
+
         Vector3 endpoint = pivot + (direction * config.LeverLength);
 
         AddCylinder(vertices, indices, pivot, endpoint, config.LeverRadius, 20);
@@ -156,6 +220,68 @@ public static class ToggleAssemblyMeshBuilder
             0f,
             -config.PlateHeight * 0.60f,
             -(config.PlateThickness * 0.5f) - 8f);
+    }
+
+    private static TogglePartMesh? TryBuildImportedPart(
+        string importedPath,
+        float targetWidth,
+        float targetHeight,
+        float targetDepth,
+        Vector3 translation,
+        Matrix4x4? rotation)
+    {
+        if (string.IsNullOrWhiteSpace(importedPath))
+        {
+            return null;
+        }
+
+        if (!ImportedStlCollarMeshBuilder.TryBuildStaticMeshFromPath(
+                importedPath,
+                targetWidth,
+                targetHeight,
+                targetDepth,
+                out MetalVertex[] vertices,
+                out uint[] indices,
+                out _))
+        {
+            return null;
+        }
+
+        Matrix4x4 rotationMatrix = rotation ?? Matrix4x4.Identity;
+        bool hasRotation = rotation.HasValue;
+        var transformedVertices = new MetalVertex[vertices.Length];
+        float referenceRadius = 0f;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 position = vertices[i].Position;
+            Vector3 normal = vertices[i].Normal;
+            Vector4 tangent = vertices[i].Tangent;
+
+            if (hasRotation)
+            {
+                position = Vector3.Transform(position, rotationMatrix);
+                normal = SafeNormalize(Vector3.TransformNormal(normal, rotationMatrix), normal);
+                Vector3 tangentDirection = new(tangent.X, tangent.Y, tangent.Z);
+                tangentDirection = SafeNormalize(Vector3.TransformNormal(tangentDirection, rotationMatrix), tangentDirection);
+                tangent = new Vector4(tangentDirection, tangent.W);
+            }
+
+            position += translation;
+            transformedVertices[i] = new MetalVertex
+            {
+                Position = position,
+                Normal = normal,
+                Tangent = tangent
+            };
+            referenceRadius = MathF.Max(referenceRadius, position.Length());
+        }
+
+        return new TogglePartMesh
+        {
+            Vertices = transformedVertices,
+            Indices = indices,
+            ReferenceRadius = referenceRadius
+        };
     }
 
     private static void AddBox(
@@ -439,13 +565,13 @@ public static class ToggleAssemblyMeshBuilder
         return value / MathF.Sqrt(lengthSq);
     }
 
-    private static bool ResolveEnabled(ToggleAssemblyMode mode, bool envEnabled)
+    private static bool ResolveEnabled(ToggleAssemblyMode mode, bool toggleRootExists, bool envEnabled)
     {
         return mode switch
         {
             ToggleAssemblyMode.Enabled => true,
             ToggleAssemblyMode.Disabled => false,
-            _ => envEnabled
+            _ => toggleRootExists || envEnabled
         };
     }
 
@@ -478,6 +604,138 @@ public static class ToggleAssemblyMeshBuilder
             2 => maxAngleDeg,
             _ => 0f
         };
+    }
+
+    private static string ResolveToggleRootDirectory()
+    {
+        string desktopRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            "KnobForge");
+        for (int i = 0; i < ToggleRootDirectoryCandidates.Length; i++)
+        {
+            string candidate = Path.Combine(desktopRoot, ToggleRootDirectoryCandidates[i]);
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return Path.Combine(desktopRoot, ToggleRootDirectoryCandidates[0]);
+    }
+
+    private static string ResolveImportedMeshPath(
+        string configuredPath,
+        string toggleRootDirectory,
+        TogglePartKind partKind)
+    {
+        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, toggleRootDirectory);
+        if (!string.IsNullOrWhiteSpace(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        return ResolveLibraryImportedMeshPath(toggleRootDirectory, partKind);
+    }
+
+    private static string? TryResolveExplicitMeshPath(string configuredPath, string toggleRootDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath))
+        {
+            return null;
+        }
+
+        string trimmed = configuredPath.Trim();
+        if (Path.IsPathRooted(trimmed))
+        {
+            return File.Exists(trimmed) ? trimmed : null;
+        }
+
+        if (string.IsNullOrWhiteSpace(toggleRootDirectory))
+        {
+            return null;
+        }
+
+        string combined = Path.GetFullPath(Path.Combine(toggleRootDirectory, trimmed));
+        return File.Exists(combined) ? combined : null;
+    }
+
+    private static string ResolveLibraryImportedMeshPath(string toggleRootDirectory, TogglePartKind partKind)
+    {
+        if (string.IsNullOrWhiteSpace(toggleRootDirectory) || !Directory.Exists(toggleRootDirectory))
+        {
+            return string.Empty;
+        }
+
+        IEnumerable<string> directoryCandidates = EnumeratePartDirectories(toggleRootDirectory, partKind);
+        foreach (string directory in directoryCandidates)
+        {
+            string? model = TryGetFirstSupportedModel(directory);
+            if (!string.IsNullOrWhiteSpace(model))
+            {
+                return model;
+            }
+        }
+
+        string preferredToken = partKind == TogglePartKind.Base ? "base" : "lever";
+        string? rootFallback = TryGetFirstSupportedModel(toggleRootDirectory, preferredToken);
+        return rootFallback ?? string.Empty;
+    }
+
+    private static IEnumerable<string> EnumeratePartDirectories(string toggleRootDirectory, TogglePartKind partKind)
+    {
+        string[] names = partKind == TogglePartKind.Base
+            ? BaseDirectoryNames
+            : LeverDirectoryNames;
+        for (int i = 0; i < names.Length; i++)
+        {
+            string candidate = Path.Combine(toggleRootDirectory, names[i]);
+            if (Directory.Exists(candidate))
+            {
+                yield return candidate;
+            }
+        }
+    }
+
+    private static string? TryGetFirstSupportedModel(string directory, string? preferredToken = null)
+    {
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+        {
+            return null;
+        }
+
+        IEnumerable<string> files = Directory
+            .EnumerateFiles(directory, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(path => SupportedExtensions.Any(ext => path.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(preferredToken))
+        {
+            string? preferred = files.FirstOrDefault(path =>
+                Path.GetFileNameWithoutExtension(path).Contains(preferredToken, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(preferred))
+            {
+                return preferred;
+            }
+        }
+
+        return files.FirstOrDefault();
+    }
+
+    private static long ResolveFileTicks(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            return 0L;
+        }
+
+        try
+        {
+            return File.GetLastWriteTimeUtc(path).Ticks;
+        }
+        catch
+        {
+            return 0L;
+        }
     }
 
     private static bool IsFeatureEnabledByEnvironmentVariable()

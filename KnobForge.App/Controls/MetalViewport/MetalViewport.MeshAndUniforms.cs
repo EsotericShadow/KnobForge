@@ -344,7 +344,11 @@ namespace KnobForge.App.Controls
                 BushingHeight: MathF.Round(config.BushingHeight, 3),
                 LeverLength: MathF.Round(config.LeverLength, 3),
                 LeverRadius: MathF.Round(config.LeverRadius, 3),
-                TipRadius: MathF.Round(config.TipRadius, 3));
+                TipRadius: MathF.Round(config.TipRadius, 3),
+                BaseImportedMeshPath: config.BaseImportedMeshPath ?? string.Empty,
+                BaseImportedMeshTicks: config.BaseImportedMeshTicks,
+                LeverImportedMeshPath: config.LeverImportedMeshPath ?? string.Empty,
+                LeverImportedMeshTicks: config.LeverImportedMeshTicks);
         }
 
         private GpuUniforms BuildUniforms(KnobProject? project, ModelNode? modelNode, float referenceRadius, Size viewportDip)

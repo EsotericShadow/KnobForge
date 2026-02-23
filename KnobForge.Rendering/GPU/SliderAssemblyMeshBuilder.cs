@@ -38,6 +38,11 @@ public sealed class SliderPartMesh
 
 public static class SliderAssemblyMeshBuilder
 {
+    private static readonly string[] SliderRootDirectoryCandidates =
+    {
+        Path.Combine("models", "slider_models"),
+        "slider_models"
+    };
     private static readonly string[] SupportedExtensions = { ".glb", ".stl" };
     private static readonly string[] BackplateDirectoryNames = { "backplate_models", "backplates", "backplate" };
     private static readonly string[] ThumbDirectoryNames = { "sliderthumb_models", "thumb_models", "thumbs", "slider_thumbs" };
@@ -283,7 +288,16 @@ public static class SliderAssemblyMeshBuilder
         string desktopRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
             "KnobForge");
-        return Path.Combine(desktopRoot, "slider_models");
+        for (int i = 0; i < SliderRootDirectoryCandidates.Length; i++)
+        {
+            string candidate = Path.Combine(desktopRoot, SliderRootDirectoryCandidates[i]);
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return Path.Combine(desktopRoot, SliderRootDirectoryCandidates[0]);
     }
 
     private static bool ResolveEnabled(SliderAssemblyMode mode, bool sliderRootExists, bool envEnabled)

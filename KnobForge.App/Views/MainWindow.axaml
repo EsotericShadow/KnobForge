@@ -594,6 +594,22 @@
                                         <TextBlock Text="Mode"/>
                                         <ComboBox x:Name="ToggleAssemblyModeCombo"/>
 
+                                        <DockPanel LastChildFill="True">
+                                            <Button x:Name="RefreshToggleLibraryButton"
+                                                    Content="Refresh Library"
+                                                    DockPanel.Dock="Right"
+                                                    Margin="8,0,0,0"
+                                                    MinWidth="120"/>
+                                            <TextBlock Text="Mesh Sources"
+                                                       VerticalAlignment="Center"/>
+                                        </DockPanel>
+
+                                        <TextBlock Text="Base Mesh Source"/>
+                                        <ComboBox x:Name="ToggleBaseMeshCombo"/>
+
+                                        <TextBlock Text="Lever Mesh Source"/>
+                                        <ComboBox x:Name="ToggleLeverMeshCombo"/>
+
                                         <TextBlock Text="State Count"/>
                                         <ComboBox x:Name="ToggleStateCountCombo"/>
 

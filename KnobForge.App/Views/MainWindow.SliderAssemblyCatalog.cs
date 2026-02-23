@@ -8,7 +8,11 @@ namespace KnobForge.App.Views
 {
     public partial class MainWindow
     {
-        private const string SliderModelsFolderName = "slider_models";
+        private static readonly string[] SliderModelsDirectoryCandidates =
+        {
+            Path.Combine("models", "slider_models"),
+            "slider_models"
+        };
         private static readonly string[] SliderSupportedModelExtensions = { ".glb", ".stl" };
         private static readonly string[] SliderBackplateDirectoryNames = { "backplate_models", "backplates", "backplate" };
         private static readonly string[] SliderThumbDirectoryNames = { "sliderthumb_models", "thumb_models", "thumbs", "slider_thumbs" };
@@ -202,10 +206,13 @@ namespace KnobForge.App.Views
             string desktopRoot = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
                 "KnobForge");
-            string sliderModelsDirectory = Path.Combine(desktopRoot, SliderModelsFolderName);
-            if (Directory.Exists(sliderModelsDirectory))
+            for (int i = 0; i < SliderModelsDirectoryCandidates.Length; i++)
             {
-                return sliderModelsDirectory;
+                string candidate = Path.Combine(desktopRoot, SliderModelsDirectoryCandidates[i]);
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
             }
 
             return null;

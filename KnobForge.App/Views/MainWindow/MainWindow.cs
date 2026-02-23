@@ -113,6 +113,9 @@ namespace KnobForge.App.Views
         private readonly Slider? _sliderThumbHeightSlider;
         private readonly Slider? _sliderThumbDepthSlider;
         private readonly ComboBox? _toggleAssemblyModeCombo;
+        private readonly Button? _refreshToggleLibraryButton;
+        private readonly ComboBox? _toggleBaseMeshCombo;
+        private readonly ComboBox? _toggleLeverMeshCombo;
         private readonly ComboBox? _toggleStateCountCombo;
         private readonly Slider? _toggleStateIndexSlider;
         private readonly Slider? _toggleMaxAngleSlider;
@@ -443,6 +446,8 @@ namespace KnobForge.App.Views
             private readonly List<CollarPresetOption> _collarPresetOptions = new();
             private readonly List<SliderMeshOption> _sliderBackplateMeshOptions = new();
             private readonly List<SliderMeshOption> _sliderThumbMeshOptions = new();
+            private readonly List<ToggleMeshOption> _toggleBaseMeshOptions = new();
+            private readonly List<ToggleMeshOption> _toggleLeverMeshOptions = new();
             private CollarPresetOption? _lastSelectableCollarPresetOption;
             private int _discoveredCollarLibraryCount;
             private readonly List<PaintLayerListItem> _paintLayerItems = new();
@@ -578,6 +583,9 @@ namespace KnobForge.App.Views
             _sliderThumbHeightSlider = this.FindControl<Slider>("SliderThumbHeightSlider");
             _sliderThumbDepthSlider = this.FindControl<Slider>("SliderThumbDepthSlider");
             _toggleAssemblyModeCombo = this.FindControl<ComboBox>("ToggleAssemblyModeCombo");
+            _refreshToggleLibraryButton = this.FindControl<Button>("RefreshToggleLibraryButton");
+            _toggleBaseMeshCombo = this.FindControl<ComboBox>("ToggleBaseMeshCombo");
+            _toggleLeverMeshCombo = this.FindControl<ComboBox>("ToggleLeverMeshCombo");
             _toggleStateCountCombo = this.FindControl<ComboBox>("ToggleStateCountCombo");
             _toggleStateIndexSlider = this.FindControl<Slider>("ToggleStateIndexSlider");
             _toggleMaxAngleSlider = this.FindControl<Slider>("ToggleMaxAngleSlider");

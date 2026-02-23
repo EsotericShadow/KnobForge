@@ -149,6 +149,8 @@ namespace KnobForge.Core
         private float _toggleLeverLength;
         private float _toggleLeverRadius;
         private float _toggleTipRadius;
+        private string _toggleBaseImportedMeshPath = string.Empty;
+        private string _toggleLeverImportedMeshPath = string.Empty;
         private float _toggleMaxAngleDeg = 24f;
         private ToggleAssemblyStateCount _toggleStateCount = ToggleAssemblyStateCount.TwoPosition;
         private int _toggleStateIndex;
@@ -439,6 +441,16 @@ namespace KnobForge.Core
         {
             get => _toggleTipRadius;
             set => _toggleTipRadius = ClampSliderDimensionOverride(value);
+        }
+        public string ToggleBaseImportedMeshPath
+        {
+            get => _toggleBaseImportedMeshPath;
+            set => _toggleBaseImportedMeshPath = NormalizeOptionalPath(value);
+        }
+        public string ToggleLeverImportedMeshPath
+        {
+            get => _toggleLeverImportedMeshPath;
+            set => _toggleLeverImportedMeshPath = NormalizeOptionalPath(value);
         }
         public SceneRootNode SceneRoot { get; } = new SceneRootNode();
         public SceneNode? SelectedNode { get; private set; }

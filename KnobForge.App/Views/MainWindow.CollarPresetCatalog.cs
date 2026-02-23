@@ -12,7 +12,11 @@ namespace KnobForge.App.Views
 {
     public partial class MainWindow
     {
-        private const string CollarModelsFolderName = "collar_models";
+        private static readonly string[] CollarModelsDirectoryCandidates =
+        {
+            Path.Combine("models", "collar_models"),
+            "collar_models"
+        };
         private const string CollarThumbnailsFolderName = "collar_thumbnails";
         private static readonly string[] UpsideDownImportedCollarTokens =
         {
@@ -410,7 +414,10 @@ namespace KnobForge.App.Views
             string currentDirectory = Environment.CurrentDirectory;
             if (!string.IsNullOrWhiteSpace(currentDirectory))
             {
-                candidates.Add(Path.Combine(currentDirectory, CollarModelsFolderName));
+                for (int i = 0; i < CollarModelsDirectoryCandidates.Length; i++)
+                {
+                    candidates.Add(Path.Combine(currentDirectory, CollarModelsDirectoryCandidates[i]));
+                }
             }
 
             string baseDirectory = AppContext.BaseDirectory;
@@ -419,7 +426,10 @@ namespace KnobForge.App.Views
                 string? probe = baseDirectory;
                 for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
                 {
-                    candidates.Add(Path.Combine(probe, CollarModelsFolderName));
+                    for (int j = 0; j < CollarModelsDirectoryCandidates.Length; j++)
+                    {
+                        candidates.Add(Path.Combine(probe, CollarModelsDirectoryCandidates[j]));
+                    }
                     probe = Directory.GetParent(probe)?.FullName;
                 }
             }
@@ -427,7 +437,10 @@ namespace KnobForge.App.Views
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             if (!string.IsNullOrWhiteSpace(desktop))
             {
-                candidates.Add(Path.Combine(desktop, "KnobForge", CollarModelsFolderName));
+                for (int i = 0; i < CollarModelsDirectoryCandidates.Length; i++)
+                {
+                    candidates.Add(Path.Combine(desktop, "KnobForge", CollarModelsDirectoryCandidates[i]));
+                }
             }
 
             foreach (string candidate in candidates)

@@ -235,7 +235,11 @@ namespace KnobForge.App.Controls
             float BushingHeight,
             float LeverLength,
             float LeverRadius,
-            float TipRadius);
+            float TipRadius,
+            string BaseImportedMeshPath,
+            long BaseImportedMeshTicks,
+            string LeverImportedMeshPath,
+            long LeverImportedMeshTicks);
 
         private readonly record struct SpiralNormalMapKey(
             float ReferenceRadius,
