@@ -25,6 +25,9 @@ internal static class Program
             RunTest("Hybrid modules reattach collar for rotary defaults", failures, HybridModulesReattachCollarForRotaryDefaults);
             RunTest("Hybrid modules keep collar when prune disabled", failures, HybridModulesKeepCollarWhenPruneDisabled);
             RunTest("Removing collar reselects model node", failures, RemovingCollarReselectsModelNode);
+            RunTest("Project-type switch matrix keeps expected defaults + valid selection", failures, ProjectTypeSwitchMatrixMaintainsExpectedDefaultsAndSelection);
+            RunTest("Project-type switch undo/redo replay restores exact state", failures, ProjectTypeSwitchUndoRedoReplayRestoresExactState);
+            RunTest("Project-type switch transition states round-trip via envelope", failures, () => ProjectTypeSwitchTransitionStatesRoundTripViaEnvelope(root));
         }
         finally
         {
@@ -379,6 +382,361 @@ internal static class Program
             throw new InvalidOperationException("expected selection to fall back to model after collar removal.");
         }
     }
+
+    private static readonly InteractorProjectType[] ProjectTypeMatrix =
+    {
+        InteractorProjectType.RotaryKnob,
+        InteractorProjectType.ThumbSlider,
+        InteractorProjectType.FlipSwitch,
+        InteractorProjectType.PushButton
+    };
+
+    private static void ProjectTypeSwitchMatrixMaintainsExpectedDefaultsAndSelection()
+    {
+        foreach (InteractorProjectType fromType in ProjectTypeMatrix)
+        {
+            foreach (InteractorProjectType toType in ProjectTypeMatrix)
+            {
+                if (fromType == toType)
+                {
+                    continue;
+                }
+
+                var project = new KnobProject();
+                project.ApplyInteractorProjectTypeDefaults(fromType);
+                SelectStressNodeForProjectType(project, fromType);
+
+                project.ApplyInteractorProjectTypeDefaults(toType);
+                AssertProjectTypeDefaults(project, toType, $"{fromType}->{toType}");
+                AssertSelectionIsValid(project, $"{fromType}->{toType}");
+
+                if (fromType == InteractorProjectType.RotaryKnob &&
+                    toType != InteractorProjectType.RotaryKnob &&
+                    project.SelectedNode is not ModelNode)
+                {
+                    throw new InvalidOperationException(
+                        $"expected collar selection fallback to model for transition {fromType}->{toType}.");
+                }
+            }
+        }
+    }
+
+    private static void ProjectTypeSwitchUndoRedoReplayRestoresExactState()
+    {
+        List<ProjectTypeTransitionSample> samples = BuildProjectTypeTransitionSamples();
+        foreach (ProjectTypeTransitionSample sample in samples)
+        {
+            if (!Equals(sample.Before, sample.Undo))
+            {
+                throw new InvalidOperationException(
+                    $"undo replay mismatch for {sample.FromType}->{sample.ToType}.");
+            }
+
+            if (!Equals(sample.After, sample.Redo))
+            {
+                throw new InvalidOperationException(
+                    $"redo replay mismatch for {sample.FromType}->{sample.ToType}.");
+            }
+        }
+    }
+
+    private static void ProjectTypeSwitchTransitionStatesRoundTripViaEnvelope(string root)
+    {
+        string path = Path.Combine(root, "project-type-switch-roundtrip.knob");
+        List<ProjectTypeTransitionSample> expectedSamples = BuildProjectTypeTransitionSamples();
+        string snapshotJson = JsonSerializer.Serialize(expectedSamples);
+
+        var envelope = new KnobProjectFileEnvelope
+        {
+            DisplayName = "Project Type Transition RoundTrip",
+            SnapshotJson = snapshotJson
+        };
+
+        if (!KnobProjectFileStore.TrySaveEnvelope(path, envelope, out string saveError))
+        {
+            throw new InvalidOperationException($"save failed: {saveError}");
+        }
+
+        if (!KnobProjectFileStore.TryLoadEnvelope(path, out KnobProjectFileEnvelope? loaded, out string loadError) || loaded is null)
+        {
+            throw new InvalidOperationException($"load failed: {loadError}");
+        }
+
+        List<ProjectTypeTransitionSample>? loadedSamples =
+            JsonSerializer.Deserialize<List<ProjectTypeTransitionSample>>(loaded.SnapshotJson);
+        if (loadedSamples == null)
+        {
+            throw new InvalidOperationException("deserialized transition samples were null.");
+        }
+
+        if (loadedSamples.Count != expectedSamples.Count)
+        {
+            throw new InvalidOperationException(
+                $"transition sample count mismatch: expected {expectedSamples.Count}, got {loadedSamples.Count}.");
+        }
+
+        for (int i = 0; i < expectedSamples.Count; i++)
+        {
+            if (!Equals(expectedSamples[i], loadedSamples[i]))
+            {
+                throw new InvalidOperationException($"transition sample mismatch at index {i}.");
+            }
+        }
+    }
+
+    private static List<ProjectTypeTransitionSample> BuildProjectTypeTransitionSamples()
+    {
+        var samples = new List<ProjectTypeTransitionSample>();
+
+        foreach (InteractorProjectType fromType in ProjectTypeMatrix)
+        {
+            foreach (InteractorProjectType toType in ProjectTypeMatrix)
+            {
+                if (fromType == toType)
+                {
+                    continue;
+                }
+
+                var project = new KnobProject();
+                project.ApplyInteractorProjectTypeDefaults(fromType);
+                SelectStressNodeForProjectType(project, fromType);
+                ProjectTypeStateSnapshot before = CaptureProjectTypeState(project);
+
+                project.ApplyInteractorProjectTypeDefaults(toType);
+                AssertSelectionIsValid(project, $"{fromType}->{toType} after");
+                ProjectTypeStateSnapshot after = CaptureProjectTypeState(project);
+
+                ApplyProjectTypeState(project, before);
+                AssertSelectionIsValid(project, $"{fromType}->{toType} undo");
+                ProjectTypeStateSnapshot undo = CaptureProjectTypeState(project);
+
+                ApplyProjectTypeState(project, after);
+                AssertSelectionIsValid(project, $"{fromType}->{toType} redo");
+                ProjectTypeStateSnapshot redo = CaptureProjectTypeState(project);
+
+                samples.Add(new ProjectTypeTransitionSample(
+                    fromType,
+                    toType,
+                    before,
+                    after,
+                    undo,
+                    redo));
+            }
+        }
+
+        return samples;
+    }
+
+    private static void SelectStressNodeForProjectType(KnobProject project, InteractorProjectType projectType)
+    {
+        if (projectType == InteractorProjectType.RotaryKnob)
+        {
+            project.SetSelectedNode(project.EnsureCollarNode());
+        }
+        else
+        {
+            project.SetSelectedNode(project.EnsureMaterialNode());
+        }
+
+        project.EnsureSelection();
+    }
+
+    private static ProjectTypeStateSnapshot CaptureProjectTypeState(KnobProject project)
+    {
+        ModelNode model = project.EnsureModelNode();
+        bool hasMaterialNode = model.Children.OfType<MaterialNode>().Any();
+        bool hasCollarNode = model.Children.OfType<CollarNode>().Any();
+
+        return new ProjectTypeStateSnapshot(
+            project.ProjectType,
+            project.SliderMode,
+            project.ToggleMode,
+            hasMaterialNode,
+            hasCollarNode,
+            ClassifySelectedNode(project.SelectedNode),
+            project.SelectedLightIndex);
+    }
+
+    private static void ApplyProjectTypeState(KnobProject project, ProjectTypeStateSnapshot snapshot)
+    {
+        project.ApplyInteractorProjectTypeDefaults(snapshot.ProjectType);
+        project.SliderMode = snapshot.SliderMode;
+        project.ToggleMode = snapshot.ToggleMode;
+
+        ModelNode model = project.EnsureModelNode();
+        if (snapshot.HasMaterialNode)
+        {
+            project.EnsureMaterialNode();
+        }
+
+        bool hasCollarNode = model.Children.OfType<CollarNode>().Any();
+        if (snapshot.HasCollarNode && !hasCollarNode)
+        {
+            project.EnsureCollarNode();
+        }
+        else if (!snapshot.HasCollarNode && hasCollarNode)
+        {
+            project.RemoveCollarNode();
+        }
+
+        if (project.Lights.Count > 0)
+        {
+            int clampedLightIndex = Math.Clamp(snapshot.SelectedLightIndex, 0, project.Lights.Count - 1);
+            project.SetSelectedLightIndex(clampedLightIndex);
+        }
+
+        project.SetSelectedNode(snapshot.SelectedNodeKind switch
+        {
+            SelectedNodeKind.SceneRoot => project.SceneRoot,
+            SelectedNodeKind.Model => project.EnsureModelNode(),
+            SelectedNodeKind.Material => project.EnsureMaterialNode(),
+            SelectedNodeKind.Collar => project.EnsureCollarNode(),
+            SelectedNodeKind.Light => ResolveSelectedLightNode(project),
+            _ => project.EnsureModelNode()
+        });
+
+        project.EnsureSelection();
+    }
+
+    private static SelectedNodeKind ClassifySelectedNode(SceneNode? selectedNode)
+    {
+        return selectedNode switch
+        {
+            null => SelectedNodeKind.None,
+            SceneRootNode => SelectedNodeKind.SceneRoot,
+            ModelNode => SelectedNodeKind.Model,
+            MaterialNode => SelectedNodeKind.Material,
+            CollarNode => SelectedNodeKind.Collar,
+            LightNode => SelectedNodeKind.Light,
+            _ => SelectedNodeKind.Unknown
+        };
+    }
+
+    private static SceneNode ResolveSelectedLightNode(KnobProject project)
+    {
+        if (project.Lights.Count == 0)
+        {
+            return project.EnsureModelNode();
+        }
+
+        int index = Math.Clamp(project.SelectedLightIndex, 0, project.Lights.Count - 1);
+        KnobLight light = project.Lights[index];
+        SceneNode? selectedLightNode = project.SceneRoot.Children
+            .OfType<LightNode>()
+            .FirstOrDefault(node => ReferenceEquals(node.Light, light));
+        return selectedLightNode ?? project.EnsureModelNode();
+    }
+
+    private static void AssertProjectTypeDefaults(KnobProject project, InteractorProjectType type, string context)
+    {
+        if (project.ProjectType != type)
+        {
+            throw new InvalidOperationException($"expected ProjectType={type} after {context}, got {project.ProjectType}.");
+        }
+
+        (SliderAssemblyMode expectedSliderMode, ToggleAssemblyMode expectedToggleMode, bool expectedCollarNode) =
+            ResolveExpectedDefaults(type);
+
+        if (project.SliderMode != expectedSliderMode)
+        {
+            throw new InvalidOperationException(
+                $"expected SliderMode={expectedSliderMode} after {context}, got {project.SliderMode}.");
+        }
+
+        if (project.ToggleMode != expectedToggleMode)
+        {
+            throw new InvalidOperationException(
+                $"expected ToggleMode={expectedToggleMode} after {context}, got {project.ToggleMode}.");
+        }
+
+        ModelNode model = project.EnsureModelNode();
+        bool hasMaterialNode = model.Children.OfType<MaterialNode>().Any();
+        bool hasCollarNode = model.Children.OfType<CollarNode>().Any();
+
+        if (!hasMaterialNode)
+        {
+            throw new InvalidOperationException($"expected material node after {context}.");
+        }
+
+        if (hasCollarNode != expectedCollarNode)
+        {
+            throw new InvalidOperationException(
+                $"expected HasCollarNode={expectedCollarNode} after {context}, got {hasCollarNode}.");
+        }
+    }
+
+    private static void AssertSelectionIsValid(KnobProject project, string context)
+    {
+        project.EnsureSelection();
+        SceneNode? selectedNode = project.SelectedNode;
+        if (selectedNode == null)
+        {
+            throw new InvalidOperationException($"selection was null for {context}.");
+        }
+
+        if (!ContainsNode(project.SceneRoot, selectedNode.Id))
+        {
+            throw new InvalidOperationException($"selection points to non-scene node for {context}.");
+        }
+    }
+
+    private static bool ContainsNode(SceneNode root, Guid id)
+    {
+        if (root.Id == id)
+        {
+            return true;
+        }
+
+        foreach (SceneNode child in root.Children)
+        {
+            if (ContainsNode(child, id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static (SliderAssemblyMode SliderMode, ToggleAssemblyMode ToggleMode, bool HasCollarNode)
+        ResolveExpectedDefaults(InteractorProjectType type)
+    {
+        return type switch
+        {
+            InteractorProjectType.ThumbSlider => (SliderAssemblyMode.Enabled, ToggleAssemblyMode.Disabled, false),
+            InteractorProjectType.FlipSwitch => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Enabled, false),
+            InteractorProjectType.PushButton => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Disabled, false),
+            _ => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Disabled, true)
+        };
+    }
+
+    private enum SelectedNodeKind
+    {
+        None = 0,
+        SceneRoot = 1,
+        Model = 2,
+        Material = 3,
+        Collar = 4,
+        Light = 5,
+        Unknown = 6
+    }
+
+    private sealed record ProjectTypeStateSnapshot(
+        InteractorProjectType ProjectType,
+        SliderAssemblyMode SliderMode,
+        ToggleAssemblyMode ToggleMode,
+        bool HasMaterialNode,
+        bool HasCollarNode,
+        SelectedNodeKind SelectedNodeKind,
+        int SelectedLightIndex);
+
+    private sealed record ProjectTypeTransitionSample(
+        InteractorProjectType FromType,
+        InteractorProjectType ToType,
+        ProjectTypeStateSnapshot Before,
+        ProjectTypeStateSnapshot After,
+        ProjectTypeStateSnapshot Undo,
+        ProjectTypeStateSnapshot Redo);
 
     private static string BuildSnapshotJson()
     {
