@@ -488,9 +488,15 @@ namespace KnobForge.App.Views
         }
 
         public MainWindow()
+            : this(InteractorProjectType.RotaryKnob)
+        {
+        }
+
+        public MainWindow(InteractorProjectType projectType)
         {
             InitializeComponent();
             _project = new KnobProject();
+            _project.ApplyInteractorProjectTypeDefaults(projectType);
             _sceneNodes = new ObservableCollection<SceneNode>();
 
             _metalViewport = this.FindControl<MetalViewport>("MetalViewport");
@@ -916,6 +922,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
+            ApplyProjectTypeInspectorVisibility();
             LoadUserReferenceProfiles();
             InitializeViewportAndSceneBindings();
             WireButtonHandlers();

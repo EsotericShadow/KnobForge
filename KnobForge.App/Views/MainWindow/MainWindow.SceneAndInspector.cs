@@ -401,6 +401,7 @@ namespace KnobForge.App.Views
             {
                 var project = _project;
                 project.EnsureSelection();
+                ApplyProjectTypeInspectorVisibility();
                 var model = GetModelNode();
                 var material = model?.Children.OfType<MaterialNode>().FirstOrDefault();
                 var collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
@@ -1043,13 +1044,17 @@ namespace KnobForge.App.Views
             if (tabPolicy == InspectorRefreshTabPolicy.FollowSceneSelection || preservedTab == null)
             {
                 SelectInspectorTabForSceneNode(_project.SelectedNode);
+                EnsureSelectedInspectorTabIsVisible();
                 return;
             }
 
-            if (!ReferenceEquals(_inspectorTabControl.SelectedItem, preservedTab))
+            TabItem? preferred = ResolvePreferredVisibleInspectorTab(preservedTab);
+            if (preferred != null && !ReferenceEquals(_inspectorTabControl.SelectedItem, preferred))
             {
-                _inspectorTabControl.SelectedItem = preservedTab;
+                _inspectorTabControl.SelectedItem = preferred;
             }
+
+            EnsureSelectedInspectorTabIsVisible();
         }
 
     }

@@ -83,6 +83,14 @@ namespace KnobForge.Core
         ThreePosition = 3
     }
 
+    public enum InteractorProjectType
+    {
+        RotaryKnob = 0,
+        FlipSwitch = 1,
+        ThumbSlider = 2,
+        PushButton = 3
+    }
+
     public sealed class KnobLight
     {
         public string Name { get; set; } = "Light";
@@ -453,6 +461,7 @@ namespace KnobForge.Core
             set => _toggleLeverImportedMeshPath = NormalizeOptionalPath(value);
         }
         public SceneRootNode SceneRoot { get; } = new SceneRootNode();
+        public InteractorProjectType ProjectType { get; set; } = InteractorProjectType.RotaryKnob;
         public SceneNode? SelectedNode { get; private set; }
         public List<KnobLight> Lights { get; } = new List<KnobLight>();
         public int SelectedLightIndex { get; private set; } = -1;
@@ -563,6 +572,31 @@ namespace KnobForge.Core
             var materialNode = new KnobForge.Core.Scene.MaterialNode("DefaultMaterial");
             modelNode.AddChild(materialNode);
             SetSelectedNode(modelNode);
+        }
+
+        public void ApplyInteractorProjectTypeDefaults(InteractorProjectType projectType)
+        {
+            ProjectType = projectType;
+
+            switch (projectType)
+            {
+                case InteractorProjectType.ThumbSlider:
+                    SliderMode = SliderAssemblyMode.Enabled;
+                    ToggleMode = ToggleAssemblyMode.Disabled;
+                    break;
+                case InteractorProjectType.FlipSwitch:
+                    SliderMode = SliderAssemblyMode.Disabled;
+                    ToggleMode = ToggleAssemblyMode.Enabled;
+                    break;
+                case InteractorProjectType.PushButton:
+                    SliderMode = SliderAssemblyMode.Disabled;
+                    ToggleMode = ToggleAssemblyMode.Disabled;
+                    break;
+                default:
+                    SliderMode = SliderAssemblyMode.Disabled;
+                    ToggleMode = ToggleAssemblyMode.Disabled;
+                    break;
+            }
         }
 
         public void SetSelectedNode(SceneNode? node)

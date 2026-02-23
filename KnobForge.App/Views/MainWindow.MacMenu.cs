@@ -291,9 +291,24 @@ namespace KnobForge.App.Views
 
         private void OpenNewProjectWindowFromMenu()
         {
-            var window = new MainWindow();
-            window.Show();
-            window.Activate();
+            var launcher = new ProjectLauncherWindow();
+            launcher.LaunchRequested += async result =>
+            {
+                var window = new MainWindow(result.ProjectType ?? InteractorProjectType.RotaryKnob);
+                if (!string.IsNullOrWhiteSpace(result.ProjectPath) &&
+                    !window.TryLoadProjectFromFile(result.ProjectPath, out string error))
+                {
+                    await ShowProjectFileInfoDialogAsync("Open Project Failed", error);
+                    return;
+                }
+
+                window.Show();
+                window.Activate();
+                launcher.Close();
+            };
+
+            launcher.Show();
+            launcher.Activate();
         }
 
         private void QuitFromMenu()

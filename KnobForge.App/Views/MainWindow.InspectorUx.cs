@@ -159,7 +159,7 @@ namespace KnobForge.App.Views
         {
             return _inspectorSearchItems
                 .Select(item => (Item: item, Score: ScoreSearchItem(item, query)))
-                .Where(entry => entry.Score > 0)
+                .Where(entry => entry.Score > 0 && entry.Item.TargetControl.IsVisible)
                 .OrderByDescending(entry => entry.Score)
                 .ThenBy(entry => entry.Item.DisplayName, StringComparer.OrdinalIgnoreCase)
                 .Select(entry => entry.Item)

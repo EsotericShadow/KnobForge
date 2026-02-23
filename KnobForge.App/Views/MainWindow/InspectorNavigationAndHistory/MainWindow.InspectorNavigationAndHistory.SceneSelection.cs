@@ -69,6 +69,7 @@ namespace KnobForge.App.Views
             _project.SpiralNormalLodFadeStart = snapshot.SpiralNormalLodFadeStart;
             _project.SpiralNormalLodFadeEnd = snapshot.SpiralNormalLodFadeEnd;
             _project.SpiralRoughnessLodBoost = snapshot.SpiralRoughnessLodBoost;
+            _project.ProjectType = snapshot.ProjectType;
             _project.SliderMode = snapshot.SliderMode;
             _project.SliderBackplateWidth = snapshot.SliderBackplateWidth;
             _project.SliderBackplateHeight = snapshot.SliderBackplateHeight;
@@ -370,6 +371,11 @@ namespace KnobForge.App.Views
                 return false;
             }
 
+            if (!IsInspectorTabSelectable(selectedTab))
+            {
+                return false;
+            }
+
             SceneNode? desiredNode = null;
             if (ReferenceEquals(selectedTab, _lightingTabItem))
             {
@@ -480,6 +486,7 @@ namespace KnobForge.App.Views
                 _ => _modelTabItem
             };
 
+            target = ResolvePreferredVisibleInspectorTab(target);
             if (target != null && !ReferenceEquals(_inspectorTabControl.SelectedItem, target))
             {
                 _inspectorTabControl.SelectedItem = target;
@@ -494,6 +501,7 @@ namespace KnobForge.App.Views
             }
 
             TabItem? tab = FindAncestorTabItem(control);
+            tab = ResolvePreferredVisibleInspectorTab(tab);
             if (tab != null && !ReferenceEquals(_inspectorTabControl.SelectedItem, tab))
             {
                 _inspectorTabControl.SelectedItem = tab;

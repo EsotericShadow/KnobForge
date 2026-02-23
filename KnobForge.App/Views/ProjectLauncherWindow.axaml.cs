@@ -1,10 +1,14 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using KnobForge.App.ProjectFiles;
+using KnobForge.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -103,9 +107,15 @@ namespace KnobForge.App.Views
             }
         }
 
-        private void OnNewProjectButtonClicked(object? sender, RoutedEventArgs e)
+        private async void OnNewProjectButtonClicked(object? sender, RoutedEventArgs e)
         {
-            LaunchRequested?.Invoke(new ProjectLauncherResult(null));
+            InteractorProjectType? projectType = await ShowProjectTypePickerAsync();
+            if (projectType == null)
+            {
+                return;
+            }
+
+            LaunchRequested?.Invoke(ProjectLauncherResult.ForNewProject(projectType.Value));
         }
 
         private void OnOpenSelectedProjectButtonClicked(object? sender, RoutedEventArgs e)
@@ -166,6 +176,119 @@ namespace KnobForge.App.Views
             _openSelectedProjectButton.IsEnabled = _projectListBox.SelectedItem is ProjectCard;
         }
 
+        private async Task<InteractorProjectType?> ShowProjectTypePickerAsync()
+        {
+            InteractorProjectType? selectedType = null;
+            var dialog = new Window
+            {
+                Title = "Choose Project Type",
+                Width = 460,
+                Height = 360,
+                MinWidth = 420,
+                MinHeight = 320,
+                CanResize = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            var content = new StackPanel
+            {
+                Margin = new Thickness(16),
+                Spacing = 10
+            };
+            content.Children.Add(new TextBlock
+            {
+                Text = "Create a new interactor project:",
+                FontSize = 16,
+                FontWeight = FontWeight.SemiBold
+            });
+
+            content.Children.Add(CreateProjectTypeButton(
+                dialog,
+                "Rotary Knob",
+                "Encoder and knob-focused workflow.",
+                InteractorProjectType.RotaryKnob,
+                value => selectedType = value));
+            content.Children.Add(CreateProjectTypeButton(
+                dialog,
+                "Flip Switch",
+                "Toggle switch workflow with base + lever meshes.",
+                InteractorProjectType.FlipSwitch,
+                value => selectedType = value));
+            content.Children.Add(CreateProjectTypeButton(
+                dialog,
+                "Thumb Slider",
+                "Slider workflow with backplate + thumb meshes.",
+                InteractorProjectType.ThumbSlider,
+                value => selectedType = value));
+            content.Children.Add(CreateProjectTypeButton(
+                dialog,
+                "Push Button",
+                "Button workflow scaffold (geometry to be expanded).",
+                InteractorProjectType.PushButton,
+                value => selectedType = value));
+
+            var actions = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Spacing = 8,
+                Margin = new Thickness(0, 6, 0, 0)
+            };
+            var cancelButton = new Button
+            {
+                Content = "Cancel",
+                MinWidth = 90
+            };
+            cancelButton.Click += (_, _) => dialog.Close();
+            actions.Children.Add(cancelButton);
+            content.Children.Add(actions);
+
+            dialog.Content = content;
+            await dialog.ShowDialog(this);
+            return selectedType;
+        }
+
+        private static Button CreateProjectTypeButton(
+            Window dialog,
+            string title,
+            string description,
+            InteractorProjectType projectType,
+            Action<InteractorProjectType> onSelected)
+        {
+            var button = new Button
+            {
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                Padding = new Thickness(12, 10),
+                Content = new StackPanel
+                {
+                    Spacing = 2,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = title,
+                            FontSize = 14,
+                            FontWeight = FontWeight.SemiBold
+                        },
+                        new TextBlock
+                        {
+                            Text = description,
+                            FontSize = 11,
+                            Foreground = Brushes.Gray
+                        }
+                    }
+                }
+            };
+
+            button.Click += (_, _) =>
+            {
+                onSelected(projectType);
+                dialog.Close();
+            };
+
+            return button;
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             DisposeThumbnails();
@@ -182,13 +305,20 @@ namespace KnobForge.App.Views
 
         public sealed class ProjectLauncherResult
         {
-            public ProjectLauncherResult(string? projectPath)
+            public ProjectLauncherResult(string? projectPath, InteractorProjectType? projectType = null)
             {
                 ProjectPath = projectPath;
+                ProjectType = projectType;
             }
 
             public string? ProjectPath { get; }
+            public InteractorProjectType? ProjectType { get; }
             public bool IsNewProject => string.IsNullOrWhiteSpace(ProjectPath);
+
+            public static ProjectLauncherResult ForNewProject(InteractorProjectType projectType)
+            {
+                return new ProjectLauncherResult(null, projectType);
+            }
         }
 
         private sealed class ProjectCard : IDisposable
