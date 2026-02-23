@@ -293,6 +293,7 @@ namespace KnobForge.App.Views
         private readonly TextBox? _scratchExposeRoughnessInputTextBox;
         private readonly Button? _clearPaintMaskButton;
         private readonly Button? _newProjectButton;
+        private readonly Button? _changeProjectTypeButton;
         private readonly Button? _openProjectButton;
         private readonly Button? _saveProjectButton;
         private readonly Button? _saveProjectAsButton;
@@ -769,6 +770,7 @@ namespace KnobForge.App.Views
             _scratchExposeRoughnessInputTextBox = this.FindControl<TextBox>("ScratchExposeRoughnessInputTextBox");
             _clearPaintMaskButton = this.FindControl<Button>("ClearPaintMaskButton");
             _newProjectButton = this.FindControl<Button>("NewProjectButton");
+            _changeProjectTypeButton = this.FindControl<Button>("ChangeProjectTypeButton");
             _openProjectButton = this.FindControl<Button>("OpenProjectButton");
             _saveProjectButton = this.FindControl<Button>("SaveProjectButton");
             _saveProjectAsButton = this.FindControl<Button>("SaveProjectAsButton");

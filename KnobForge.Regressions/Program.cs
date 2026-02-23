@@ -1,4 +1,6 @@
 using KnobForge.App.ProjectFiles;
+using KnobForge.Core;
+using KnobForge.Core.Scene;
 using System.Text.Json;
 
 internal static class Program
@@ -15,6 +17,14 @@ internal static class Program
             RunTest("Load rejects unsupported format", failures, () => LoadRejectsUnsupportedFormat(root));
             RunTest("Load rejects missing snapshot", failures, () => LoadRejectsMissingSnapshot(root));
             RunTest("Loaded snapshot exposes required sections", failures, () => LoadedSnapshotExposesRequiredSections(root));
+            RunTest("Project type resolver honors explicit type", failures, ProjectTypeResolverHonorsExplicitType);
+            RunTest("Project type resolver infers slider legacy snapshots", failures, ProjectTypeResolverInfersSliderLegacySnapshots);
+            RunTest("Project type resolver infers toggle legacy snapshots", failures, ProjectTypeResolverInfersToggleLegacySnapshots);
+            RunTest("Project type resolver defaults to rotary when ambiguous", failures, ProjectTypeResolverDefaultsToRotaryWhenAmbiguous);
+            RunTest("Hybrid modules prune collar on slider defaults", failures, HybridModulesPruneCollarOnSliderDefaults);
+            RunTest("Hybrid modules reattach collar for rotary defaults", failures, HybridModulesReattachCollarForRotaryDefaults);
+            RunTest("Hybrid modules keep collar when prune disabled", failures, HybridModulesKeepCollarWhenPruneDisabled);
+            RunTest("Removing collar reselects model node", failures, RemovingCollarReselectsModelNode);
         }
         finally
         {
@@ -164,6 +174,210 @@ internal static class Program
         AssertHasProperty(collar, "ImportedMirrorX");
         AssertHasProperty(collar, "ImportedMirrorY");
         AssertHasProperty(collar, "ImportedMirrorZ");
+    }
+
+    private static void ProjectTypeResolverHonorsExplicitType()
+    {
+        var hint = new ProjectTypeSnapshotHint(
+            HasProjectType: true,
+            ProjectType: InteractorProjectType.PushButton,
+            SliderMode: SliderAssemblyMode.Enabled,
+            ToggleMode: ToggleAssemblyMode.Enabled,
+            SliderBackplateImportedMeshPath: string.Empty,
+            SliderThumbImportedMeshPath: string.Empty,
+            SliderBackplateWidth: 0f,
+            SliderBackplateHeight: 0f,
+            SliderBackplateThickness: 0f,
+            SliderThumbWidth: 0f,
+            SliderThumbHeight: 0f,
+            SliderThumbDepth: 0f,
+            ToggleBaseImportedMeshPath: string.Empty,
+            ToggleLeverImportedMeshPath: string.Empty,
+            TogglePlateWidth: 0f,
+            TogglePlateHeight: 0f,
+            TogglePlateThickness: 0f,
+            ToggleBushingRadius: 0f,
+            ToggleBushingHeight: 0f,
+            ToggleLeverLength: 0f,
+            ToggleLeverRadius: 0f,
+            ToggleTipRadius: 0f,
+            ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
+            ToggleMaxAngleDeg: 24f);
+
+        InteractorProjectType resolved = InteractorProjectTypeResolver.ResolveFromSnapshotHint(hint);
+        if (resolved != InteractorProjectType.PushButton)
+        {
+            throw new InvalidOperationException($"expected PushButton, got {resolved}.");
+        }
+    }
+
+    private static void ProjectTypeResolverInfersSliderLegacySnapshots()
+    {
+        var hint = new ProjectTypeSnapshotHint(
+            HasProjectType: false,
+            ProjectType: InteractorProjectType.RotaryKnob,
+            SliderMode: SliderAssemblyMode.Auto,
+            ToggleMode: ToggleAssemblyMode.Auto,
+            SliderBackplateImportedMeshPath: "/tmp/models/slider/base.glb",
+            SliderThumbImportedMeshPath: string.Empty,
+            SliderBackplateWidth: 0f,
+            SliderBackplateHeight: 0f,
+            SliderBackplateThickness: 0f,
+            SliderThumbWidth: 0f,
+            SliderThumbHeight: 0f,
+            SliderThumbDepth: 0f,
+            ToggleBaseImportedMeshPath: string.Empty,
+            ToggleLeverImportedMeshPath: string.Empty,
+            TogglePlateWidth: 0f,
+            TogglePlateHeight: 0f,
+            TogglePlateThickness: 0f,
+            ToggleBushingRadius: 0f,
+            ToggleBushingHeight: 0f,
+            ToggleLeverLength: 0f,
+            ToggleLeverRadius: 0f,
+            ToggleTipRadius: 0f,
+            ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
+            ToggleMaxAngleDeg: 24f);
+
+        InteractorProjectType resolved = InteractorProjectTypeResolver.ResolveFromSnapshotHint(hint);
+        if (resolved != InteractorProjectType.ThumbSlider)
+        {
+            throw new InvalidOperationException($"expected ThumbSlider, got {resolved}.");
+        }
+    }
+
+    private static void ProjectTypeResolverInfersToggleLegacySnapshots()
+    {
+        var hint = new ProjectTypeSnapshotHint(
+            HasProjectType: false,
+            ProjectType: InteractorProjectType.RotaryKnob,
+            SliderMode: SliderAssemblyMode.Auto,
+            ToggleMode: ToggleAssemblyMode.Auto,
+            SliderBackplateImportedMeshPath: string.Empty,
+            SliderThumbImportedMeshPath: string.Empty,
+            SliderBackplateWidth: 0f,
+            SliderBackplateHeight: 0f,
+            SliderBackplateThickness: 0f,
+            SliderThumbWidth: 0f,
+            SliderThumbHeight: 0f,
+            SliderThumbDepth: 0f,
+            ToggleBaseImportedMeshPath: "/tmp/models/switch/base.glb",
+            ToggleLeverImportedMeshPath: string.Empty,
+            TogglePlateWidth: 0f,
+            TogglePlateHeight: 0f,
+            TogglePlateThickness: 0f,
+            ToggleBushingRadius: 0f,
+            ToggleBushingHeight: 0f,
+            ToggleLeverLength: 0f,
+            ToggleLeverRadius: 0f,
+            ToggleTipRadius: 0f,
+            ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
+            ToggleMaxAngleDeg: 24f);
+
+        InteractorProjectType resolved = InteractorProjectTypeResolver.ResolveFromSnapshotHint(hint);
+        if (resolved != InteractorProjectType.FlipSwitch)
+        {
+            throw new InvalidOperationException($"expected FlipSwitch, got {resolved}.");
+        }
+    }
+
+    private static void ProjectTypeResolverDefaultsToRotaryWhenAmbiguous()
+    {
+        var hint = new ProjectTypeSnapshotHint(
+            HasProjectType: false,
+            ProjectType: InteractorProjectType.RotaryKnob,
+            SliderMode: SliderAssemblyMode.Auto,
+            ToggleMode: ToggleAssemblyMode.Auto,
+            SliderBackplateImportedMeshPath: string.Empty,
+            SliderThumbImportedMeshPath: string.Empty,
+            SliderBackplateWidth: 0f,
+            SliderBackplateHeight: 0f,
+            SliderBackplateThickness: 0f,
+            SliderThumbWidth: 0f,
+            SliderThumbHeight: 0f,
+            SliderThumbDepth: 0f,
+            ToggleBaseImportedMeshPath: string.Empty,
+            ToggleLeverImportedMeshPath: string.Empty,
+            TogglePlateWidth: 0f,
+            TogglePlateHeight: 0f,
+            TogglePlateThickness: 0f,
+            ToggleBushingRadius: 0f,
+            ToggleBushingHeight: 0f,
+            ToggleLeverLength: 0f,
+            ToggleLeverRadius: 0f,
+            ToggleTipRadius: 0f,
+            ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
+            ToggleMaxAngleDeg: 24f);
+
+        InteractorProjectType resolved = InteractorProjectTypeResolver.ResolveFromSnapshotHint(hint);
+        if (resolved != InteractorProjectType.RotaryKnob)
+        {
+            throw new InvalidOperationException($"expected RotaryKnob, got {resolved}.");
+        }
+    }
+
+    private static void HybridModulesPruneCollarOnSliderDefaults()
+    {
+        var project = new KnobProject();
+        project.ApplyInteractorProjectTypeDefaults(InteractorProjectType.ThumbSlider);
+        ModelNode model = project.EnsureModelNode();
+        bool hasMaterial = model.Children.OfType<MaterialNode>().Any();
+        bool hasCollar = model.Children.OfType<CollarNode>().Any();
+
+        if (!hasMaterial)
+        {
+            throw new InvalidOperationException("expected material module for slider project.");
+        }
+
+        if (hasCollar)
+        {
+            throw new InvalidOperationException("expected collar module to be pruned for slider defaults.");
+        }
+    }
+
+    private static void HybridModulesReattachCollarForRotaryDefaults()
+    {
+        var project = new KnobProject();
+        project.ApplyInteractorProjectTypeDefaults(InteractorProjectType.ThumbSlider);
+        project.ApplyInteractorProjectTypeDefaults(InteractorProjectType.RotaryKnob);
+        ModelNode model = project.EnsureModelNode();
+        bool hasCollar = model.Children.OfType<CollarNode>().Any();
+        if (!hasCollar)
+        {
+            throw new InvalidOperationException("expected collar module to be attached for rotary defaults.");
+        }
+    }
+
+    private static void HybridModulesKeepCollarWhenPruneDisabled()
+    {
+        var project = new KnobProject();
+        ModelNode model = project.EnsureModelNode();
+        bool hadCollarInitially = model.Children.OfType<CollarNode>().Any();
+        project.EnsureInteractorModulesForProjectType(InteractorProjectType.ThumbSlider, pruneUnsupportedModules: false);
+        bool hasCollarAfterNoPrune = model.Children.OfType<CollarNode>().Any();
+
+        if (!hadCollarInitially || !hasCollarAfterNoPrune)
+        {
+            throw new InvalidOperationException("expected collar module to remain attached when pruneUnsupportedModules=false.");
+        }
+    }
+
+    private static void RemovingCollarReselectsModelNode()
+    {
+        var project = new KnobProject();
+        ModelNode model = project.EnsureModelNode();
+        CollarNode collar = project.EnsureCollarNode();
+        project.SetSelectedNode(collar);
+        bool removed = project.RemoveCollarNode();
+        if (!removed)
+        {
+            throw new InvalidOperationException("expected collar removal to succeed.");
+        }
+
+        if (project.SelectedNode == null || project.SelectedNode.Id != model.Id)
+        {
+            throw new InvalidOperationException("expected selection to fall back to model after collar removal.");
+        }
     }
 
     private static string BuildSnapshotJson()

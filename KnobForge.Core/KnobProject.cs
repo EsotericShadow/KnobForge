@@ -521,57 +521,8 @@ namespace KnobForge.Core
             light4.SpecularPower = 64.0f;
 
             SetSelectedLightIndex(0);
-            var modelNode = new KnobForge.Core.Scene.ModelNode("KnobModel");
-            SceneRoot.AddChild(modelNode);
-            string meshyRingPath = CollarNode.ResolveImportedMeshPath(CollarPreset.MeshyOuroborosRing, null);
-            string meshyRingTexturedPath = CollarNode.ResolveImportedMeshPath(CollarPreset.MeshyOuroborosRingTextured, null);
-            string legacyImportedStlPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "KnobForge",
-                "ouroboros.stl");
-
-            CollarPreset defaultPreset = CollarPreset.SnakeOuroboros;
-            string defaultImportedMeshPath = string.Empty;
-            if (File.Exists(meshyRingPath))
-            {
-                defaultPreset = CollarPreset.MeshyOuroborosRing;
-                defaultImportedMeshPath = meshyRingPath;
-            }
-            else if (File.Exists(meshyRingTexturedPath))
-            {
-                defaultPreset = CollarPreset.MeshyOuroborosRingTextured;
-                defaultImportedMeshPath = meshyRingTexturedPath;
-            }
-            else if (File.Exists(legacyImportedStlPath))
-            {
-                defaultPreset = CollarPreset.ImportedStl;
-                defaultImportedMeshPath = legacyImportedStlPath;
-            }
-
-            bool hasImportedMesh = defaultPreset != CollarPreset.SnakeOuroboros;
-            var collarNode = new KnobForge.Core.Scene.CollarNode("SnakeOuroborosCollar")
-            {
-                Enabled = true,
-                Preset = hasImportedMesh ? defaultPreset : CollarPreset.SnakeOuroboros,
-                ImportedMeshPath = defaultImportedMeshPath,
-                ImportedScale = 1.09f,
-                ImportedBodyLengthScale = 1.00f,
-                ImportedBodyThicknessScale = 0.79f,
-                ImportedHeadLengthScale = 1.00f,
-                ImportedHeadThicknessScale = 0.79f,
-                ImportedRotationRadians = MathF.PI,
-                ImportedOffsetXRatio = -0.13f,
-                ImportedOffsetYRatio = 0.24f,
-                ImportedInflateRatio = 0.00f,
-                BaseColor = new Vector3(0.31f, 0.08f, 0.07f),
-                Metallic = 1.00f,
-                Roughness = 0.46f,
-                Pearlescence = 0.00f
-            };
-            modelNode.AddChild(collarNode);
-            var materialNode = new KnobForge.Core.Scene.MaterialNode("DefaultMaterial");
-            modelNode.AddChild(materialNode);
-            SetSelectedNode(modelNode);
+            EnsureInteractorModulesForProjectType(ProjectType, pruneUnsupportedModules: false);
+            SetSelectedNode(EnsureModelNode());
         }
 
         public void ApplyInteractorProjectTypeDefaults(InteractorProjectType projectType)
@@ -596,6 +547,86 @@ namespace KnobForge.Core
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
                     break;
+            }
+
+            EnsureInteractorModulesForProjectType(projectType, pruneUnsupportedModules: true);
+        }
+
+        public ModelNode EnsureModelNode()
+        {
+            ModelNode? model = SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            if (model != null)
+            {
+                return model;
+            }
+
+            model = new ModelNode("KnobModel");
+            SceneRoot.AddChild(model);
+            return model;
+        }
+
+        public MaterialNode EnsureMaterialNode()
+        {
+            ModelNode model = EnsureModelNode();
+            MaterialNode? material = model.Children.OfType<MaterialNode>().FirstOrDefault();
+            if (material != null)
+            {
+                return material;
+            }
+
+            material = new MaterialNode("DefaultMaterial");
+            model.AddChild(material);
+            return material;
+        }
+
+        public CollarNode EnsureCollarNode()
+        {
+            ModelNode model = EnsureModelNode();
+            CollarNode? collar = model.Children.OfType<CollarNode>().FirstOrDefault();
+            if (collar != null)
+            {
+                return collar;
+            }
+
+            collar = CreateDefaultCollarNode();
+            model.AddChild(collar);
+            return collar;
+        }
+
+        public bool RemoveCollarNode()
+        {
+            ModelNode? model = SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            if (model == null)
+            {
+                return false;
+            }
+
+            CollarNode? collar = model.Children.OfType<CollarNode>().FirstOrDefault();
+            if (collar == null)
+            {
+                return false;
+            }
+
+            bool removed = model.RemoveChild(collar);
+            if (removed && SelectedNode != null && SelectedNode.Id == collar.Id)
+            {
+                SetSelectedNode(model);
+            }
+
+            return removed;
+        }
+
+        public void EnsureInteractorModulesForProjectType(InteractorProjectType projectType, bool pruneUnsupportedModules)
+        {
+            EnsureMaterialNode();
+
+            if (projectType == InteractorProjectType.RotaryKnob)
+            {
+                EnsureCollarNode();
+            }
+            else if (pruneUnsupportedModules)
+            {
+                RemoveCollarNode();
             }
         }
 
@@ -673,6 +704,63 @@ namespace KnobForge.Core
             {
                 SelectedLightIndex = 0;
             }
+
+            if (SelectedNode == null)
+            {
+                SetSelectedNode(EnsureModelNode());
+            }
+        }
+
+        private static CollarNode CreateDefaultCollarNode()
+        {
+            (CollarPreset preset, string importedPath) = ResolveDefaultCollarPresetAndPath();
+            bool hasImportedMesh = preset != CollarPreset.SnakeOuroboros;
+
+            return new CollarNode("SnakeOuroborosCollar")
+            {
+                Enabled = true,
+                Preset = hasImportedMesh ? preset : CollarPreset.SnakeOuroboros,
+                ImportedMeshPath = importedPath,
+                ImportedScale = 1.09f,
+                ImportedBodyLengthScale = 1.00f,
+                ImportedBodyThicknessScale = 0.79f,
+                ImportedHeadLengthScale = 1.00f,
+                ImportedHeadThicknessScale = 0.79f,
+                ImportedRotationRadians = MathF.PI,
+                ImportedOffsetXRatio = -0.13f,
+                ImportedOffsetYRatio = 0.24f,
+                ImportedInflateRatio = 0.00f,
+                BaseColor = new Vector3(0.31f, 0.08f, 0.07f),
+                Metallic = 1.00f,
+                Roughness = 0.46f,
+                Pearlescence = 0.00f
+            };
+        }
+
+        private static (CollarPreset Preset, string ImportedPath) ResolveDefaultCollarPresetAndPath()
+        {
+            string meshyRingPath = CollarNode.ResolveImportedMeshPath(CollarPreset.MeshyOuroborosRing, null);
+            if (File.Exists(meshyRingPath))
+            {
+                return (CollarPreset.MeshyOuroborosRing, meshyRingPath);
+            }
+
+            string meshyRingTexturedPath = CollarNode.ResolveImportedMeshPath(CollarPreset.MeshyOuroborosRingTextured, null);
+            if (File.Exists(meshyRingTexturedPath))
+            {
+                return (CollarPreset.MeshyOuroborosRingTextured, meshyRingTexturedPath);
+            }
+
+            string legacyImportedStlPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                "KnobForge",
+                "ouroboros.stl");
+            if (File.Exists(legacyImportedStlPath))
+            {
+                return (CollarPreset.ImportedStl, legacyImportedStlPath);
+            }
+
+            return (CollarPreset.SnakeOuroboros, string.Empty);
         }
 
         private static float ClampSliderDimensionOverride(float value)

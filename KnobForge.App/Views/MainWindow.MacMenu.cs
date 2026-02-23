@@ -78,6 +78,10 @@ namespace KnobForge.App.Views
                 onClick: OpenNewProjectWindowFromMenu,
                 gesture: new KeyGesture(Key.N, KeyModifiers.Meta)));
             fileMenu.Add(CreateActionMenuItem(
+                header: "Change Project Type...",
+                onClick: ChangeProjectTypeFromMenu,
+                gesture: new KeyGesture(Key.T, KeyModifiers.Meta | KeyModifiers.Shift)));
+            fileMenu.Add(CreateActionMenuItem(
                 header: "Open...",
                 onClick: () => OnOpenProjectButtonClicked(this, new RoutedEventArgs()),
                 gesture: new KeyGesture(Key.O, KeyModifiers.Meta)));

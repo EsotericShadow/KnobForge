@@ -69,6 +69,7 @@ namespace KnobForge.App.Views
             public float SpiralNormalLodFadeStart { get; set; }
             public float SpiralNormalLodFadeEnd { get; set; }
             public float SpiralRoughnessLodBoost { get; set; }
+            public bool HasProjectType { get; set; }
             public InteractorProjectType ProjectType { get; set; } = InteractorProjectType.RotaryKnob;
             public List<LightStateSnapshot> Lights { get; set; } = new();
             public int SelectedLightIndex { get; set; }

@@ -245,6 +245,7 @@ namespace KnobForge.App.Views
                 SpiralNormalLodFadeStart = _project.SpiralNormalLodFadeStart,
                 SpiralNormalLodFadeEnd = _project.SpiralNormalLodFadeEnd,
                 SpiralRoughnessLodBoost = _project.SpiralRoughnessLodBoost,
+                HasProjectType = true,
                 ProjectType = _project.ProjectType,
                 Lights = _project.Lights.Select(CaptureLightState).ToList(),
                 SelectedLightIndex = _project.SelectedLightIndex,

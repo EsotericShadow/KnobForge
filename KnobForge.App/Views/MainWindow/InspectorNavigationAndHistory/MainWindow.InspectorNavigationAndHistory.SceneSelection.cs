@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using KnobForge.App.ProjectFiles;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using SkiaSharp;
@@ -69,7 +70,7 @@ namespace KnobForge.App.Views
             _project.SpiralNormalLodFadeStart = snapshot.SpiralNormalLodFadeStart;
             _project.SpiralNormalLodFadeEnd = snapshot.SpiralNormalLodFadeEnd;
             _project.SpiralRoughnessLodBoost = snapshot.SpiralRoughnessLodBoost;
-            _project.ProjectType = snapshot.ProjectType;
+            _project.ProjectType = ResolveProjectTypeFromSnapshot(snapshot);
             _project.SliderMode = snapshot.SliderMode;
             _project.SliderBackplateWidth = snapshot.SliderBackplateWidth;
             _project.SliderBackplateHeight = snapshot.SliderBackplateHeight;
@@ -93,6 +94,7 @@ namespace KnobForge.App.Views
             _project.ToggleLeverLength = snapshot.ToggleLeverLength;
             _project.ToggleLeverRadius = snapshot.ToggleLeverRadius;
             _project.ToggleTipRadius = snapshot.ToggleTipRadius;
+            _project.EnsureInteractorModulesForProjectType(_project.ProjectType, pruneUnsupportedModules: false);
 
             if (_metalViewport != null)
             {
@@ -104,8 +106,8 @@ namespace KnobForge.App.Views
 
             ApplyLightStates(snapshot.Lights, snapshot.SelectedLightIndex);
 
-            ModelNode model = GetModelNode() ?? CreateModelNode();
-            MaterialNode material = model.Children.OfType<MaterialNode>().FirstOrDefault() ?? CreateMaterialNode(model);
+            ModelNode model = _project.EnsureModelNode();
+            MaterialNode material = _project.EnsureMaterialNode();
 
             if (snapshot.HasModelMaterialSnapshot && snapshot.ModelMaterialSnapshot != null)
             {
@@ -122,11 +124,7 @@ namespace KnobForge.App.Views
             }
             else
             {
-                CollarNode? existingCollar = model.Children.OfType<CollarNode>().FirstOrDefault();
-                if (existingCollar != null)
-                {
-                    model.RemoveChild(existingCollar);
-                }
+                _project.RemoveCollarNode();
             }
 
             RebuildReferenceStyleOptions();
@@ -138,6 +136,35 @@ namespace KnobForge.App.Views
                 material,
                 model.Children.OfType<CollarNode>().FirstOrDefault());
             _project.SetSelectedNode(selectedNode);
+        }
+
+        private static InteractorProjectType ResolveProjectTypeFromSnapshot(InspectorUndoSnapshot snapshot)
+        {
+            return InteractorProjectTypeResolver.ResolveFromSnapshotHint(new ProjectTypeSnapshotHint(
+                HasProjectType: snapshot.HasProjectType,
+                ProjectType: snapshot.ProjectType,
+                SliderMode: snapshot.SliderMode,
+                ToggleMode: snapshot.ToggleMode,
+                SliderBackplateImportedMeshPath: snapshot.SliderBackplateImportedMeshPath,
+                SliderThumbImportedMeshPath: snapshot.SliderThumbImportedMeshPath,
+                SliderBackplateWidth: snapshot.SliderBackplateWidth,
+                SliderBackplateHeight: snapshot.SliderBackplateHeight,
+                SliderBackplateThickness: snapshot.SliderBackplateThickness,
+                SliderThumbWidth: snapshot.SliderThumbWidth,
+                SliderThumbHeight: snapshot.SliderThumbHeight,
+                SliderThumbDepth: snapshot.SliderThumbDepth,
+                ToggleBaseImportedMeshPath: snapshot.ToggleBaseImportedMeshPath,
+                ToggleLeverImportedMeshPath: snapshot.ToggleLeverImportedMeshPath,
+                TogglePlateWidth: snapshot.TogglePlateWidth,
+                TogglePlateHeight: snapshot.TogglePlateHeight,
+                TogglePlateThickness: snapshot.TogglePlateThickness,
+                ToggleBushingRadius: snapshot.ToggleBushingRadius,
+                ToggleBushingHeight: snapshot.ToggleBushingHeight,
+                ToggleLeverLength: snapshot.ToggleLeverLength,
+                ToggleLeverRadius: snapshot.ToggleLeverRadius,
+                ToggleTipRadius: snapshot.ToggleTipRadius,
+                ToggleStateCount: snapshot.ToggleStateCount,
+                ToggleMaxAngleDeg: snapshot.ToggleMaxAngleDeg));
         }
 
         private static LightStateSnapshot CaptureLightState(KnobLight light)
@@ -200,20 +227,6 @@ namespace KnobForge.App.Views
 
             int clampedIndex = Math.Clamp(selectedLightIndex, 0, _project.Lights.Count - 1);
             _project.SetSelectedLightIndex(clampedIndex);
-        }
-
-        private ModelNode CreateModelNode()
-        {
-            var model = new ModelNode("KnobModel");
-            _project.SceneRoot.AddChild(model);
-            return model;
-        }
-
-        private static MaterialNode CreateMaterialNode(ModelNode model)
-        {
-            var material = new MaterialNode("DefaultMaterial");
-            model.AddChild(material);
-            return material;
         }
 
         private static CollarStateSnapshot CaptureCollarStateSnapshot(CollarNode collar)

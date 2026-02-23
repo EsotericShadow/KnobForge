@@ -201,6 +201,11 @@ namespace KnobForge.App.Views
                 _newProjectButton.Click += (_, _) => OpenNewProjectWindowFromMenu();
             }
 
+            if (_changeProjectTypeButton != null)
+            {
+                _changeProjectTypeButton.Click += (_, _) => ChangeProjectTypeFromMenu();
+            }
+
             if (_openProjectButton != null)
             {
                 _openProjectButton.Click += OnOpenProjectButtonClicked;

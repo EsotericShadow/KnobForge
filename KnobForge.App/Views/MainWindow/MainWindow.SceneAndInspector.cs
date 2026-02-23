@@ -213,19 +213,7 @@ namespace KnobForge.App.Views
 
         private CollarNode EnsureCollarNode()
         {
-            ModelNode model = GetModelNode() ?? throw new InvalidOperationException("Model node is missing.");
-            CollarNode? collar = model.Children.OfType<CollarNode>().FirstOrDefault();
-            if (collar is not null)
-            {
-                return collar;
-            }
-
-            collar = new CollarNode("SnakeOuroborosCollar")
-            {
-                Enabled = false
-            };
-            model.AddChild(collar);
-            return collar;
+            return _project.EnsureCollarNode();
         }
 
         private void UpdateCollarControlEnablement(bool hasModel, CollarPreset preset)

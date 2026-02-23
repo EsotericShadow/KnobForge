@@ -45,6 +45,10 @@
                             Content="New"
                             MinWidth="68"
                             ToolTip.Tip="Open a new KnobForge window"/>
+                    <Button x:Name="ChangeProjectTypeButton"
+                            Content="Change Type..."
+                            MinWidth="114"
+                            ToolTip.Tip="Switch this project between Rotary Knob, Flip Switch, Thumb Slider, or Push Button"/>
                     <Button x:Name="OpenProjectButton"
                             Content="Open..."
                             MinWidth="82"
