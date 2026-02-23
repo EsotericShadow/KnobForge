@@ -196,6 +196,91 @@ namespace KnobForge.App.Views
                 _modelSegmentsValueText.Text = $"{Math.Round(_modelSegmentsSlider.Value):0}";
             }
 
+            if (_sliderBackplateWidthSlider != null && _sliderBackplateWidthValueText != null)
+            {
+                _sliderBackplateWidthValueText.Text = FormatSliderDimensionValue(_sliderBackplateWidthSlider.Value);
+            }
+
+            if (_sliderBackplateHeightSlider != null && _sliderBackplateHeightValueText != null)
+            {
+                _sliderBackplateHeightValueText.Text = FormatSliderDimensionValue(_sliderBackplateHeightSlider.Value);
+            }
+
+            if (_sliderBackplateThicknessSlider != null && _sliderBackplateThicknessValueText != null)
+            {
+                _sliderBackplateThicknessValueText.Text = FormatSliderDimensionValue(_sliderBackplateThicknessSlider.Value);
+            }
+
+            if (_sliderThumbWidthSlider != null && _sliderThumbWidthValueText != null)
+            {
+                _sliderThumbWidthValueText.Text = FormatSliderDimensionValue(_sliderThumbWidthSlider.Value);
+            }
+
+            if (_sliderThumbHeightSlider != null && _sliderThumbHeightValueText != null)
+            {
+                _sliderThumbHeightValueText.Text = FormatSliderDimensionValue(_sliderThumbHeightSlider.Value);
+            }
+
+            if (_sliderThumbDepthSlider != null && _sliderThumbDepthValueText != null)
+            {
+                _sliderThumbDepthValueText.Text = FormatSliderDimensionValue(_sliderThumbDepthSlider.Value);
+            }
+
+            if (_toggleStateIndexSlider != null && _toggleStateIndexValueText != null)
+            {
+                int stateCount = _toggleStateCountCombo?.SelectedItem is ToggleAssemblyStateCount selectedCount &&
+                                 selectedCount == ToggleAssemblyStateCount.ThreePosition
+                    ? 3
+                    : 2;
+                int stateIndex = Math.Clamp((int)Math.Round(_toggleStateIndexSlider.Value), 0, Math.Max(0, stateCount - 1));
+                _toggleStateIndexValueText.Text = FormatToggleStateValue(stateIndex, stateCount);
+            }
+
+            if (_toggleMaxAngleSlider != null && _toggleMaxAngleValueText != null)
+            {
+                _toggleMaxAngleValueText.Text = $"{_toggleMaxAngleSlider.Value:0.0} deg";
+            }
+
+            if (_togglePlateWidthSlider != null && _togglePlateWidthValueText != null)
+            {
+                _togglePlateWidthValueText.Text = FormatSliderDimensionValue(_togglePlateWidthSlider.Value);
+            }
+
+            if (_togglePlateHeightSlider != null && _togglePlateHeightValueText != null)
+            {
+                _togglePlateHeightValueText.Text = FormatSliderDimensionValue(_togglePlateHeightSlider.Value);
+            }
+
+            if (_togglePlateThicknessSlider != null && _togglePlateThicknessValueText != null)
+            {
+                _togglePlateThicknessValueText.Text = FormatSliderDimensionValue(_togglePlateThicknessSlider.Value);
+            }
+
+            if (_toggleBushingRadiusSlider != null && _toggleBushingRadiusValueText != null)
+            {
+                _toggleBushingRadiusValueText.Text = FormatSliderDimensionValue(_toggleBushingRadiusSlider.Value);
+            }
+
+            if (_toggleBushingHeightSlider != null && _toggleBushingHeightValueText != null)
+            {
+                _toggleBushingHeightValueText.Text = FormatSliderDimensionValue(_toggleBushingHeightSlider.Value);
+            }
+
+            if (_toggleLeverLengthSlider != null && _toggleLeverLengthValueText != null)
+            {
+                _toggleLeverLengthValueText.Text = FormatSliderDimensionValue(_toggleLeverLengthSlider.Value);
+            }
+
+            if (_toggleLeverRadiusSlider != null && _toggleLeverRadiusValueText != null)
+            {
+                _toggleLeverRadiusValueText.Text = FormatSliderDimensionValue(_toggleLeverRadiusSlider.Value);
+            }
+
+            if (_toggleTipRadiusSlider != null && _toggleTipRadiusValueText != null)
+            {
+                _toggleTipRadiusValueText.Text = FormatSliderDimensionValue(_toggleTipRadiusSlider.Value);
+            }
+
             if (_spiralRidgeHeightSlider != null && _spiralRidgeHeightValueText != null)
             {
                 _spiralRidgeHeightValueText.Text = $"{_spiralRidgeHeightSlider.Value:0.00}";
@@ -627,6 +712,30 @@ namespace KnobForge.App.Views
             }
 
             UpdatePrecisionControlEntryText();
+        }
+
+        private static string FormatSliderDimensionValue(double value)
+        {
+            return value <= 0.0001
+                ? "Auto"
+                : $"{value:0.0}px";
+        }
+
+        private static string FormatToggleStateValue(int stateIndex, int stateCount)
+        {
+            if (stateCount <= 2)
+            {
+                return stateIndex <= 0
+                    ? "State 1 (Down)"
+                    : "State 2 (Up)";
+            }
+
+            return stateIndex switch
+            {
+                <= 0 => "State 1 (Down)",
+                1 => "State 2 (Center)",
+                _ => "State 3 (Up)"
+            };
         }
     }
 }

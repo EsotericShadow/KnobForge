@@ -134,7 +134,7 @@ namespace KnobForge.Rendering
                     resolution,
                     renderResolution,
                     _cameraState);
-                ViewVariant[] viewVariants = ResolveExportViewVariants(settings);
+                ExportViewpoint[] viewVariants = ExportViewpointResolver.ResolveViewpoints(settings);
                 int totalFrames = checked(frameCount * viewVariants.Length);
                 int completedFrames = 0;
 
@@ -164,8 +164,8 @@ namespace KnobForge.Rendering
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    ViewVariant viewVariant = viewVariants[viewIndex];
-                    ViewportCameraState exportViewportCamera = ApplyViewVariant(baseExportViewportCamera, viewVariant);
+                    ExportViewpoint viewVariant = viewVariants[viewIndex];
+                    ViewportCameraState exportViewportCamera = ExportViewpointResolver.ApplyViewpoint(baseExportViewportCamera, viewVariant);
 
                     SpritesheetPlan? spritesheetPlan = null;
                     SKBitmap? spritesheetBitmap = null;
@@ -209,7 +209,7 @@ namespace KnobForge.Rendering
                             progress?.Report(new KnobExportProgress(
                                 completedFrames,
                                 totalFrames,
-                                $"Rendering {viewVariant.DisplayLabel} {i + 1}/{frameCount}"));
+                                $"Rendering {viewVariant.Name} {i + 1}/{frameCount}"));
 
                             float angle = i * angleStep;
                             for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
@@ -269,7 +269,7 @@ namespace KnobForge.Rendering
                             progress?.Report(new KnobExportProgress(
                                 completedFrames,
                                 totalFrames,
-                                $"Writing spritesheet ({viewVariant.DisplayLabel})"));
+                                $"Writing spritesheet ({viewVariant.Name})"));
                             cancellationToken.ThrowIfCancellationRequested();
 
                             string spritesheetPath = ResolveSpritesheetPath(outputDirectory, baseName, viewVariant.FileTag);

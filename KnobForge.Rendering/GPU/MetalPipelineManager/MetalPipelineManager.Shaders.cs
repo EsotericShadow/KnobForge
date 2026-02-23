@@ -43,6 +43,7 @@ struct GpuUniforms
     float4 indicatorParams0;
     float4 indicatorParams1;
     float4 indicatorColorAndBlend;
+    float4 indicatorParams2;
     float4 microDetailParams;
     float4 environmentTopColorAndIntensity;
     float4 environmentBottomColorAndRoughnessMix;
@@ -104,7 +105,7 @@ static inline void ApplyModeShaping(int mode, float diffuseBoost, float specular
     }
 }
 
-static inline float ComputeIndicatorMask(float2 localXY, float topRadius, float4 params0, float4 params1)
+static inline float ComputeIndicatorMask(float2 localXY, float topRadius, float4 params0, float4 params1, float4 params2)
 {
     if (params0.x < 0.5 || topRadius <= 1e-6)
     {
@@ -112,6 +113,7 @@ static inline float ComputeIndicatorMask(float2 localXY, float topRadius, float4
     }
 
     int shape = int(round(params0.y));
+    int profile = int(round(params2.x));
     float widthRatio = params0.z;
     float lengthRatio = params0.w;
     float roundness = clamp(params1.x, 0.0, 1.0);
@@ -171,13 +173,13 @@ static inline float ComputeIndicatorMask(float2 localXY, float topRadius, float4
     }
 
     float edgeMask;
-    if (roundness <= 1e-4)
+    if (profile == 0 || roundness <= 1e-4)
     {
         edgeMask = 1.0;
     }
     else
     {
-        float feather = roundness * 0.45;
+        float feather = roundness * 0.30;
         edgeMask = 1.0 - smoothstep(1.0 - feather, 1.0, edgeDistance);
     }
 
@@ -235,7 +237,7 @@ vertex VertexOut vertex_main(
     float topRadiusVertex = uniforms.indicatorParams1.z > 1e-6
         ? uniforms.indicatorParams1.z
         : max(1.0, uniforms.cameraPosAndReferenceRadius.w * max(0.05, uniforms.modelRotationCosSin.z));
-    float indicatorMaskVertex = ComputeIndicatorMask(localPos.xy, topRadiusVertex, uniforms.indicatorParams0, uniforms.indicatorParams1);
+    float indicatorMaskVertex = ComputeIndicatorMask(localPos.xy, topRadiusVertex, uniforms.indicatorParams0, uniforms.indicatorParams1, uniforms.indicatorParams2);
     float flatten = (1.0 - geometryKeep) * topMask * (1.0 - clamp(indicatorMaskVertex, 0.0, 1.0));
     if (flatten > 1e-4)
     {
@@ -419,7 +421,7 @@ fragment float4 fragment_main(
     float2 localXY = float2(
         inVertex.worldPos.x * cosA + inVertex.worldPos.y * sinA,
         -inVertex.worldPos.x * sinA + inVertex.worldPos.y * cosA);
-    float indicatorMask = ComputeIndicatorMask(localXY, topRadius, uniforms.indicatorParams0, uniforms.indicatorParams1);
+    float indicatorMask = ComputeIndicatorMask(localXY, topRadius, uniforms.indicatorParams0, uniforms.indicatorParams1, uniforms.indicatorParams2);
     indicatorMask *= smoothstep(0.55, 0.95, abs(normal.z));
 
     float3 topBitangent = normalize(cross(normal, topTangent));

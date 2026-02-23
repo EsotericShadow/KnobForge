@@ -32,7 +32,7 @@
                 </Border>
 
                 <Grid ColumnDefinitions="180,*"
-                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                       RowSpacing="8">
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
@@ -131,18 +131,148 @@
 
                     <TextBlock Grid.Row="11"
                                Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Base Name"/>
-                    <TextBox x:Name="BaseNameTextBox"
-                             Grid.Row="11"
-                             Grid.Column="1"
-                             Text="KnobA"/>
+                               VerticalAlignment="Top"
+                               Text="Viewpoints (Advanced)"/>
+                    <Border Grid.Row="11"
+                            Grid.Column="1"
+                            Background="#121820"
+                            BorderBrush="#31404F"
+                            BorderThickness="1"
+                            CornerRadius="5"
+                            Padding="8">
+                        <StackPanel Spacing="8">
+                            <Grid ColumnDefinitions="Auto,*,*"
+                                  ColumnSpacing="8">
+                                <TextBlock Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Preview Base Yaw/Pitch"/>
+                                <TextBox x:Name="PreviewBaseYawTextBox"
+                                         Grid.Column="1"/>
+                                <TextBox x:Name="PreviewBasePitchTextBox"
+                                         Grid.Column="2"/>
+                            </Grid>
+
+                            <WrapPanel Orientation="Horizontal"
+                                       ItemWidth="118"
+                                       ItemHeight="30">
+                                <Button x:Name="AddViewpointButton"
+                                        Content="+ Add"/>
+                                <Button x:Name="DuplicateViewpointButton"
+                                        Content="Duplicate"/>
+                                <Button x:Name="ResetViewpointsFromOrbitButton"
+                                        Content="Reset From Orbit"/>
+                                <Button x:Name="RemoveViewpointButton"
+                                        Content="Remove"/>
+                                <Button x:Name="MoveViewpointUpButton"
+                                        Content="Move Up"/>
+                                <Button x:Name="MoveViewpointDownButton"
+                                        Content="Move Down"/>
+                            </WrapPanel>
+
+                            <ListBox x:Name="ViewpointsListBox"
+                                     Height="132"/>
+
+                            <Grid ColumnDefinitions="Auto,*"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                  ColumnSpacing="8"
+                                  RowSpacing="6">
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Enabled"/>
+                                <CheckBox x:Name="ViewpointEnabledCheckBox"
+                                          Grid.Row="0"
+                                          Grid.Column="1"
+                                          Content="Export this viewpoint"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Name"/>
+                                <TextBox x:Name="ViewpointNameTextBox"
+                                         Grid.Row="1"
+                                         Grid.Column="1"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="File Tag"/>
+                                <TextBox x:Name="ViewpointFileTagTextBox"
+                                         Grid.Row="2"
+                                         Grid.Column="1"/>
+
+                                <TextBlock Grid.Row="3"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Camera Mode"/>
+                                <CheckBox x:Name="ViewpointAbsoluteCameraCheckBox"
+                                          Grid.Row="3"
+                                          Grid.Column="1"
+                                          Content="Use absolute yaw/pitch"/>
+
+                                <TextBlock Grid.Row="4"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Yaw / Pitch (deg)"/>
+                                <Grid Grid.Row="4"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="*,*"
+                                      ColumnSpacing="8">
+                                    <TextBox x:Name="ViewpointYawTextBox"
+                                             Grid.Column="0"/>
+                                    <TextBox x:Name="ViewpointPitchTextBox"
+                                             Grid.Column="1"/>
+                                </Grid>
+
+                                <TextBlock Grid.Row="5"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Zoom Override"/>
+                                <Grid Grid.Row="5"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="8">
+                                    <CheckBox x:Name="ViewpointOverrideZoomCheckBox"
+                                              Grid.Column="0"
+                                              VerticalAlignment="Center"/>
+                                    <TextBox x:Name="ViewpointZoomTextBox"
+                                             Grid.Column="1"/>
+                                </Grid>
+
+                                <TextBlock Grid.Row="6"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Pan Override"/>
+                                <Grid Grid.Row="6"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="Auto,*,*"
+                                      ColumnSpacing="8">
+                                    <CheckBox x:Name="ViewpointOverridePanCheckBox"
+                                              Grid.Column="0"
+                                              VerticalAlignment="Center"/>
+                                    <TextBox x:Name="ViewpointPanXTextBox"
+                                             Grid.Column="1"/>
+                                    <TextBox x:Name="ViewpointPanYTextBox"
+                                             Grid.Column="2"/>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
                     <TextBlock Grid.Row="12"
                                Grid.Column="0"
                                VerticalAlignment="Center"
+                               Text="Base Name"/>
+                    <TextBox x:Name="BaseNameTextBox"
+                             Grid.Row="12"
+                             Grid.Column="1"
+                             Text="KnobA"/>
+
+                    <TextBlock Grid.Row="13"
+                               Grid.Column="0"
+                               VerticalAlignment="Center"
                                Text="Output Folder"/>
-                    <Grid Grid.Row="12"
+                    <Grid Grid.Row="13"
                           Grid.Column="1"
                           ColumnDefinitions="*,Auto"
                           ColumnSpacing="8">
@@ -155,31 +285,31 @@
                                 MinWidth="86"/>
                     </Grid>
 
-                    <TextBlock Grid.Row="13"
+                    <TextBlock Grid.Row="14"
                                Grid.Column="0"
                                VerticalAlignment="Center"
                                Text="Spritesheet Layout"/>
                     <ComboBox x:Name="SpritesheetLayoutComboBox"
-                              Grid.Row="13"
+                              Grid.Row="14"
                               Grid.Column="1"/>
 
-                    <TextBlock Grid.Row="14"
+                    <TextBlock Grid.Row="15"
                                Grid.Column="0"
                                VerticalAlignment="Center"
                                Text="Export Frames"/>
                     <CheckBox x:Name="ExportFramesCheckBox"
-                              Grid.Row="14"
+                              Grid.Row="15"
                               Grid.Column="1"
                               IsChecked="True"
                               VerticalAlignment="Center"
                               Content="Save individual PNG frames"/>
 
-                    <TextBlock Grid.Row="15"
+                    <TextBlock Grid.Row="16"
                                Grid.Column="0"
                                VerticalAlignment="Center"
                                Text="Export Spritesheet"/>
                     <CheckBox x:Name="ExportSpritesheetCheckBox"
-                              Grid.Row="15"
+                              Grid.Row="16"
                               Grid.Column="1"
                               IsChecked="False"
                               VerticalAlignment="Center"

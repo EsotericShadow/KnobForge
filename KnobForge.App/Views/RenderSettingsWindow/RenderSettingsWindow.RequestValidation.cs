@@ -81,13 +81,20 @@ namespace KnobForge.App.Views
                 return false;
             }
 
+            if (!TryBuildManualOrbitAngles(out float baseYawDeg, out float basePitchDeg, out error))
+            {
+                return false;
+            }
+
             float referenceRadius = GetSceneReferenceRadius();
             ViewportCameraState previewCamera = BuildPreviewCameraState(
                 referenceRadius,
                 resolution,
                 renderResolution,
                 padding,
-                cameraDistanceScale);
+                cameraDistanceScale,
+                baseYawDeg,
+                basePitchDeg);
 
             request = new PreviewRenderRequest(
                 frameCount,
@@ -104,7 +111,9 @@ namespace KnobForge.App.Views
             int outputResolution,
             int renderResolution,
             float padding,
-            float cameraDistanceScale)
+            float cameraDistanceScale,
+            float baseYawDeg,
+            float basePitchDeg)
         {
             float resolutionScale = renderResolution / (float)Math.Max(1, outputResolution);
             float zoom = Math.Clamp(_cameraState.Zoom * resolutionScale, 0.2f, 32f);
@@ -118,7 +127,7 @@ namespace KnobForge.App.Views
                 zoom = Math.Clamp(fallbackZoom, 0.2f, 32f);
             }
 
-            return new ViewportCameraState(_cameraState.OrbitYawDeg, _cameraState.OrbitPitchDeg, zoom, pan);
+            return new ViewportCameraState(baseYawDeg, basePitchDeg, zoom, pan);
         }
 
         private float GetSceneReferenceRadius()
@@ -202,6 +211,11 @@ namespace KnobForge.App.Views
             }
 
             if (!TryParseFloat(_cameraDistanceScaleTextBox.Text, 0.0001f, float.MaxValue, "CameraDistanceScale", out float cameraDistanceScale, out error))
+            {
+                return false;
+            }
+
+            if (!TryBuildManualOrbitAngles(out _, out _, out error))
             {
                 return false;
             }
@@ -290,6 +304,11 @@ namespace KnobForge.App.Views
                 ? option.Definition.Strategy
                 : ExportOutputStrategy.JuceFilmstripBestDefault;
 
+            if (!TryBuildViewpointsFromEditor(out ExportViewpoint[] configuredViewpoints, out error))
+            {
+                return false;
+            }
+
             settings = new KnobExportSettings
             {
                 Strategy = strategy,
@@ -304,10 +323,22 @@ namespace KnobForge.App.Views
                 FilterPreset = filterPreset,
                 ExportOrbitVariants = exportOrbitVariants,
                 OrbitVariantYawOffsetDeg = orbitYawOffsetDeg,
-                OrbitVariantPitchOffsetDeg = orbitPitchOffsetDeg
+                OrbitVariantPitchOffsetDeg = orbitPitchOffsetDeg,
+                ExportViewpoints = configuredViewpoints.ToList()
             };
 
             return true;
+        }
+
+        private static ExportViewpoint[] BuildLegacyUiViewpoints(
+            bool exportOrbitVariants,
+            float orbitYawOffsetDeg,
+            float orbitPitchOffsetDeg)
+        {
+            return ExportViewpointResolver.CreateLegacyViewpoints(
+                exportOrbitVariants,
+                orbitYawOffsetDeg,
+                orbitPitchOffsetDeg);
         }
 
         private static int GetMinimumSupersampleScaleForResolution(int resolution)
@@ -323,6 +354,22 @@ namespace KnobForge.App.Views
             }
 
             return 1;
+        }
+
+        private bool TryBuildManualOrbitAngles(out float baseYawDeg, out float basePitchDeg, out string error)
+        {
+            if (!TryParseFloat(_previewBaseYawTextBox.Text, -180f, 180f, "Preview base yaw", out baseYawDeg, out error))
+            {
+                basePitchDeg = 0f;
+                return false;
+            }
+
+            if (!TryParseFloat(_previewBasePitchTextBox.Text, -85f, 85f, "Preview base pitch", out basePitchDeg, out error))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

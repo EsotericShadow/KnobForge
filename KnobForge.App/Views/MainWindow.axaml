@@ -542,6 +542,103 @@
                                     </StackPanel>
                                 </Expander>
 
+                                <Expander x:Name="NodeSliderAssemblyExpander" Header="Slider Assembly (Preview)" IsExpanded="False">
+                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <TextBlock Text="Mode"/>
+                                        <ComboBox x:Name="SliderAssemblyModeCombo"/>
+
+                                        <DockPanel LastChildFill="True">
+                                            <Button x:Name="RefreshSliderLibraryButton"
+                                                    Content="Refresh Library"
+                                                    DockPanel.Dock="Right"
+                                                    Margin="8,0,0,0"
+                                                    MinWidth="120"/>
+                                            <TextBlock Text="Mesh Sources"
+                                                       VerticalAlignment="Center"/>
+                                        </DockPanel>
+
+                                        <TextBlock Text="Backplate Mesh Source"/>
+                                        <ComboBox x:Name="SliderBackplateMeshCombo"/>
+
+                                        <TextBlock Text="Thumb Mesh Source"/>
+                                        <ComboBox x:Name="SliderThumbMeshCombo"/>
+
+                                        <TextBlock Text="Backplate Width (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderBackplateWidthSlider" Minimum="0" Maximum="2000"/>
+                                        <TextBlock x:Name="SliderBackplateWidthValueText"/>
+
+                                        <TextBlock Text="Backplate Height (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderBackplateHeightSlider" Minimum="0" Maximum="3000"/>
+                                        <TextBlock x:Name="SliderBackplateHeightValueText"/>
+
+                                        <TextBlock Text="Backplate Thickness (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderBackplateThicknessSlider" Minimum="0" Maximum="400"/>
+                                        <TextBlock x:Name="SliderBackplateThicknessValueText"/>
+
+                                        <TextBlock Text="Thumb Width (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderThumbWidthSlider" Minimum="0" Maximum="1200"/>
+                                        <TextBlock x:Name="SliderThumbWidthValueText"/>
+
+                                        <TextBlock Text="Thumb Height (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderThumbHeightSlider" Minimum="0" Maximum="1600"/>
+                                        <TextBlock x:Name="SliderThumbHeightValueText"/>
+
+                                        <TextBlock Text="Thumb Depth (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="SliderThumbDepthSlider" Minimum="0" Maximum="1200"/>
+                                        <TextBlock x:Name="SliderThumbDepthValueText"/>
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander x:Name="NodeToggleAssemblyExpander" Header="Toggle Switch (Preview)" IsExpanded="False">
+                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <TextBlock Text="Mode"/>
+                                        <ComboBox x:Name="ToggleAssemblyModeCombo"/>
+
+                                        <TextBlock Text="State Count"/>
+                                        <ComboBox x:Name="ToggleStateCountCombo"/>
+
+                                        <TextBlock Text="State Index"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleStateIndexSlider" Minimum="0" Maximum="2"/>
+                                        <TextBlock x:Name="ToggleStateIndexValueText"/>
+
+                                        <TextBlock Text="Max Lever Angle"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleMaxAngleSlider" Minimum="5" Maximum="85"/>
+                                        <TextBlock x:Name="ToggleMaxAngleValueText"/>
+
+                                        <TextBlock Text="Plate Width (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePlateWidthSlider" Minimum="0" Maximum="2200"/>
+                                        <TextBlock x:Name="TogglePlateWidthValueText"/>
+
+                                        <TextBlock Text="Plate Height (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePlateHeightSlider" Minimum="0" Maximum="2600"/>
+                                        <TextBlock x:Name="TogglePlateHeightValueText"/>
+
+                                        <TextBlock Text="Plate Thickness (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePlateThicknessSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="TogglePlateThicknessValueText"/>
+
+                                        <TextBlock Text="Bushing Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleBushingRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleBushingRadiusValueText"/>
+
+                                        <TextBlock Text="Bushing Height (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleBushingHeightSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleBushingHeightValueText"/>
+
+                                        <TextBlock Text="Lever Length (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLeverLengthSlider" Minimum="0" Maximum="2200"/>
+                                        <TextBlock x:Name="ToggleLeverLengthValueText"/>
+
+                                        <TextBlock Text="Lever Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLeverRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleLeverRadiusValueText"/>
+
+                                        <TextBlock Text="Tip Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleTipRadiusValueText"/>
+                                    </StackPanel>
+                                </Expander>
+
                                 <Expander x:Name="NodeSpiralRidgeExpander" Header="Spiral Ridge (Geometry)" IsExpanded="False">
                                     <StackPanel Spacing="6" Margin="0,6,0,0">
                                         <TextBlock Text="Ridge Height"/>

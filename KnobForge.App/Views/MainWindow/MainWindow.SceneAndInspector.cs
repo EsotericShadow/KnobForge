@@ -434,6 +434,114 @@ namespace KnobForge.App.Views
                     _bodyTaperSlider.Value = model.BodyTaper;
                     _bodyBulgeSlider.Value = model.BodyBulge;
                     _modelSegmentsSlider.Value = model.RadialSegments;
+                    RebuildSliderMeshOptions();
+                    if (_sliderAssemblyModeCombo != null)
+                    {
+                        _sliderAssemblyModeCombo.SelectedItem = project.SliderMode;
+                    }
+
+                    if (_sliderBackplateMeshCombo != null)
+                    {
+                        _sliderBackplateMeshCombo.SelectedItem =
+                            ResolveSliderMeshOption(_sliderBackplateMeshOptions, project.SliderBackplateImportedMeshPath);
+                    }
+
+                    if (_sliderThumbMeshCombo != null)
+                    {
+                        _sliderThumbMeshCombo.SelectedItem =
+                            ResolveSliderMeshOption(_sliderThumbMeshOptions, project.SliderThumbImportedMeshPath);
+                    }
+
+                    if (_sliderBackplateWidthSlider != null)
+                    {
+                        _sliderBackplateWidthSlider.Value = project.SliderBackplateWidth;
+                    }
+
+                    if (_sliderBackplateHeightSlider != null)
+                    {
+                        _sliderBackplateHeightSlider.Value = project.SliderBackplateHeight;
+                    }
+
+                    if (_sliderBackplateThicknessSlider != null)
+                    {
+                        _sliderBackplateThicknessSlider.Value = project.SliderBackplateThickness;
+                    }
+
+                    if (_sliderThumbWidthSlider != null)
+                    {
+                        _sliderThumbWidthSlider.Value = project.SliderThumbWidth;
+                    }
+
+                    if (_sliderThumbHeightSlider != null)
+                    {
+                        _sliderThumbHeightSlider.Value = project.SliderThumbHeight;
+                    }
+
+                    if (_sliderThumbDepthSlider != null)
+                    {
+                        _sliderThumbDepthSlider.Value = project.SliderThumbDepth;
+                    }
+                    if (_toggleAssemblyModeCombo != null)
+                    {
+                        _toggleAssemblyModeCombo.SelectedItem = project.ToggleMode;
+                    }
+
+                    if (_toggleStateCountCombo != null)
+                    {
+                        _toggleStateCountCombo.SelectedItem = project.ToggleStateCount;
+                    }
+
+                    if (_toggleStateIndexSlider != null)
+                    {
+                        int maxStateIndex = project.ToggleStateCount == ToggleAssemblyStateCount.ThreePosition ? 2 : 1;
+                        _toggleStateIndexSlider.Maximum = maxStateIndex;
+                        _toggleStateIndexSlider.Value = Math.Clamp(project.ToggleStateIndex, 0, maxStateIndex);
+                    }
+
+                    if (_toggleMaxAngleSlider != null)
+                    {
+                        _toggleMaxAngleSlider.Value = project.ToggleMaxAngleDeg;
+                    }
+
+                    if (_togglePlateWidthSlider != null)
+                    {
+                        _togglePlateWidthSlider.Value = project.TogglePlateWidth;
+                    }
+
+                    if (_togglePlateHeightSlider != null)
+                    {
+                        _togglePlateHeightSlider.Value = project.TogglePlateHeight;
+                    }
+
+                    if (_togglePlateThicknessSlider != null)
+                    {
+                        _togglePlateThicknessSlider.Value = project.TogglePlateThickness;
+                    }
+
+                    if (_toggleBushingRadiusSlider != null)
+                    {
+                        _toggleBushingRadiusSlider.Value = project.ToggleBushingRadius;
+                    }
+
+                    if (_toggleBushingHeightSlider != null)
+                    {
+                        _toggleBushingHeightSlider.Value = project.ToggleBushingHeight;
+                    }
+
+                    if (_toggleLeverLengthSlider != null)
+                    {
+                        _toggleLeverLengthSlider.Value = project.ToggleLeverLength;
+                    }
+
+                    if (_toggleLeverRadiusSlider != null)
+                    {
+                        _toggleLeverRadiusSlider.Value = project.ToggleLeverRadius;
+                    }
+
+                    if (_toggleTipRadiusSlider != null)
+                    {
+                        _toggleTipRadiusSlider.Value = project.ToggleTipRadius;
+                    }
                     _spiralRidgeHeightSlider.Value = model.SpiralRidgeHeight;
                     _spiralRidgeWidthSlider.Value = model.SpiralRidgeWidth;
                     _spiralTurnsSlider.Value = model.SpiralTurns;
@@ -570,6 +678,114 @@ namespace KnobForge.App.Views
                 _brushPaintColorPicker.IsEnabled = hasModel;
                 _scratchAbrasionTypeCombo.IsEnabled = hasModel;
                 UpdateReferenceProfileActionEnablement(hasModel);
+                if (_sliderAssemblyModeCombo != null)
+                {
+                    _sliderAssemblyModeCombo.IsEnabled = hasModel;
+                }
+
+                if (_refreshSliderLibraryButton != null)
+                {
+                    _refreshSliderLibraryButton.IsEnabled = hasModel;
+                }
+
+                if (_sliderBackplateMeshCombo != null)
+                {
+                    _sliderBackplateMeshCombo.IsEnabled = hasModel;
+                }
+
+                if (_sliderThumbMeshCombo != null)
+                {
+                    _sliderThumbMeshCombo.IsEnabled = hasModel;
+                }
+
+                if (_sliderBackplateWidthSlider != null)
+                {
+                    _sliderBackplateWidthSlider.IsEnabled = hasModel;
+                }
+
+                if (_sliderBackplateHeightSlider != null)
+                {
+                    _sliderBackplateHeightSlider.IsEnabled = hasModel;
+                }
+
+                if (_sliderBackplateThicknessSlider != null)
+                {
+                    _sliderBackplateThicknessSlider.IsEnabled = hasModel;
+                }
+
+                if (_sliderThumbWidthSlider != null)
+                {
+                    _sliderThumbWidthSlider.IsEnabled = hasModel;
+                }
+
+                if (_sliderThumbHeightSlider != null)
+                {
+                    _sliderThumbHeightSlider.IsEnabled = hasModel;
+                }
+
+                if (_sliderThumbDepthSlider != null)
+                {
+                    _sliderThumbDepthSlider.IsEnabled = hasModel;
+                }
+                if (_toggleAssemblyModeCombo != null)
+                {
+                    _toggleAssemblyModeCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleStateCountCombo != null)
+                {
+                    _toggleStateCountCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleStateIndexSlider != null)
+                {
+                    _toggleStateIndexSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleMaxAngleSlider != null)
+                {
+                    _toggleMaxAngleSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePlateWidthSlider != null)
+                {
+                    _togglePlateWidthSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePlateHeightSlider != null)
+                {
+                    _togglePlateHeightSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePlateThicknessSlider != null)
+                {
+                    _togglePlateThicknessSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleBushingRadiusSlider != null)
+                {
+                    _toggleBushingRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleBushingHeightSlider != null)
+                {
+                    _toggleBushingHeightSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLeverLengthSlider != null)
+                {
+                    _toggleLeverLengthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLeverRadiusSlider != null)
+                {
+                    _toggleLeverRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipRadiusSlider != null)
+                {
+                    _toggleTipRadiusSlider.IsEnabled = hasModel;
+                }
                 _brushSizeSlider.IsEnabled = hasModel;
                 _brushOpacitySlider.IsEnabled = hasModel;
                 _brushDarknessSlider.IsEnabled = hasModel;

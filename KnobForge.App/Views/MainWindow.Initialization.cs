@@ -133,6 +133,19 @@ namespace KnobForge.App.Views
             _lightTypeCombo.ItemsSource = Enum.GetValues<LightType>().Cast<LightType>().ToList();
             RebuildReferenceStyleOptions();
             _bodyStyleCombo.ItemsSource = Enum.GetValues<BodyStyle>().Cast<BodyStyle>().ToList();
+            if (_sliderAssemblyModeCombo != null)
+            {
+                _sliderAssemblyModeCombo.ItemsSource = Enum.GetValues<SliderAssemblyMode>().Cast<SliderAssemblyMode>().ToList();
+            }
+            if (_toggleAssemblyModeCombo != null)
+            {
+                _toggleAssemblyModeCombo.ItemsSource = Enum.GetValues<ToggleAssemblyMode>().Cast<ToggleAssemblyMode>().ToList();
+            }
+            if (_toggleStateCountCombo != null)
+            {
+                _toggleStateCountCombo.ItemsSource = Enum.GetValues<ToggleAssemblyStateCount>().Cast<ToggleAssemblyStateCount>().ToList();
+            }
+            RebuildSliderMeshOptions();
             _gripStyleCombo.ItemsSource = Enum.GetValues<GripStyle>().Cast<GripStyle>().ToList();
             _gripTypeCombo.ItemsSource = Enum.GetValues<GripType>().Cast<GripType>().ToList();
             RebuildCollarPresetOptions();
@@ -222,6 +235,10 @@ namespace KnobForge.App.Views
             {
                 _refreshCollarLibraryButton.Click += OnRefreshCollarLibraryButtonClicked;
             }
+            if (_refreshSliderLibraryButton != null)
+            {
+                _refreshSliderLibraryButton.Click += OnRefreshSliderLibraryButtonClicked;
+            }
             _resetViewButton.Click += (_, _) => _metalViewport?.ResetCamera();
             _clearPaintMaskButton.Click += (_, _) => OnClearPaintMask();
             _renderButton.Click += OnRenderButtonClick;
@@ -266,6 +283,98 @@ namespace KnobForge.App.Views
             _bodyTaperSlider.PropertyChanged += OnBodyDesignChanged;
             _bodyBulgeSlider.PropertyChanged += OnBodyDesignChanged;
             _modelSegmentsSlider.PropertyChanged += OnModelSegmentsChanged;
+            if (_sliderAssemblyModeCombo != null)
+            {
+                _sliderAssemblyModeCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderBackplateMeshCombo != null)
+            {
+                _sliderBackplateMeshCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderThumbMeshCombo != null)
+            {
+                _sliderThumbMeshCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderBackplateWidthSlider != null)
+            {
+                _sliderBackplateWidthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderBackplateHeightSlider != null)
+            {
+                _sliderBackplateHeightSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderBackplateThicknessSlider != null)
+            {
+                _sliderBackplateThicknessSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderThumbWidthSlider != null)
+            {
+                _sliderThumbWidthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderThumbHeightSlider != null)
+            {
+                _sliderThumbHeightSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+
+            if (_sliderThumbDepthSlider != null)
+            {
+                _sliderThumbDepthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_toggleAssemblyModeCombo != null)
+            {
+                _toggleAssemblyModeCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleStateCountCombo != null)
+            {
+                _toggleStateCountCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleStateIndexSlider != null)
+            {
+                _toggleStateIndexSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleMaxAngleSlider != null)
+            {
+                _toggleMaxAngleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePlateWidthSlider != null)
+            {
+                _togglePlateWidthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePlateHeightSlider != null)
+            {
+                _togglePlateHeightSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePlateThicknessSlider != null)
+            {
+                _togglePlateThicknessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleBushingRadiusSlider != null)
+            {
+                _toggleBushingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleBushingHeightSlider != null)
+            {
+                _toggleBushingHeightSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLeverLengthSlider != null)
+            {
+                _toggleLeverLengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLeverRadiusSlider != null)
+            {
+                _toggleLeverRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipRadiusSlider != null)
+            {
+                _toggleTipRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
             _spiralRidgeHeightSlider.PropertyChanged += OnSpiralGeometryChanged;
             _spiralRidgeWidthSlider.PropertyChanged += OnSpiralGeometryChanged;
             _spiralTurnsSlider.PropertyChanged += OnSpiralGeometryChanged;

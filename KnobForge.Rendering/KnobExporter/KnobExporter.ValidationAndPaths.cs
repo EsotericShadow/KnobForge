@@ -88,6 +88,47 @@ public sealed partial class KnobExporter
                 throw new ArgumentOutOfRangeException(nameof(settings.OrbitVariantPitchOffsetDeg), "OrbitVariantPitchOffsetDeg must be between 0 and 85.");
             }
 
+            if (settings.ExportViewpoints != null)
+            {
+                for (int i = 0; i < settings.ExportViewpoints.Count; i++)
+                {
+                    ExportViewpoint? viewpoint = settings.ExportViewpoints[i];
+                    if (viewpoint == null)
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(viewpoint.FileTag) &&
+                        viewpoint.FileTag.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    {
+                        throw new ArgumentException($"ExportViewpoints[{i}].FileTag contains invalid filename characters.");
+                    }
+
+                    if (viewpoint.YawOffsetDeg < -180f || viewpoint.YawOffsetDeg > 180f)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(settings.ExportViewpoints), $"ExportViewpoints[{i}].YawOffsetDeg must be between -180 and 180.");
+                    }
+
+                    if (viewpoint.PitchOffsetDeg < -85f || viewpoint.PitchOffsetDeg > 85f)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(settings.ExportViewpoints), $"ExportViewpoints[{i}].PitchOffsetDeg must be between -85 and 85.");
+                    }
+
+                    if (viewpoint.UseAbsoluteCamera)
+                    {
+                        if (viewpoint.OrbitPitchDeg < -85f || viewpoint.OrbitPitchDeg > 85f)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(settings.ExportViewpoints), $"ExportViewpoints[{i}].OrbitPitchDeg must be between -85 and 85.");
+                        }
+                    }
+
+                    if (viewpoint.OverrideZoom && viewpoint.Zoom <= 0f)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(settings.ExportViewpoints), $"ExportViewpoints[{i}].Zoom must be > 0 when OverrideZoom is enabled.");
+                    }
+                }
+            }
+
         }
 
         private static int GetMinimumSupersampleScaleForResolution(int resolution)
@@ -319,12 +360,6 @@ public sealed partial class KnobExporter
                 return (gx, gy);
             }
         }
-
-        private readonly record struct ViewVariant(
-            string FileTag,
-            string DisplayLabel,
-            float YawOffsetDeg,
-            float PitchOffsetDeg);
 
         private readonly record struct ExportPathPlan(
             string OutputDirectory,

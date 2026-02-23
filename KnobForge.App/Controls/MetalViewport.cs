@@ -248,9 +248,15 @@ namespace KnobForge.App.Controls
         private DispatcherTimer? _renderTimer;
         private MeshShapeKey _meshShapeKey;
         private CollarShapeKey _collarShapeKey;
+        private SliderAssemblyShapeKey _sliderAssemblyShapeKey;
+        private ToggleAssemblyShapeKey _toggleAssemblyShapeKey;
         private SpiralNormalMapKey _spiralNormalMapKey;
         private MetalMeshGpuResources? _meshResources;
         private MetalMeshGpuResources? _collarResources;
+        private MetalMeshGpuResources? _sliderBackplateResources;
+        private MetalMeshGpuResources? _sliderThumbResources;
+        private MetalMeshGpuResources? _toggleBaseResources;
+        private MetalMeshGpuResources? _toggleLeverResources;
         private bool _viewportCollarStateLogged;
         private bool _offscreenCollarStateLogged;
         private int _paintMaskTextureVersion = -1;
@@ -329,6 +335,8 @@ namespace KnobForge.App.Controls
                 ClearMeshResources();
                 _meshShapeKey = default;
                 _collarShapeKey = default;
+                _sliderAssemblyShapeKey = default;
+                _toggleAssemblyShapeKey = default;
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
                 ReleasePaintMaskTexture();
@@ -621,17 +629,67 @@ namespace KnobForge.App.Controls
             if (_meshResources != null && _meshResources.VertexBuffer.Handle != IntPtr.Zero && _meshResources.IndexBuffer.Handle != IntPtr.Zero)
             {
                 bool drawCollar = _collarResources != null && _collarResources.VertexBuffer.Handle != IntPtr.Zero && _collarResources.IndexBuffer.Handle != IntPtr.Zero && collarNode is { Enabled: true };
+                bool drawSliderBackplate =
+                    _sliderBackplateResources != null &&
+                    _sliderBackplateResources.VertexBuffer.Handle != IntPtr.Zero &&
+                    _sliderBackplateResources.IndexBuffer.Handle != IntPtr.Zero;
+                bool drawSliderThumb =
+                    _sliderThumbResources != null &&
+                    _sliderThumbResources.VertexBuffer.Handle != IntPtr.Zero &&
+                    _sliderThumbResources.IndexBuffer.Handle != IntPtr.Zero;
+                bool drawToggleBase =
+                    _toggleBaseResources != null &&
+                    _toggleBaseResources.VertexBuffer.Handle != IntPtr.Zero &&
+                    _toggleBaseResources.IndexBuffer.Handle != IntPtr.Zero;
+                bool drawToggleLever =
+                    _toggleLeverResources != null &&
+                    _toggleLeverResources.VertexBuffer.Handle != IntPtr.Zero &&
+                    _toggleLeverResources.IndexBuffer.Handle != IntPtr.Zero;
                 if (!_viewportCollarStateLogged)
                 {
                     _viewportCollarStateLogged = true;
                     LogCollarState("viewport", collarNode, _collarResources);
                 }
-                float sceneReferenceRadius = drawCollar
-                    ? MathF.Max(_meshResources.ReferenceRadius, _collarResources!.ReferenceRadius)
-                    : _meshResources.ReferenceRadius;
+                float sceneReferenceRadius = _meshResources.ReferenceRadius;
+                if (drawCollar)
+                {
+                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _collarResources!.ReferenceRadius);
+                }
+
+                if (drawSliderBackplate)
+                {
+                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _sliderBackplateResources!.ReferenceRadius);
+                }
+
+                if (drawSliderThumb)
+                {
+                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _sliderThumbResources!.ReferenceRadius);
+                }
+
+                if (drawToggleBase)
+                {
+                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _toggleBaseResources!.ReferenceRadius);
+                }
+
+                if (drawToggleLever)
+                {
+                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _toggleLeverResources!.ReferenceRadius);
+                }
                 GpuUniforms knobUniforms = BuildUniforms(_project, modelNode, sceneReferenceRadius, Bounds.Size);
                 GpuUniforms collarUniforms = drawCollar
                     ? BuildCollarUniforms(knobUniforms, collarNode!)
+                    : default;
+                GpuUniforms sliderBackplateUniforms = drawSliderBackplate
+                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.20f, 0.22f, 0.24f), 0.74f, 0.42f, 0.05f)
+                    : default;
+                GpuUniforms sliderThumbUniforms = drawSliderThumb
+                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.52f, 0.53f, 0.55f), 0.86f, 0.26f, 0.08f)
+                    : default;
+                GpuUniforms toggleBaseUniforms = drawToggleBase
+                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.28f, 0.29f, 0.31f), 0.82f, 0.30f, 0.08f)
+                    : default;
+                GpuUniforms toggleLeverUniforms = drawToggleLever
+                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.62f, 0.63f, 0.66f), 0.94f, 0.18f, 0.05f)
                     : default;
                 EnsurePaintMaskTexture(_project);
                 EnsurePaintColorTexture(_project);
@@ -687,6 +745,94 @@ namespace KnobForge.App.Controls
                     IReadOnlyList<ShadowPassConfig> shadowConfigs = ResolveShadowPassConfigs(_project, right, up, forward, viewportWidthPx, viewportHeightPx);
 
                     encode(new MTLRenderCommandEncoder(encoderPtr));
+
+                    if (drawSliderBackplate)
+                    {
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseKnob);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _sliderBackplateResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, sliderBackplateUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_sliderBackplateResources.IndexCount,
+                            (nuint)_sliderBackplateResources.IndexType,
+                            _sliderBackplateResources.IndexBuffer.Handle,
+                            0);
+                    }
+
+                    if (drawSliderThumb)
+                    {
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseKnob);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _sliderThumbResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, sliderThumbUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_sliderThumbResources.IndexCount,
+                            (nuint)_sliderThumbResources.IndexType,
+                            _sliderThumbResources.IndexBuffer.Handle,
+                            0);
+                    }
+
+                    if (drawToggleBase)
+                    {
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseKnob);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _toggleBaseResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, toggleBaseUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_toggleBaseResources.IndexCount,
+                            (nuint)_toggleBaseResources.IndexType,
+                            _toggleBaseResources.IndexBuffer.Handle,
+                            0);
+                    }
+
+                    if (drawToggleLever)
+                    {
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseKnob);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _toggleLeverResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, toggleLeverUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_toggleLeverResources.IndexCount,
+                            (nuint)_toggleLeverResources.IndexType,
+                            _toggleLeverResources.IndexBuffer.Handle,
+                            0);
+                    }
 
                     if (drawCollar)
                     {

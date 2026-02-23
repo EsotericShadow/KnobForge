@@ -49,30 +49,86 @@ namespace KnobForge.App.Views
             int MaxX,
             int MaxY);
 
-        private enum PreviewViewVariantKind
-        {
-            Primary,
-            UnderLeft,
-            UnderRight,
-            OverLeft,
-            OverRight
-        }
-
         private sealed class PreviewVariantOption
         {
-            public PreviewVariantOption(PreviewViewVariantKind kind, string displayName)
+            public PreviewVariantOption(string fileTag, string displayName)
             {
-                Kind = kind;
+                FileTag = fileTag;
                 DisplayName = displayName;
             }
 
-            public PreviewViewVariantKind Kind { get; }
+            public string FileTag { get; }
 
             public string DisplayName { get; }
 
             public override string ToString()
             {
                 return DisplayName;
+            }
+        }
+
+        private sealed class ViewpointEditorItem
+        {
+            public Guid Id { get; } = Guid.NewGuid();
+            public string Name { get; set; } = "Primary";
+            public string FileTag { get; set; } = string.Empty;
+            public bool Enabled { get; set; } = true;
+            public int Order { get; set; }
+            public bool UseAbsoluteCamera { get; set; }
+            public float YawDeg { get; set; }
+            public float PitchDeg { get; set; }
+            public bool OverrideZoom { get; set; }
+            public float Zoom { get; set; } = 1f;
+            public bool OverridePan { get; set; }
+            public float PanXPx { get; set; }
+            public float PanYPx { get; set; }
+
+            public ExportViewpoint ToExportViewpoint()
+            {
+                return new ExportViewpoint
+                {
+                    Name = Name,
+                    FileTag = FileTag,
+                    Enabled = Enabled,
+                    Order = Order,
+                    UseAbsoluteCamera = UseAbsoluteCamera,
+                    OrbitYawDeg = UseAbsoluteCamera ? YawDeg : 0f,
+                    OrbitPitchDeg = UseAbsoluteCamera ? PitchDeg : 0f,
+                    YawOffsetDeg = UseAbsoluteCamera ? 0f : YawDeg,
+                    PitchOffsetDeg = UseAbsoluteCamera ? 0f : PitchDeg,
+                    OverrideZoom = OverrideZoom,
+                    Zoom = Zoom,
+                    OverridePan = OverridePan,
+                    PanXPx = PanXPx,
+                    PanYPx = PanYPx
+                };
+            }
+
+            public static ViewpointEditorItem FromExportViewpoint(ExportViewpoint viewpoint, int order)
+            {
+                return new ViewpointEditorItem
+                {
+                    Name = string.IsNullOrWhiteSpace(viewpoint.Name) ? $"View {order + 1}" : viewpoint.Name,
+                    FileTag = viewpoint.FileTag ?? string.Empty,
+                    Enabled = viewpoint.Enabled,
+                    Order = order,
+                    UseAbsoluteCamera = viewpoint.UseAbsoluteCamera,
+                    YawDeg = viewpoint.UseAbsoluteCamera ? viewpoint.OrbitYawDeg : viewpoint.YawOffsetDeg,
+                    PitchDeg = viewpoint.UseAbsoluteCamera ? viewpoint.OrbitPitchDeg : viewpoint.PitchOffsetDeg,
+                    OverrideZoom = viewpoint.OverrideZoom,
+                    Zoom = viewpoint.OverrideZoom ? viewpoint.Zoom : 1f,
+                    OverridePan = viewpoint.OverridePan,
+                    PanXPx = viewpoint.OverridePan ? viewpoint.PanXPx : 0f,
+                    PanYPx = viewpoint.OverridePan ? viewpoint.PanYPx : 0f
+                };
+            }
+
+            public override string ToString()
+            {
+                string tag = string.IsNullOrWhiteSpace(FileTag) ? "<primary>" : FileTag;
+                string mode = UseAbsoluteCamera ? "abs" : "offset";
+                string state = Enabled ? "on" : "off";
+                return $"{Name} [{state}] ({mode}, {tag})";
             }
         }
 

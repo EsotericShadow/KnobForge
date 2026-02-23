@@ -150,7 +150,18 @@ namespace KnobForge.App.Views
                         .GetAwaiter()
                         .GetResult();
 
-                var exporter = new KnobExporter(_project, _orientation, _cameraState, gpuFrameProvider);
+                if (!TryBuildManualOrbitAngles(out float baseYawDeg, out float basePitchDeg, out string orbitError))
+                {
+                    throw new InvalidOperationException(orbitError);
+                }
+
+                ViewportCameraState exportCameraState = _cameraState with
+                {
+                    OrbitYawDeg = baseYawDeg,
+                    OrbitPitchDeg = basePitchDeg
+                };
+
+                var exporter = new KnobExporter(_project, _orientation, exportCameraState, gpuFrameProvider);
                 var progress = new Progress<KnobExportProgress>(UpdateProgress);
                 KnobExportResult result = await exporter.ExportAsync(
                     settings,

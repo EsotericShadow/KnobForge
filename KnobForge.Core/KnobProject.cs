@@ -63,6 +63,26 @@ namespace KnobForge.Core
         Color = 5
     }
 
+    public enum SliderAssemblyMode
+    {
+        Auto = 0,
+        Enabled = 1,
+        Disabled = 2
+    }
+
+    public enum ToggleAssemblyMode
+    {
+        Auto = 0,
+        Enabled = 1,
+        Disabled = 2
+    }
+
+    public enum ToggleAssemblyStateCount
+    {
+        TwoPosition = 2,
+        ThreePosition = 3
+    }
+
     public sealed class KnobLight
     {
         public string Name { get; set; } = "Light";
@@ -113,6 +133,25 @@ namespace KnobForge.Core
         private float _scratchDepth = 0.45f;
         private float _scratchDragResistance = 0.38f;
         private float _scratchDepthRamp = 0.0015f;
+        private float _sliderBackplateWidth;
+        private float _sliderBackplateHeight;
+        private float _sliderBackplateThickness;
+        private float _sliderThumbWidth;
+        private float _sliderThumbHeight;
+        private float _sliderThumbDepth;
+        private string _sliderBackplateImportedMeshPath = string.Empty;
+        private string _sliderThumbImportedMeshPath = string.Empty;
+        private float _togglePlateWidth;
+        private float _togglePlateHeight;
+        private float _togglePlateThickness;
+        private float _toggleBushingRadius;
+        private float _toggleBushingHeight;
+        private float _toggleLeverLength;
+        private float _toggleLeverRadius;
+        private float _toggleTipRadius;
+        private float _toggleMaxAngleDeg = 24f;
+        private ToggleAssemblyStateCount _toggleStateCount = ToggleAssemblyStateCount.TwoPosition;
+        private int _toggleStateIndex;
         private readonly byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private int _paintMaskVersion = 1;
 
@@ -297,6 +336,109 @@ namespace KnobForge.Core
         {
             get => _spiralRoughnessLodBoost;
             set => _spiralRoughnessLodBoost = Math.Clamp(value, 0f, 1f);
+        }
+        public SliderAssemblyMode SliderMode { get; set; } = SliderAssemblyMode.Auto;
+        public float SliderBackplateWidth
+        {
+            get => _sliderBackplateWidth;
+            set => _sliderBackplateWidth = ClampSliderDimensionOverride(value);
+        }
+        public float SliderBackplateHeight
+        {
+            get => _sliderBackplateHeight;
+            set => _sliderBackplateHeight = ClampSliderDimensionOverride(value);
+        }
+        public float SliderBackplateThickness
+        {
+            get => _sliderBackplateThickness;
+            set => _sliderBackplateThickness = ClampSliderDimensionOverride(value);
+        }
+        public float SliderThumbWidth
+        {
+            get => _sliderThumbWidth;
+            set => _sliderThumbWidth = ClampSliderDimensionOverride(value);
+        }
+        public float SliderThumbHeight
+        {
+            get => _sliderThumbHeight;
+            set => _sliderThumbHeight = ClampSliderDimensionOverride(value);
+        }
+        public float SliderThumbDepth
+        {
+            get => _sliderThumbDepth;
+            set => _sliderThumbDepth = ClampSliderDimensionOverride(value);
+        }
+        public string SliderBackplateImportedMeshPath
+        {
+            get => _sliderBackplateImportedMeshPath;
+            set => _sliderBackplateImportedMeshPath = NormalizeOptionalPath(value);
+        }
+        public string SliderThumbImportedMeshPath
+        {
+            get => _sliderThumbImportedMeshPath;
+            set => _sliderThumbImportedMeshPath = NormalizeOptionalPath(value);
+        }
+        public ToggleAssemblyMode ToggleMode { get; set; } = ToggleAssemblyMode.Auto;
+        public ToggleAssemblyStateCount ToggleStateCount
+        {
+            get => _toggleStateCount;
+            set
+            {
+                _toggleStateCount = value == ToggleAssemblyStateCount.ThreePosition
+                    ? ToggleAssemblyStateCount.ThreePosition
+                    : ToggleAssemblyStateCount.TwoPosition;
+                _toggleStateIndex = ClampToggleStateIndex(_toggleStateIndex, _toggleStateCount);
+            }
+        }
+        public int ToggleStateIndex
+        {
+            get => _toggleStateIndex;
+            set => _toggleStateIndex = ClampToggleStateIndex(value, _toggleStateCount);
+        }
+        public float ToggleMaxAngleDeg
+        {
+            get => _toggleMaxAngleDeg;
+            set => _toggleMaxAngleDeg = Math.Clamp(value, 5f, 85f);
+        }
+        public float TogglePlateWidth
+        {
+            get => _togglePlateWidth;
+            set => _togglePlateWidth = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePlateHeight
+        {
+            get => _togglePlateHeight;
+            set => _togglePlateHeight = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePlateThickness
+        {
+            get => _togglePlateThickness;
+            set => _togglePlateThickness = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleBushingRadius
+        {
+            get => _toggleBushingRadius;
+            set => _toggleBushingRadius = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleBushingHeight
+        {
+            get => _toggleBushingHeight;
+            set => _toggleBushingHeight = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleLeverLength
+        {
+            get => _toggleLeverLength;
+            set => _toggleLeverLength = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleLeverRadius
+        {
+            get => _toggleLeverRadius;
+            set => _toggleLeverRadius = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleTipRadius
+        {
+            get => _toggleTipRadius;
+            set => _toggleTipRadius = ClampSliderDimensionOverride(value);
         }
         public SceneRootNode SceneRoot { get; } = new SceneRootNode();
         public SceneNode? SelectedNode { get; private set; }
@@ -485,6 +627,29 @@ namespace KnobForge.Core
             {
                 SelectedLightIndex = 0;
             }
+        }
+
+        private static float ClampSliderDimensionOverride(float value)
+        {
+            if (!float.IsFinite(value) || value <= 0f)
+            {
+                return 0f;
+            }
+
+            return Math.Clamp(value, 1f, 4096f);
+        }
+
+        private static int ClampToggleStateIndex(int value, ToggleAssemblyStateCount count)
+        {
+            int max = count == ToggleAssemblyStateCount.ThreePosition ? 2 : 1;
+            return Math.Clamp(value, 0, max);
+        }
+
+        private static string NormalizeOptionalPath(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : value.Trim();
         }
 
         public byte[] GetPaintMaskRgba8()

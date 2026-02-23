@@ -121,17 +121,16 @@ namespace KnobForge.App.Views
                 throw new InvalidOperationException("GPU viewport is unavailable.");
             }
 
-            var defaults = new KnobExportSettings();
-            float yawOffsetDeg = defaults.OrbitVariantYawOffsetDeg;
-            float pitchOffsetDeg = defaults.OrbitVariantPitchOffsetDeg;
-            TryParseFloat(_orbitYawOffsetTextBox.Text, MinOrbitOffsetDeg, MaxOrbitYawOffsetDeg, "Orbit yaw offset", out yawOffsetDeg, out _);
-            TryParseFloat(_orbitPitchOffsetTextBox.Text, MinOrbitOffsetDeg, MaxOrbitPitchOffsetDeg, "Orbit pitch offset", out pitchOffsetDeg, out _);
+            if (!TryBuildViewpointsFromEditor(out ExportViewpoint[] previewViewpoints, out string viewpointError))
+            {
+                throw new InvalidOperationException(viewpointError);
+            }
 
-            ViewportCameraState cameraState = ApplyPreviewVariant(
-                request.CameraState,
-                variant.Kind,
-                yawOffsetDeg,
-                pitchOffsetDeg);
+            ExportViewpoint selectedViewpoint = previewViewpoints
+                .FirstOrDefault(v => string.Equals(v.FileTag, variant.FileTag, StringComparison.OrdinalIgnoreCase))
+                ?? previewViewpoints[0];
+
+            ViewportCameraState cameraState = ExportViewpointResolver.ApplyViewpoint(request.CameraState, selectedViewpoint);
 
             int frameCount = request.FrameCount;
             int resolution = request.Resolution;
@@ -258,42 +257,6 @@ namespace KnobForge.App.Views
             pngData.SaveTo(outputStream);
 
             return new RotaryPreviewSheet(outputPath, frameCount, columns, resolution);
-        }
-
-        private static ViewportCameraState ApplyPreviewVariant(
-            ViewportCameraState baseState,
-            PreviewViewVariantKind kind,
-            float yawOffsetDeg,
-            float pitchOffsetDeg)
-        {
-            float yaw = MathF.Abs(yawOffsetDeg);
-            float pitch = MathF.Abs(pitchOffsetDeg);
-
-            float yawDelta = 0f;
-            float pitchDelta = 0f;
-            switch (kind)
-            {
-                case PreviewViewVariantKind.UnderLeft:
-                    yawDelta = -yaw;
-                    pitchDelta = pitch;
-                    break;
-                case PreviewViewVariantKind.UnderRight:
-                    yawDelta = yaw;
-                    pitchDelta = pitch;
-                    break;
-                case PreviewViewVariantKind.OverLeft:
-                    yawDelta = -yaw;
-                    pitchDelta = -pitch;
-                    break;
-                case PreviewViewVariantKind.OverRight:
-                    yawDelta = yaw;
-                    pitchDelta = -pitch;
-                    break;
-            }
-
-            float resultYaw = baseState.OrbitYawDeg + yawDelta;
-            float resultPitch = Math.Clamp(baseState.OrbitPitchDeg + pitchDelta, -85f, 85f);
-            return new ViewportCameraState(resultYaw, resultPitch, baseState.Zoom, baseState.PanPx);
         }
 
         private async Task<ViewportCameraState> FitRotaryPreviewCameraAsync(

@@ -119,6 +119,7 @@ namespace KnobForge.App.Controls
             public Vector4 IndicatorParams0;
             public Vector4 IndicatorParams1;
             public Vector4 IndicatorColorAndBlend;
+            public Vector4 IndicatorParams2;
             public Vector4 MicroDetailParams;
             public Vector4 EnvironmentTopColorAndIntensity;
             public Vector4 EnvironmentBottomColorAndRoughnessMix;
@@ -208,6 +209,33 @@ namespace KnobForge.App.Controls
             float ImportedInflateRatio,
             string ImportedMeshPath,
             long ImportedFileTicks);
+
+        private readonly record struct SliderAssemblyShapeKey(
+            int Enabled,
+            float BackplateWidth,
+            float BackplateHeight,
+            float BackplateThickness,
+            float ThumbWidth,
+            float ThumbHeight,
+            float ThumbDepth,
+            string BackplateImportedMeshPath,
+            long BackplateImportedMeshTicks,
+            string ThumbImportedMeshPath,
+            long ThumbImportedMeshTicks);
+
+        private readonly record struct ToggleAssemblyShapeKey(
+            int Enabled,
+            int StateCount,
+            int StateIndex,
+            float LeverAngleDeg,
+            float PlateWidth,
+            float PlateHeight,
+            float PlateThickness,
+            float BushingRadius,
+            float BushingHeight,
+            float LeverLength,
+            float LeverRadius,
+            float TipRadius);
 
         private readonly record struct SpiralNormalMapKey(
             float ReferenceRadius,

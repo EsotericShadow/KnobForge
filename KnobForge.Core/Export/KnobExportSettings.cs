@@ -27,6 +27,28 @@ namespace KnobForge.Core.Export
         AtlasGridMaster
     }
 
+    public sealed class ExportViewpoint
+    {
+        public string Name { get; set; } = "Primary";
+        public string FileTag { get; set; } = string.Empty;
+        public bool Enabled { get; set; } = true;
+        public int Order { get; set; }
+        public float YawOffsetDeg { get; set; }
+        public float PitchOffsetDeg { get; set; }
+
+        // When true, yaw/pitch come from the absolute values below.
+        public bool UseAbsoluteCamera { get; set; }
+        public float OrbitYawDeg { get; set; }
+        public float OrbitPitchDeg { get; set; }
+
+        // Optional per-view overrides.
+        public bool OverrideZoom { get; set; }
+        public float Zoom { get; set; }
+        public bool OverridePan { get; set; }
+        public float PanXPx { get; set; }
+        public float PanYPx { get; set; }
+    }
+
     public readonly record struct ExportOutputStrategyDefinition(
         ExportOutputStrategy Strategy,
         string DisplayName,
@@ -180,5 +202,6 @@ namespace KnobForge.Core.Export
         public bool ExportOrbitVariants { get; set; }
         public float OrbitVariantYawOffsetDeg { get; set; } = DefaultOrbitVariantYawOffsetDeg;
         public float OrbitVariantPitchOffsetDeg { get; set; } = DefaultOrbitVariantPitchOffsetDeg;
+        public List<ExportViewpoint> ExportViewpoints { get; set; } = new();
     }
 }

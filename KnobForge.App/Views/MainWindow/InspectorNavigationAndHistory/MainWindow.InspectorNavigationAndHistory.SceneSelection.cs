@@ -69,6 +69,27 @@ namespace KnobForge.App.Views
             _project.SpiralNormalLodFadeStart = snapshot.SpiralNormalLodFadeStart;
             _project.SpiralNormalLodFadeEnd = snapshot.SpiralNormalLodFadeEnd;
             _project.SpiralRoughnessLodBoost = snapshot.SpiralRoughnessLodBoost;
+            _project.SliderMode = snapshot.SliderMode;
+            _project.SliderBackplateWidth = snapshot.SliderBackplateWidth;
+            _project.SliderBackplateHeight = snapshot.SliderBackplateHeight;
+            _project.SliderBackplateThickness = snapshot.SliderBackplateThickness;
+            _project.SliderThumbWidth = snapshot.SliderThumbWidth;
+            _project.SliderThumbHeight = snapshot.SliderThumbHeight;
+            _project.SliderThumbDepth = snapshot.SliderThumbDepth;
+            _project.SliderBackplateImportedMeshPath = snapshot.SliderBackplateImportedMeshPath;
+            _project.SliderThumbImportedMeshPath = snapshot.SliderThumbImportedMeshPath;
+            _project.ToggleMode = snapshot.ToggleMode;
+            _project.ToggleStateCount = snapshot.ToggleStateCount;
+            _project.ToggleStateIndex = snapshot.ToggleStateIndex;
+            _project.ToggleMaxAngleDeg = snapshot.ToggleMaxAngleDeg;
+            _project.TogglePlateWidth = snapshot.TogglePlateWidth;
+            _project.TogglePlateHeight = snapshot.TogglePlateHeight;
+            _project.TogglePlateThickness = snapshot.TogglePlateThickness;
+            _project.ToggleBushingRadius = snapshot.ToggleBushingRadius;
+            _project.ToggleBushingHeight = snapshot.ToggleBushingHeight;
+            _project.ToggleLeverLength = snapshot.ToggleLeverLength;
+            _project.ToggleLeverRadius = snapshot.ToggleLeverRadius;
+            _project.ToggleTipRadius = snapshot.ToggleTipRadius;
 
             if (_metalViewport != null)
             {

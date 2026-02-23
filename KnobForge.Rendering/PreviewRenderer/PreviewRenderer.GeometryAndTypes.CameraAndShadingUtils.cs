@@ -119,6 +119,7 @@ namespace KnobForge.Rendering
                 topRadius,
                 modelNode.IndicatorEnabled,
                 modelNode.IndicatorShape,
+                modelNode.IndicatorProfile,
                 modelNode.IndicatorWidthRatio,
                 modelNode.IndicatorLengthRatioTop,
                 modelNode.IndicatorPositionRatio,

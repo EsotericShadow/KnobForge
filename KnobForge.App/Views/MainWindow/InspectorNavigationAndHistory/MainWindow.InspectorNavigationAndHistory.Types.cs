@@ -76,6 +76,27 @@ namespace KnobForge.App.Views
             public ReferenceKnobStyle ModelReferenceStyle { get; set; } = ReferenceKnobStyle.Custom;
             public string? SelectedUserReferenceProfileName { get; set; }
             public CollarStateSnapshot? CollarSnapshot { get; set; }
+            public SliderAssemblyMode SliderMode { get; set; } = SliderAssemblyMode.Auto;
+            public float SliderBackplateWidth { get; set; }
+            public float SliderBackplateHeight { get; set; }
+            public float SliderBackplateThickness { get; set; }
+            public float SliderThumbWidth { get; set; }
+            public float SliderThumbHeight { get; set; }
+            public float SliderThumbDepth { get; set; }
+            public string SliderBackplateImportedMeshPath { get; set; } = string.Empty;
+            public string SliderThumbImportedMeshPath { get; set; } = string.Empty;
+            public ToggleAssemblyMode ToggleMode { get; set; } = ToggleAssemblyMode.Auto;
+            public ToggleAssemblyStateCount ToggleStateCount { get; set; } = ToggleAssemblyStateCount.TwoPosition;
+            public int ToggleStateIndex { get; set; }
+            public float ToggleMaxAngleDeg { get; set; } = 24f;
+            public float TogglePlateWidth { get; set; }
+            public float TogglePlateHeight { get; set; }
+            public float TogglePlateThickness { get; set; }
+            public float ToggleBushingRadius { get; set; }
+            public float ToggleBushingHeight { get; set; }
+            public float ToggleLeverLength { get; set; }
+            public float ToggleLeverRadius { get; set; }
+            public float ToggleTipRadius { get; set; }
             public SceneSelectionSnapshot Selection { get; set; } = new();
         }
 

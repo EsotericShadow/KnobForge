@@ -420,6 +420,7 @@ namespace KnobForge.Rendering
             float topRadius,
             bool enabled,
             IndicatorShape shape,
+            IndicatorProfile profile,
             float widthRatio,
             float lengthRatio,
             float positionRatio,
@@ -484,13 +485,13 @@ namespace KnobForge.Rendering
             }
 
             float edgeMask;
-            if (roundness <= 1e-4f)
+            if (profile == IndicatorProfile.Straight || roundness <= 1e-4f)
             {
                 edgeMask = 1f;
             }
             else
             {
-                float feather = Math.Clamp(roundness, 0f, 1f) * 0.45f;
+                float feather = Math.Clamp(roundness, 0f, 1f) * 0.30f;
                 edgeMask = 1f - SmoothStep(1f - feather, 1f, edgeDistance);
             }
 

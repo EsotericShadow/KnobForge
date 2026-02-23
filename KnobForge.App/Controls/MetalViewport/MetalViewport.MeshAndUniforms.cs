@@ -16,6 +16,10 @@ namespace KnobForge.App.Controls
         {
             ReplaceMeshResources(ref _meshResources, null);
             ReplaceMeshResources(ref _collarResources, null);
+            ReplaceMeshResources(ref _sliderBackplateResources, null);
+            ReplaceMeshResources(ref _sliderThumbResources, null);
+            ReplaceMeshResources(ref _toggleBaseResources, null);
+            ReplaceMeshResources(ref _toggleLeverResources, null);
             _paintPickMapDirty = true;
         }
 
@@ -37,6 +41,8 @@ namespace KnobForge.App.Controls
             {
                 ClearMeshResources();
                 _collarShapeKey = default;
+                _sliderAssemblyShapeKey = default;
+                _toggleAssemblyShapeKey = default;
                 return;
             }
 
@@ -65,6 +71,68 @@ namespace KnobForge.App.Controls
                 }
 
                 ReplaceMeshResources(ref _collarResources, nextCollarResources);
+            }
+
+            SliderAssemblyConfig sliderConfig = SliderAssemblyMeshBuilder.ResolveConfig(project);
+            SliderAssemblyShapeKey nextSliderKey = BuildSliderAssemblyShapeKey(sliderConfig);
+            bool sliderEnabled = sliderConfig.Enabled;
+            bool sliderShapeChanged = !nextSliderKey.Equals(_sliderAssemblyShapeKey);
+            if (!sliderEnabled)
+            {
+                ReplaceMeshResources(ref _sliderBackplateResources, null);
+                ReplaceMeshResources(ref _sliderThumbResources, null);
+                _sliderAssemblyShapeKey = default;
+            }
+            else if (sliderShapeChanged || _sliderBackplateResources == null || _sliderThumbResources == null)
+            {
+                _sliderAssemblyShapeKey = nextSliderKey;
+                SliderPartMesh backplateMesh = SliderAssemblyMeshBuilder.BuildBackplateMesh(sliderConfig);
+                SliderPartMesh thumbMesh = SliderAssemblyMeshBuilder.BuildThumbMesh(sliderConfig);
+                MetalMeshGpuResources? nextBackplateResources = null;
+                MetalMeshGpuResources? nextThumbResources = null;
+                if (backplateMesh.Vertices.Length > 0 && backplateMesh.Indices.Length > 0)
+                {
+                    nextBackplateResources = CreateGpuResources(backplateMesh.Vertices, backplateMesh.Indices, backplateMesh.ReferenceRadius);
+                }
+
+                if (thumbMesh.Vertices.Length > 0 && thumbMesh.Indices.Length > 0)
+                {
+                    nextThumbResources = CreateGpuResources(thumbMesh.Vertices, thumbMesh.Indices, thumbMesh.ReferenceRadius);
+                }
+
+                ReplaceMeshResources(ref _sliderBackplateResources, nextBackplateResources);
+                ReplaceMeshResources(ref _sliderThumbResources, nextThumbResources);
+            }
+
+            ToggleAssemblyConfig toggleConfig = ToggleAssemblyMeshBuilder.ResolveConfig(project);
+            ToggleAssemblyShapeKey nextToggleKey = BuildToggleAssemblyShapeKey(toggleConfig);
+            bool toggleEnabled = toggleConfig.Enabled;
+            bool toggleShapeChanged = !nextToggleKey.Equals(_toggleAssemblyShapeKey);
+            if (!toggleEnabled)
+            {
+                ReplaceMeshResources(ref _toggleBaseResources, null);
+                ReplaceMeshResources(ref _toggleLeverResources, null);
+                _toggleAssemblyShapeKey = default;
+            }
+            else if (toggleShapeChanged || _toggleBaseResources == null || _toggleLeverResources == null)
+            {
+                _toggleAssemblyShapeKey = nextToggleKey;
+                TogglePartMesh baseMesh = ToggleAssemblyMeshBuilder.BuildBaseMesh(toggleConfig);
+                TogglePartMesh leverMesh = ToggleAssemblyMeshBuilder.BuildLeverMesh(toggleConfig);
+                MetalMeshGpuResources? nextBaseResources = null;
+                MetalMeshGpuResources? nextLeverResources = null;
+                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
+                {
+                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
+                }
+
+                if (leverMesh.Vertices.Length > 0 && leverMesh.Indices.Length > 0)
+                {
+                    nextLeverResources = CreateGpuResources(leverMesh.Vertices, leverMesh.Indices, leverMesh.ReferenceRadius);
+                }
+
+                ReplaceMeshResources(ref _toggleBaseResources, nextBaseResources);
+                ReplaceMeshResources(ref _toggleLeverResources, nextLeverResources);
             }
 
             MeshShapeKey nextKey = new(
@@ -236,6 +304,49 @@ namespace KnobForge.App.Controls
                 importedFileTicks);
         }
 
+        private static SliderAssemblyShapeKey BuildSliderAssemblyShapeKey(in SliderAssemblyConfig config)
+        {
+            if (!config.Enabled)
+            {
+                return default;
+            }
+
+            return new SliderAssemblyShapeKey(
+                Enabled: 1,
+                BackplateWidth: MathF.Round(config.BackplateWidth, 3),
+                BackplateHeight: MathF.Round(config.BackplateHeight, 3),
+                BackplateThickness: MathF.Round(config.BackplateThickness, 3),
+                ThumbWidth: MathF.Round(config.ThumbWidth, 3),
+                ThumbHeight: MathF.Round(config.ThumbHeight, 3),
+                ThumbDepth: MathF.Round(config.ThumbDepth, 3),
+                BackplateImportedMeshPath: config.BackplateImportedMeshPath ?? string.Empty,
+                BackplateImportedMeshTicks: config.BackplateImportedMeshTicks,
+                ThumbImportedMeshPath: config.ThumbImportedMeshPath ?? string.Empty,
+                ThumbImportedMeshTicks: config.ThumbImportedMeshTicks);
+        }
+
+        private static ToggleAssemblyShapeKey BuildToggleAssemblyShapeKey(in ToggleAssemblyConfig config)
+        {
+            if (!config.Enabled)
+            {
+                return default;
+            }
+
+            return new ToggleAssemblyShapeKey(
+                Enabled: 1,
+                StateCount: config.StateCount,
+                StateIndex: config.StateIndex,
+                LeverAngleDeg: MathF.Round(config.LeverAngleDeg, 3),
+                PlateWidth: MathF.Round(config.PlateWidth, 3),
+                PlateHeight: MathF.Round(config.PlateHeight, 3),
+                PlateThickness: MathF.Round(config.PlateThickness, 3),
+                BushingRadius: MathF.Round(config.BushingRadius, 3),
+                BushingHeight: MathF.Round(config.BushingHeight, 3),
+                LeverLength: MathF.Round(config.LeverLength, 3),
+                LeverRadius: MathF.Round(config.LeverRadius, 3),
+                TipRadius: MathF.Round(config.TipRadius, 3));
+        }
+
         private GpuUniforms BuildUniforms(KnobProject? project, ModelNode? modelNode, float referenceRadius, Size viewportDip)
         {
             float renderScale = GetRenderScale();
@@ -303,6 +414,13 @@ namespace KnobForge.App.Controls
             float indicatorLength = modelNode?.IndicatorLengthRatioTop ?? 0.28f;
             float indicatorPosition = modelNode?.IndicatorPositionRatio ?? 0.46f;
             float indicatorRoundness = modelNode?.IndicatorRoundness ?? 0f;
+            IndicatorProfile indicatorProfileEnum = modelNode?.IndicatorProfile ?? IndicatorProfile.Straight;
+            float indicatorProfile = (float)indicatorProfileEnum;
+            float indicatorCadWallsEnabled = modelNode?.IndicatorCadWallsEnabled == true ? 1f : 0f;
+            if (indicatorProfileEnum == IndicatorProfile.Straight)
+            {
+                indicatorRoundness = 0f;
+            }
             Vector3 indicatorColor = modelNode?.IndicatorColor ?? new Vector3(0.97f, 0.96f, 0.92f);
             float indicatorColorBlend = modelNode?.IndicatorColorBlend ?? 1f;
             float turns = MathF.Max(1f, modelNode?.SpiralTurns ?? 220f);
@@ -347,6 +465,7 @@ namespace KnobForge.App.Controls
             // Keep top-cap/indicator normalization stable even when scene bounds grow (e.g. collar enabled).
             uniforms.IndicatorParams1 = new Vector4(indicatorRoundness, indicatorPosition, knobTopRadius, pearlescence);
             uniforms.IndicatorColorAndBlend = new Vector4(indicatorColor, indicatorColorBlend);
+            uniforms.IndicatorParams2 = new Vector4(indicatorProfile, indicatorCadWallsEnabled, 0f, 0f);
             if (project != null)
             {
                 uniforms.MicroDetailParams = new Vector4(
@@ -448,6 +567,36 @@ namespace KnobForge.App.Controls
             uniforms.IndicatorParams0 = Vector4.Zero;
             uniforms.IndicatorParams1 = new Vector4(0f, 0f, 0f, Math.Clamp(collarNode.Pearlescence, 0f, 1f));
             uniforms.IndicatorColorAndBlend = Vector4.Zero;
+            uniforms.IndicatorParams2 = Vector4.Zero;
+            uniforms.MicroDetailParams.X = 0f;
+            uniforms.MicroDetailParams.W = 0f;
+            return uniforms;
+        }
+
+        private static GpuUniforms BuildSliderPartUniforms(
+            in GpuUniforms baseUniforms,
+            Vector3 baseColor,
+            float metallic,
+            float roughness,
+            float pearlescence)
+        {
+            GpuUniforms uniforms = baseUniforms;
+            Vector4 material = new(baseColor, Math.Clamp(metallic, 0f, 1f));
+            float clampedRoughness = Math.Clamp(roughness, 0.04f, 1f);
+            uniforms.MaterialBaseColorAndMetallic = material;
+            uniforms.MaterialRoughnessDiffuseSpecMode.X = clampedRoughness;
+            uniforms.MaterialRoughnessDiffuseSpecMode.Y = 1f;
+            uniforms.MaterialRoughnessDiffuseSpecMode.Z = 1f;
+            uniforms.MaterialPartTopColorAndMetallic = material;
+            uniforms.MaterialPartBevelColorAndMetallic = material;
+            uniforms.MaterialPartSideColorAndMetallic = material;
+            uniforms.MaterialPartRoughnessAndEnable = new Vector4(clampedRoughness, clampedRoughness, clampedRoughness, 0f);
+            uniforms.MaterialSurfaceBrushParams = new Vector4(0f, 56f, 0f, 1f);
+            uniforms.WeatherParams = new Vector4(0f, 0f, 0f, baseUniforms.WeatherParams.W);
+            uniforms.IndicatorParams0 = Vector4.Zero;
+            uniforms.IndicatorParams1 = new Vector4(0f, 0f, 0f, Math.Clamp(pearlescence, 0f, 1f));
+            uniforms.IndicatorColorAndBlend = Vector4.Zero;
+            uniforms.IndicatorParams2 = Vector4.Zero;
             uniforms.MicroDetailParams.X = 0f;
             uniforms.MicroDetailParams.W = 0f;
             return uniforms;

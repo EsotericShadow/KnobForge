@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace KnobForge.App.Views
 {
@@ -57,6 +58,26 @@ namespace KnobForge.App.Views
         private readonly CheckBox _exportFramesCheckBox;
         private readonly CheckBox _exportSpritesheetCheckBox;
         private readonly Button _autoCorrectButton;
+        private readonly ListBox _viewpointsListBox;
+        private readonly Button _addViewpointButton;
+        private readonly Button _duplicateViewpointButton;
+        private readonly Button _resetViewpointsFromOrbitButton;
+        private readonly Button _removeViewpointButton;
+        private readonly Button _moveViewpointUpButton;
+        private readonly Button _moveViewpointDownButton;
+        private readonly TextBox _previewBaseYawTextBox;
+        private readonly TextBox _previewBasePitchTextBox;
+        private readonly CheckBox _viewpointEnabledCheckBox;
+        private readonly TextBox _viewpointNameTextBox;
+        private readonly TextBox _viewpointFileTagTextBox;
+        private readonly CheckBox _viewpointAbsoluteCameraCheckBox;
+        private readonly TextBox _viewpointYawTextBox;
+        private readonly TextBox _viewpointPitchTextBox;
+        private readonly CheckBox _viewpointOverrideZoomCheckBox;
+        private readonly TextBox _viewpointZoomTextBox;
+        private readonly CheckBox _viewpointOverridePanCheckBox;
+        private readonly TextBox _viewpointPanXTextBox;
+        private readonly TextBox _viewpointPanYTextBox;
         private readonly ComboBox _rotaryPreviewVariantComboBox;
         private readonly Button _createRotaryPreviewButton;
         private readonly SpriteKnobSlider _rotaryPreviewKnob;
@@ -68,7 +89,8 @@ namespace KnobForge.App.Views
         private readonly TextBlock _statusTextBlock;
         private readonly TextBlock _scratchParityNoteTextBlock;
         private readonly OutputStrategyOption[] _outputStrategyOptions;
-        private readonly PreviewVariantOption[] _previewVariantOptions;
+        private PreviewVariantOption[] _previewVariantOptions;
+        private readonly List<ViewpointEditorItem> _viewpointEditorItems = new();
 
         private CancellationTokenSource? _exportCts;
         private CancellationTokenSource? _rotaryPreviewCts;
@@ -76,6 +98,8 @@ namespace KnobForge.App.Views
         private bool _isBuildingRotaryPreview;
         private bool _isRendering;
         private bool _isApplyingOutputStrategy;
+        private bool _isUpdatingViewpointUi;
+        private bool _viewpointsDirtyFromOrbit = true;
         private bool CanUseGpuExport => _gpuViewport?.CanRenderOffscreen == true;
 
         public RenderSettingsWindow()
@@ -134,6 +158,46 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("ExportSpritesheetCheckBox not found.");
             _autoCorrectButton = this.FindControl<Button>("AutoCorrectButton")
                 ?? throw new InvalidOperationException("AutoCorrectButton not found.");
+            _viewpointsListBox = this.FindControl<ListBox>("ViewpointsListBox")
+                ?? throw new InvalidOperationException("ViewpointsListBox not found.");
+            _addViewpointButton = this.FindControl<Button>("AddViewpointButton")
+                ?? throw new InvalidOperationException("AddViewpointButton not found.");
+            _duplicateViewpointButton = this.FindControl<Button>("DuplicateViewpointButton")
+                ?? throw new InvalidOperationException("DuplicateViewpointButton not found.");
+            _resetViewpointsFromOrbitButton = this.FindControl<Button>("ResetViewpointsFromOrbitButton")
+                ?? throw new InvalidOperationException("ResetViewpointsFromOrbitButton not found.");
+            _removeViewpointButton = this.FindControl<Button>("RemoveViewpointButton")
+                ?? throw new InvalidOperationException("RemoveViewpointButton not found.");
+            _moveViewpointUpButton = this.FindControl<Button>("MoveViewpointUpButton")
+                ?? throw new InvalidOperationException("MoveViewpointUpButton not found.");
+            _moveViewpointDownButton = this.FindControl<Button>("MoveViewpointDownButton")
+                ?? throw new InvalidOperationException("MoveViewpointDownButton not found.");
+            _previewBaseYawTextBox = this.FindControl<TextBox>("PreviewBaseYawTextBox")
+                ?? throw new InvalidOperationException("PreviewBaseYawTextBox not found.");
+            _previewBasePitchTextBox = this.FindControl<TextBox>("PreviewBasePitchTextBox")
+                ?? throw new InvalidOperationException("PreviewBasePitchTextBox not found.");
+            _viewpointEnabledCheckBox = this.FindControl<CheckBox>("ViewpointEnabledCheckBox")
+                ?? throw new InvalidOperationException("ViewpointEnabledCheckBox not found.");
+            _viewpointNameTextBox = this.FindControl<TextBox>("ViewpointNameTextBox")
+                ?? throw new InvalidOperationException("ViewpointNameTextBox not found.");
+            _viewpointFileTagTextBox = this.FindControl<TextBox>("ViewpointFileTagTextBox")
+                ?? throw new InvalidOperationException("ViewpointFileTagTextBox not found.");
+            _viewpointAbsoluteCameraCheckBox = this.FindControl<CheckBox>("ViewpointAbsoluteCameraCheckBox")
+                ?? throw new InvalidOperationException("ViewpointAbsoluteCameraCheckBox not found.");
+            _viewpointYawTextBox = this.FindControl<TextBox>("ViewpointYawTextBox")
+                ?? throw new InvalidOperationException("ViewpointYawTextBox not found.");
+            _viewpointPitchTextBox = this.FindControl<TextBox>("ViewpointPitchTextBox")
+                ?? throw new InvalidOperationException("ViewpointPitchTextBox not found.");
+            _viewpointOverrideZoomCheckBox = this.FindControl<CheckBox>("ViewpointOverrideZoomCheckBox")
+                ?? throw new InvalidOperationException("ViewpointOverrideZoomCheckBox not found.");
+            _viewpointZoomTextBox = this.FindControl<TextBox>("ViewpointZoomTextBox")
+                ?? throw new InvalidOperationException("ViewpointZoomTextBox not found.");
+            _viewpointOverridePanCheckBox = this.FindControl<CheckBox>("ViewpointOverridePanCheckBox")
+                ?? throw new InvalidOperationException("ViewpointOverridePanCheckBox not found.");
+            _viewpointPanXTextBox = this.FindControl<TextBox>("ViewpointPanXTextBox")
+                ?? throw new InvalidOperationException("ViewpointPanXTextBox not found.");
+            _viewpointPanYTextBox = this.FindControl<TextBox>("ViewpointPanYTextBox")
+                ?? throw new InvalidOperationException("ViewpointPanYTextBox not found.");
             _rotaryPreviewVariantComboBox = this.FindControl<ComboBox>("RotaryPreviewVariantComboBox")
                 ?? throw new InvalidOperationException("RotaryPreviewVariantComboBox not found.");
             _createRotaryPreviewButton = this.FindControl<Button>("CreateRotaryPreviewButton")
@@ -174,6 +238,8 @@ namespace KnobForge.App.Views
             _exportOrbitVariantsCheckBox.IsChecked = defaultExportSettings.ExportOrbitVariants;
             _orbitYawOffsetTextBox.Text = defaultExportSettings.OrbitVariantYawOffsetDeg.ToString("0.###", CultureInfo.InvariantCulture);
             _orbitPitchOffsetTextBox.Text = defaultExportSettings.OrbitVariantPitchOffsetDeg.ToString("0.###", CultureInfo.InvariantCulture);
+            _previewBaseYawTextBox.Text = _cameraState.OrbitYawDeg.ToString("0.###", CultureInfo.InvariantCulture);
+            _previewBasePitchTextBox.Text = _cameraState.OrbitPitchDeg.ToString("0.###", CultureInfo.InvariantCulture);
             _exportProgressBar.Value = 0d;
             _scratchParityNoteTextBlock.Text = "Scratch carve parity: export uses the GPU viewport path. Expect close match; tiny edge differences can appear on ultra-thin strokes or fallback hits.";
             _statusTextBlock.Text = CanUseGpuExport
@@ -183,6 +249,7 @@ namespace KnobForge.App.Views
             _outputStrategyComboBox.SelectionChanged += OnOutputStrategySelectionChanged;
             _browseOutputButton.Click += OnBrowseOutputButtonClick;
             _autoCorrectButton.Click += OnAutoCorrectButtonClick;
+            WireViewpointEditorHandlers();
             _createRotaryPreviewButton.Click += OnCreateRotaryPreviewButtonClick;
             _rotaryPreviewVariantComboBox.SelectionChanged += OnRotaryPreviewVariantSelectionChanged;
             _rotaryPreviewKnob.PropertyChanged += OnRotaryPreviewKnobPropertyChanged;
@@ -194,6 +261,7 @@ namespace KnobForge.App.Views
             WireLiveValidationHandlers();
 
             ApplyOutputStrategy(ExportOutputStrategies.Get(ExportOutputStrategy.JuceFilmstripBestDefault));
+            ResetViewpointsFromOrbit(useCurrentCameraForPrimary: false);
             UpdateSpritesheetLayoutEnabled();
             UpdateOrbitVariantControlsEnabled();
             UpdateStartRenderAvailability();
@@ -216,11 +284,11 @@ namespace KnobForge.App.Views
         {
             return
             [
-                new PreviewVariantOption(PreviewViewVariantKind.Primary, "Straight On"),
-                new PreviewVariantOption(PreviewViewVariantKind.UnderLeft, "Under Left"),
-                new PreviewVariantOption(PreviewViewVariantKind.UnderRight, "Under Right"),
-                new PreviewVariantOption(PreviewViewVariantKind.OverLeft, "Over Left"),
-                new PreviewVariantOption(PreviewViewVariantKind.OverRight, "Over Right")
+                new PreviewVariantOption(string.Empty, "Straight On"),
+                new PreviewVariantOption("under_left", "Under Left"),
+                new PreviewVariantOption("under_right", "Under Right"),
+                new PreviewVariantOption("over_left", "Over Left"),
+                new PreviewVariantOption("over_right", "Over Right")
             ];
         }
 
@@ -284,6 +352,8 @@ namespace KnobForge.App.Views
             _cameraDistanceScaleTextBox.TextChanged += OnLiveValidationTextChanged;
             _orbitYawOffsetTextBox.TextChanged += OnLiveValidationTextChanged;
             _orbitPitchOffsetTextBox.TextChanged += OnLiveValidationTextChanged;
+            _previewBaseYawTextBox.TextChanged += OnLiveValidationTextChanged;
+            _previewBasePitchTextBox.TextChanged += OnLiveValidationTextChanged;
             _baseNameTextBox.TextChanged += OnLiveValidationTextChanged;
             _outputFolderTextBox.TextChanged += OnLiveValidationTextChanged;
 
@@ -303,6 +373,11 @@ namespace KnobForge.App.Views
 
         private void OnLiveValidationTextChanged(object? sender, TextChangedEventArgs e)
         {
+            if (ReferenceEquals(sender, _orbitYawOffsetTextBox) || ReferenceEquals(sender, _orbitPitchOffsetTextBox))
+            {
+                TrySyncViewpointsFromOrbitBaseline();
+            }
+
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
         }
@@ -315,6 +390,11 @@ namespace KnobForge.App.Views
 
         private void OnLiveValidationCheckedChanged(object? sender, RoutedEventArgs e)
         {
+            if (ReferenceEquals(sender, _exportOrbitVariantsCheckBox))
+            {
+                TrySyncViewpointsFromOrbitBaseline();
+            }
+
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
         }

@@ -113,48 +113,6 @@ public sealed partial class KnobExporter
             return new ViewportCameraState(30f, -20f, zoomFallback, SKPoint.Empty);
         }
 
-        private static ViewVariant[] ResolveExportViewVariants(KnobExportSettings settings)
-        {
-            var variants = new List<ViewVariant>(5);
-            var dedupe = new HashSet<(int Yaw, int Pitch)>();
-
-            void AddVariant(ViewVariant variant)
-            {
-                var key = (QuantizeAngle(variant.YawOffsetDeg), QuantizeAngle(variant.PitchOffsetDeg));
-                if (dedupe.Add(key))
-                {
-                    variants.Add(variant);
-                }
-            }
-
-            AddVariant(new ViewVariant(string.Empty, "Primary", 0f, 0f));
-
-            if (settings.ExportOrbitVariants)
-            {
-                float yaw = MathF.Abs(settings.OrbitVariantYawOffsetDeg);
-                float pitch = MathF.Abs(settings.OrbitVariantPitchOffsetDeg);
-
-                AddVariant(new ViewVariant("under_left", "Under Left", -yaw, pitch));
-                AddVariant(new ViewVariant("under_right", "Under Right", yaw, pitch));
-                AddVariant(new ViewVariant("over_left", "Over Left", -yaw, -pitch));
-                AddVariant(new ViewVariant("over_right", "Over Right", yaw, -pitch));
-            }
-
-            return variants.ToArray();
-        }
-
-        private static ViewportCameraState ApplyViewVariant(ViewportCameraState baseState, ViewVariant variant)
-        {
-            float yaw = baseState.OrbitYawDeg + variant.YawOffsetDeg;
-            float pitch = Math.Clamp(baseState.OrbitPitchDeg + variant.PitchOffsetDeg, -85f, 85f);
-            return new ViewportCameraState(yaw, pitch, baseState.Zoom, baseState.PanPx);
-        }
-
-        private static int QuantizeAngle(float value)
-        {
-            return (int)MathF.Round(value * 1000f);
-        }
-
         private static float ComputeSafeZoomForFrame(
             float referenceRadius,
             int renderResolution,
