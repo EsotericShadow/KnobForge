@@ -520,6 +520,16 @@ namespace KnobForge.App.Views
                         _togglePlateThicknessSlider.Value = project.TogglePlateThickness;
                     }
 
+                    if (_togglePlateOffsetYSlider != null)
+                    {
+                        _togglePlateOffsetYSlider.Value = project.TogglePlateOffsetY;
+                    }
+
+                    if (_togglePlateOffsetZSlider != null)
+                    {
+                        _togglePlateOffsetZSlider.Value = project.TogglePlateOffsetZ;
+                    }
+
                     if (_toggleBushingRadiusSlider != null)
                     {
                         _toggleBushingRadiusSlider.Value = project.ToggleBushingRadius;
@@ -528,6 +538,51 @@ namespace KnobForge.App.Views
                     if (_toggleBushingHeightSlider != null)
                     {
                         _toggleBushingHeightSlider.Value = project.ToggleBushingHeight;
+                    }
+
+                    if (_toggleBushingSidesSlider != null)
+                    {
+                        _toggleBushingSidesSlider.Value = project.ToggleBushingSides;
+                    }
+
+                    if (_toggleLowerBushingShapeCombo != null)
+                    {
+                        _toggleLowerBushingShapeCombo.SelectedItem = project.ToggleLowerBushingShape;
+                    }
+
+                    if (_toggleUpperBushingShapeCombo != null)
+                    {
+                        _toggleUpperBushingShapeCombo.SelectedItem = project.ToggleUpperBushingShape;
+                    }
+
+                    if (_toggleLowerBushingRadiusScaleSlider != null)
+                    {
+                        _toggleLowerBushingRadiusScaleSlider.Value = project.ToggleLowerBushingRadiusScale;
+                    }
+
+                    if (_toggleLowerBushingHeightRatioSlider != null)
+                    {
+                        _toggleLowerBushingHeightRatioSlider.Value = project.ToggleLowerBushingHeightRatio;
+                    }
+
+                    if (_toggleUpperBushingRadiusScaleSlider != null)
+                    {
+                        _toggleUpperBushingRadiusScaleSlider.Value = project.ToggleUpperBushingRadiusScale;
+                    }
+
+                    if (_toggleUpperBushingHeightRatioSlider != null)
+                    {
+                        _toggleUpperBushingHeightRatioSlider.Value = project.ToggleUpperBushingHeightRatio;
+                    }
+
+                    if (_toggleInvertBaseWindingCheckBox != null)
+                    {
+                        _toggleInvertBaseWindingCheckBox.IsChecked = project.ToggleInvertBaseFrontFaceWinding;
+                    }
+
+                    if (_toggleInvertLeverWindingCheckBox != null)
+                    {
+                        _toggleInvertLeverWindingCheckBox.IsChecked = project.ToggleInvertLeverFrontFaceWinding;
                     }
 
                     if (_toggleLeverLengthSlider != null)
@@ -540,9 +595,144 @@ namespace KnobForge.App.Views
                         _toggleLeverRadiusSlider.Value = project.ToggleLeverRadius;
                     }
 
+                    if (_toggleLeverTopRadiusSlider != null)
+                    {
+                        _toggleLeverTopRadiusSlider.Value = project.ToggleLeverTopRadius;
+                    }
+
+                    if (_toggleLeverSidesSlider != null)
+                    {
+                        _toggleLeverSidesSlider.Value = project.ToggleLeverSides;
+                    }
+
+                    if (_toggleLeverPivotOffsetSlider != null)
+                    {
+                        _toggleLeverPivotOffsetSlider.Value = project.ToggleLeverPivotOffset;
+                    }
+
                     if (_toggleTipRadiusSlider != null)
                     {
                         _toggleTipRadiusSlider.Value = project.ToggleTipRadius;
+                    }
+
+                    if (_toggleTipLatitudeSegmentsSlider != null)
+                    {
+                        _toggleTipLatitudeSegmentsSlider.Value = project.ToggleTipLatitudeSegments;
+                    }
+
+                    if (_toggleTipLongitudeSegmentsSlider != null)
+                    {
+                        _toggleTipLongitudeSegmentsSlider.Value = project.ToggleTipLongitudeSegments;
+                    }
+
+                    if (_toggleTipSleeveEnabledCheckBox != null)
+                    {
+                        _toggleTipSleeveEnabledCheckBox.IsChecked = project.ToggleTipSleeveEnabled;
+                    }
+
+                    if (_toggleTipSleeveLengthSlider != null)
+                    {
+                        _toggleTipSleeveLengthSlider.Value = project.ToggleTipSleeveLength;
+                    }
+
+                    if (_toggleTipSleeveThicknessSlider != null)
+                    {
+                        _toggleTipSleeveThicknessSlider.Value = project.ToggleTipSleeveThickness;
+                    }
+
+                    if (_toggleTipSleeveOuterRadiusSlider != null)
+                    {
+                        _toggleTipSleeveOuterRadiusSlider.Value = project.ToggleTipSleeveOuterRadius;
+                    }
+
+                    if (_toggleTipSleeveCoverageSlider != null)
+                    {
+                        _toggleTipSleeveCoverageSlider.Value = project.ToggleTipSleeveCoverage;
+                    }
+
+                    if (_toggleTipSleeveSidesSlider != null)
+                    {
+                        _toggleTipSleeveSidesSlider.Value = project.ToggleTipSleeveSides;
+                    }
+
+                    if (_toggleTipSleeveStyleCombo != null)
+                    {
+                        _toggleTipSleeveStyleCombo.SelectedItem = project.ToggleTipSleeveStyle;
+                    }
+
+                    if (_toggleTipSleeveTipStyleCombo != null)
+                    {
+                        _toggleTipSleeveTipStyleCombo.SelectedItem = project.ToggleTipSleeveTipStyle;
+                    }
+
+                    if (_toggleTipSleevePatternCountSlider != null)
+                    {
+                        _toggleTipSleevePatternCountSlider.Value = project.ToggleTipSleevePatternCount;
+                    }
+
+                    if (_toggleTipSleevePatternDepthSlider != null)
+                    {
+                        _toggleTipSleevePatternDepthSlider.Value = project.ToggleTipSleevePatternDepth;
+                    }
+
+                    if (_toggleTipSleeveTipAmountSlider != null)
+                    {
+                        _toggleTipSleeveTipAmountSlider.Value = project.ToggleTipSleeveTipAmount;
+                    }
+
+                    if (_toggleTipSleeveColorRSlider != null)
+                    {
+                        _toggleTipSleeveColorRSlider.Value = project.ToggleTipSleeveColor.X;
+                    }
+
+                    if (_toggleTipSleeveColorGSlider != null)
+                    {
+                        _toggleTipSleeveColorGSlider.Value = project.ToggleTipSleeveColor.Y;
+                    }
+
+                    if (_toggleTipSleeveColorBSlider != null)
+                    {
+                        _toggleTipSleeveColorBSlider.Value = project.ToggleTipSleeveColor.Z;
+                    }
+
+                    if (_toggleTipSleeveMetallicSlider != null)
+                    {
+                        _toggleTipSleeveMetallicSlider.Value = project.ToggleTipSleeveMetallic;
+                    }
+
+                    if (_toggleTipSleeveRoughnessSlider != null)
+                    {
+                        _toggleTipSleeveRoughnessSlider.Value = project.ToggleTipSleeveRoughness;
+                    }
+
+                    if (_toggleTipSleevePearlescenceSlider != null)
+                    {
+                        _toggleTipSleevePearlescenceSlider.Value = project.ToggleTipSleevePearlescence;
+                    }
+
+                    if (_toggleTipSleeveDiffuseStrengthSlider != null)
+                    {
+                        _toggleTipSleeveDiffuseStrengthSlider.Value = project.ToggleTipSleeveDiffuseStrength;
+                    }
+
+                    if (_toggleTipSleeveSpecularStrengthSlider != null)
+                    {
+                        _toggleTipSleeveSpecularStrengthSlider.Value = project.ToggleTipSleeveSpecularStrength;
+                    }
+
+                    if (_toggleTipSleeveRustSlider != null)
+                    {
+                        _toggleTipSleeveRustSlider.Value = project.ToggleTipSleeveRustAmount;
+                    }
+
+                    if (_toggleTipSleeveWearSlider != null)
+                    {
+                        _toggleTipSleeveWearSlider.Value = project.ToggleTipSleeveWearAmount;
+                    }
+
+                    if (_toggleTipSleeveGunkSlider != null)
+                    {
+                        _toggleTipSleeveGunkSlider.Value = project.ToggleTipSleeveGunkAmount;
                     }
                     _spiralRidgeHeightSlider.Value = model.SpiralRidgeHeight;
                     _spiralRidgeWidthSlider.Value = model.SpiralRidgeWidth;
@@ -779,6 +969,16 @@ namespace KnobForge.App.Views
                     _togglePlateThicknessSlider.IsEnabled = hasModel;
                 }
 
+                if (_togglePlateOffsetYSlider != null)
+                {
+                    _togglePlateOffsetYSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePlateOffsetZSlider != null)
+                {
+                    _togglePlateOffsetZSlider.IsEnabled = hasModel;
+                }
+
                 if (_toggleBushingRadiusSlider != null)
                 {
                     _toggleBushingRadiusSlider.IsEnabled = hasModel;
@@ -787,6 +987,41 @@ namespace KnobForge.App.Views
                 if (_toggleBushingHeightSlider != null)
                 {
                     _toggleBushingHeightSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleBushingSidesSlider != null)
+                {
+                    _toggleBushingSidesSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLowerBushingShapeCombo != null)
+                {
+                    _toggleLowerBushingShapeCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingShapeCombo != null)
+                {
+                    _toggleUpperBushingShapeCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleLowerBushingRadiusScaleSlider != null)
+                {
+                    _toggleLowerBushingRadiusScaleSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLowerBushingHeightRatioSlider != null)
+                {
+                    _toggleLowerBushingHeightRatioSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingRadiusScaleSlider != null)
+                {
+                    _toggleUpperBushingRadiusScaleSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingHeightRatioSlider != null)
+                {
+                    _toggleUpperBushingHeightRatioSlider.IsEnabled = hasModel;
                 }
 
                 if (_toggleLeverLengthSlider != null)
@@ -799,9 +1034,144 @@ namespace KnobForge.App.Views
                     _toggleLeverRadiusSlider.IsEnabled = hasModel;
                 }
 
+                if (_toggleLeverTopRadiusSlider != null)
+                {
+                    _toggleLeverTopRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLeverSidesSlider != null)
+                {
+                    _toggleLeverSidesSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleLeverPivotOffsetSlider != null)
+                {
+                    _toggleLeverPivotOffsetSlider.IsEnabled = hasModel;
+                }
+
                 if (_toggleTipRadiusSlider != null)
                 {
                     _toggleTipRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipLatitudeSegmentsSlider != null)
+                {
+                    _toggleTipLatitudeSegmentsSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipLongitudeSegmentsSlider != null)
+                {
+                    _toggleTipLongitudeSegmentsSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveEnabledCheckBox != null)
+                {
+                    _toggleTipSleeveEnabledCheckBox.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveLengthSlider != null)
+                {
+                    _toggleTipSleeveLengthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveThicknessSlider != null)
+                {
+                    _toggleTipSleeveThicknessSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveOuterRadiusSlider != null)
+                {
+                    _toggleTipSleeveOuterRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveCoverageSlider != null)
+                {
+                    _toggleTipSleeveCoverageSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveSidesSlider != null)
+                {
+                    _toggleTipSleeveSidesSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveStyleCombo != null)
+                {
+                    _toggleTipSleeveStyleCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveTipStyleCombo != null)
+                {
+                    _toggleTipSleeveTipStyleCombo.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleevePatternCountSlider != null)
+                {
+                    _toggleTipSleevePatternCountSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleevePatternDepthSlider != null)
+                {
+                    _toggleTipSleevePatternDepthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveTipAmountSlider != null)
+                {
+                    _toggleTipSleeveTipAmountSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveColorRSlider != null)
+                {
+                    _toggleTipSleeveColorRSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveColorGSlider != null)
+                {
+                    _toggleTipSleeveColorGSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveColorBSlider != null)
+                {
+                    _toggleTipSleeveColorBSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveMetallicSlider != null)
+                {
+                    _toggleTipSleeveMetallicSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveRoughnessSlider != null)
+                {
+                    _toggleTipSleeveRoughnessSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleevePearlescenceSlider != null)
+                {
+                    _toggleTipSleevePearlescenceSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveDiffuseStrengthSlider != null)
+                {
+                    _toggleTipSleeveDiffuseStrengthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveSpecularStrengthSlider != null)
+                {
+                    _toggleTipSleeveSpecularStrengthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveRustSlider != null)
+                {
+                    _toggleTipSleeveRustSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveWearSlider != null)
+                {
+                    _toggleTipSleeveWearSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleTipSleeveGunkSlider != null)
+                {
+                    _toggleTipSleeveGunkSlider.IsEnabled = hasModel;
                 }
                 _brushSizeSlider.IsEnabled = hasModel;
                 _brushOpacitySlider.IsEnabled = hasModel;

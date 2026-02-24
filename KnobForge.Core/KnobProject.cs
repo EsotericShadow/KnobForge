@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace KnobForge.Core
 {
@@ -83,6 +84,31 @@ namespace KnobForge.Core
         ThreePosition = 3
     }
 
+    public enum ToggleBushingShape
+    {
+        Hex = 0,
+        Octagon = 1,
+        Round = 2,
+        Square = 3
+    }
+
+    public enum ToggleTipSleeveStyle
+    {
+        Round = 0,
+        Hex = 1,
+        Octagon = 2,
+        Fluted = 3,
+        KnurledSquare = 4,
+        KnurledDiamond = 5
+    }
+
+    public enum ToggleTipSleeveTipStyle
+    {
+        Flat = 0,
+        Bevel = 1,
+        Rounded = 2
+    }
+
     public enum InteractorProjectType
     {
         RotaryKnob = 0,
@@ -147,21 +173,60 @@ namespace KnobForge.Core
         private float _sliderThumbWidth;
         private float _sliderThumbHeight;
         private float _sliderThumbDepth;
+        private float _sliderThumbPositionNormalized = 0.5f;
+        private float _pushButtonPressAmountNormalized;
         private string _sliderBackplateImportedMeshPath = string.Empty;
         private string _sliderThumbImportedMeshPath = string.Empty;
         private float _togglePlateWidth;
         private float _togglePlateHeight;
         private float _togglePlateThickness;
+        private float _togglePlateOffsetY;
+        private float _togglePlateOffsetZ;
         private float _toggleBushingRadius;
         private float _toggleBushingHeight;
+        private int _toggleBushingSides = 6;
+        private ToggleBushingShape _toggleLowerBushingShape = ToggleBushingShape.Hex;
+        private ToggleBushingShape _toggleUpperBushingShape = ToggleBushingShape.Hex;
+        private float _toggleLowerBushingRadiusScale = 1.22f;
+        private float _toggleLowerBushingHeightRatio = 0.45f;
+        private float _toggleUpperBushingRadiusScale = 1.00f;
+        private float _toggleUpperBushingHeightRatio = 0.75f;
+        private bool _toggleInvertBaseFrontFaceWinding;
+        private bool _toggleInvertLeverFrontFaceWinding;
         private float _toggleLeverLength;
         private float _toggleLeverRadius;
+        private float _toggleLeverTopRadius;
+        private int _toggleLeverSides = 20;
+        private float _toggleLeverPivotOffset;
         private float _toggleTipRadius;
+        private int _toggleTipLatitudeSegments = 10;
+        private int _toggleTipLongitudeSegments = 16;
+        private bool _toggleTipSleeveEnabled = true;
+        private float _toggleTipSleeveLength;
+        private float _toggleTipSleeveThickness;
+        private float _toggleTipSleeveOuterRadius;
+        private float _toggleTipSleeveCoverage = 0.55f;
+        private int _toggleTipSleeveSides = 24;
+        private ToggleTipSleeveStyle _toggleTipSleeveStyle = ToggleTipSleeveStyle.Round;
+        private ToggleTipSleeveTipStyle _toggleTipSleeveTipStyle = ToggleTipSleeveTipStyle.Rounded;
+        private int _toggleTipSleevePatternCount = 14;
+        private float _toggleTipSleevePatternDepth = 0.22f;
+        private float _toggleTipSleeveTipAmount = 0.35f;
+        private Vector3 _toggleTipSleeveColor = new(0.82f, 0.83f, 0.86f);
+        private float _toggleTipSleeveMetallic = 0.94f;
+        private float _toggleTipSleeveRoughness = 0.22f;
+        private float _toggleTipSleevePearlescence = 0.03f;
+        private float _toggleTipSleeveDiffuseStrength = 1f;
+        private float _toggleTipSleeveSpecularStrength = 1f;
+        private float _toggleTipSleeveRustAmount;
+        private float _toggleTipSleeveWearAmount;
+        private float _toggleTipSleeveGunkAmount;
         private string _toggleBaseImportedMeshPath = string.Empty;
         private string _toggleLeverImportedMeshPath = string.Empty;
         private float _toggleMaxAngleDeg = 24f;
         private ToggleAssemblyStateCount _toggleStateCount = ToggleAssemblyStateCount.TwoPosition;
         private int _toggleStateIndex;
+        private float _toggleStateBlendPosition = float.NaN;
         private readonly byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private int _paintMaskVersion = 1;
 
@@ -378,6 +443,16 @@ namespace KnobForge.Core
             get => _sliderThumbDepth;
             set => _sliderThumbDepth = ClampSliderDimensionOverride(value);
         }
+        public float SliderThumbPositionNormalized
+        {
+            get => _sliderThumbPositionNormalized;
+            set => _sliderThumbPositionNormalized = Math.Clamp(value, 0f, 1f);
+        }
+        public float PushButtonPressAmountNormalized
+        {
+            get => _pushButtonPressAmountNormalized;
+            set => _pushButtonPressAmountNormalized = Math.Clamp(value, 0f, 1f);
+        }
         public string SliderBackplateImportedMeshPath
         {
             get => _sliderBackplateImportedMeshPath;
@@ -405,6 +480,22 @@ namespace KnobForge.Core
             get => _toggleStateIndex;
             set => _toggleStateIndex = ClampToggleStateIndex(value, _toggleStateCount);
         }
+        [JsonIgnore]
+        public float ToggleStateBlendPosition
+        {
+            get => _toggleStateBlendPosition;
+            set
+            {
+                if (!float.IsFinite(value))
+                {
+                    _toggleStateBlendPosition = float.NaN;
+                    return;
+                }
+
+                float max = _toggleStateCount == ToggleAssemblyStateCount.ThreePosition ? 2f : 1f;
+                _toggleStateBlendPosition = Math.Clamp(value, 0f, max);
+            }
+        }
         public float ToggleMaxAngleDeg
         {
             get => _toggleMaxAngleDeg;
@@ -425,6 +516,16 @@ namespace KnobForge.Core
             get => _togglePlateThickness;
             set => _togglePlateThickness = ClampSliderDimensionOverride(value);
         }
+        public float TogglePlateOffsetY
+        {
+            get => _togglePlateOffsetY;
+            set => _togglePlateOffsetY = ClampToggleOffset(value, -4096f, 4096f);
+        }
+        public float TogglePlateOffsetZ
+        {
+            get => _togglePlateOffsetZ;
+            set => _togglePlateOffsetZ = ClampToggleOffset(value, -4096f, 4096f);
+        }
         public float ToggleBushingRadius
         {
             get => _toggleBushingRadius;
@@ -434,6 +535,51 @@ namespace KnobForge.Core
         {
             get => _toggleBushingHeight;
             set => _toggleBushingHeight = ClampSliderDimensionOverride(value);
+        }
+        public int ToggleBushingSides
+        {
+            get => _toggleBushingSides;
+            set => _toggleBushingSides = ClampToggleSegments(value, 6, 3, 32);
+        }
+        public ToggleBushingShape ToggleLowerBushingShape
+        {
+            get => _toggleLowerBushingShape;
+            set => _toggleLowerBushingShape = value;
+        }
+        public ToggleBushingShape ToggleUpperBushingShape
+        {
+            get => _toggleUpperBushingShape;
+            set => _toggleUpperBushingShape = value;
+        }
+        public float ToggleLowerBushingRadiusScale
+        {
+            get => _toggleLowerBushingRadiusScale;
+            set => _toggleLowerBushingRadiusScale = ClampToggleScale(value, 1.22f, 0.25f, 4f);
+        }
+        public float ToggleLowerBushingHeightRatio
+        {
+            get => _toggleLowerBushingHeightRatio;
+            set => _toggleLowerBushingHeightRatio = ClampToggleRatio(value, 0.45f, 0.05f, 2f);
+        }
+        public float ToggleUpperBushingRadiusScale
+        {
+            get => _toggleUpperBushingRadiusScale;
+            set => _toggleUpperBushingRadiusScale = ClampToggleScale(value, 1.00f, 0.25f, 4f);
+        }
+        public float ToggleUpperBushingHeightRatio
+        {
+            get => _toggleUpperBushingHeightRatio;
+            set => _toggleUpperBushingHeightRatio = ClampToggleRatio(value, 0.75f, 0.05f, 2f);
+        }
+        public bool ToggleInvertBaseFrontFaceWinding
+        {
+            get => _toggleInvertBaseFrontFaceWinding;
+            set => _toggleInvertBaseFrontFaceWinding = value;
+        }
+        public bool ToggleInvertLeverFrontFaceWinding
+        {
+            get => _toggleInvertLeverFrontFaceWinding;
+            set => _toggleInvertLeverFrontFaceWinding = value;
         }
         public float ToggleLeverLength
         {
@@ -445,10 +591,135 @@ namespace KnobForge.Core
             get => _toggleLeverRadius;
             set => _toggleLeverRadius = ClampSliderDimensionOverride(value);
         }
+        public float ToggleLeverTopRadius
+        {
+            get => _toggleLeverTopRadius;
+            set => _toggleLeverTopRadius = ClampSliderDimensionOverride(value);
+        }
+        public int ToggleLeverSides
+        {
+            get => _toggleLeverSides;
+            set => _toggleLeverSides = ClampToggleSegments(value, 20, 6, 64);
+        }
+        public float ToggleLeverPivotOffset
+        {
+            get => _toggleLeverPivotOffset;
+            set => _toggleLeverPivotOffset = ClampToggleOffset(value, -4096f, 4096f);
+        }
         public float ToggleTipRadius
         {
             get => _toggleTipRadius;
             set => _toggleTipRadius = ClampSliderDimensionOverride(value);
+        }
+        public int ToggleTipLatitudeSegments
+        {
+            get => _toggleTipLatitudeSegments;
+            set => _toggleTipLatitudeSegments = ClampToggleSegments(value, 10, 4, 64);
+        }
+        public int ToggleTipLongitudeSegments
+        {
+            get => _toggleTipLongitudeSegments;
+            set => _toggleTipLongitudeSegments = ClampToggleSegments(value, 16, 6, 128);
+        }
+        public bool ToggleTipSleeveEnabled
+        {
+            get => _toggleTipSleeveEnabled;
+            set => _toggleTipSleeveEnabled = value;
+        }
+        public float ToggleTipSleeveLength
+        {
+            get => _toggleTipSleeveLength;
+            set => _toggleTipSleeveLength = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleTipSleeveThickness
+        {
+            get => _toggleTipSleeveThickness;
+            set => _toggleTipSleeveThickness = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleTipSleeveOuterRadius
+        {
+            get => _toggleTipSleeveOuterRadius;
+            set => _toggleTipSleeveOuterRadius = ClampSliderDimensionOverride(value);
+        }
+        public float ToggleTipSleeveCoverage
+        {
+            get => _toggleTipSleeveCoverage;
+            set => _toggleTipSleeveCoverage = ClampToggleRatio(value, 0.55f, 0f, 1f);
+        }
+        public int ToggleTipSleeveSides
+        {
+            get => _toggleTipSleeveSides;
+            set => _toggleTipSleeveSides = ClampToggleSegments(value, 24, 6, 64);
+        }
+        public ToggleTipSleeveStyle ToggleTipSleeveStyle
+        {
+            get => _toggleTipSleeveStyle;
+            set => _toggleTipSleeveStyle = value;
+        }
+        public ToggleTipSleeveTipStyle ToggleTipSleeveTipStyle
+        {
+            get => _toggleTipSleeveTipStyle;
+            set => _toggleTipSleeveTipStyle = value;
+        }
+        public int ToggleTipSleevePatternCount
+        {
+            get => _toggleTipSleevePatternCount;
+            set => _toggleTipSleevePatternCount = ClampToggleSegments(value, 14, 3, 64);
+        }
+        public float ToggleTipSleevePatternDepth
+        {
+            get => _toggleTipSleevePatternDepth;
+            set => _toggleTipSleevePatternDepth = ClampToggleRatio(value, 0.22f, 0f, 0.9f);
+        }
+        public float ToggleTipSleeveTipAmount
+        {
+            get => _toggleTipSleeveTipAmount;
+            set => _toggleTipSleeveTipAmount = ClampToggleRatio(value, 0.35f, 0f, 0.95f);
+        }
+        public Vector3 ToggleTipSleeveColor
+        {
+            get => _toggleTipSleeveColor;
+            set => _toggleTipSleeveColor = ClampColor01(value);
+        }
+        public float ToggleTipSleeveMetallic
+        {
+            get => _toggleTipSleeveMetallic;
+            set => _toggleTipSleeveMetallic = Math.Clamp(value, 0f, 1f);
+        }
+        public float ToggleTipSleeveRoughness
+        {
+            get => _toggleTipSleeveRoughness;
+            set => _toggleTipSleeveRoughness = Math.Clamp(value, 0.04f, 1f);
+        }
+        public float ToggleTipSleevePearlescence
+        {
+            get => _toggleTipSleevePearlescence;
+            set => _toggleTipSleevePearlescence = Math.Clamp(value, 0f, 1f);
+        }
+        public float ToggleTipSleeveDiffuseStrength
+        {
+            get => _toggleTipSleeveDiffuseStrength;
+            set => _toggleTipSleeveDiffuseStrength = Math.Clamp(value, 0f, 4f);
+        }
+        public float ToggleTipSleeveSpecularStrength
+        {
+            get => _toggleTipSleeveSpecularStrength;
+            set => _toggleTipSleeveSpecularStrength = Math.Clamp(value, 0f, 4f);
+        }
+        public float ToggleTipSleeveRustAmount
+        {
+            get => _toggleTipSleeveRustAmount;
+            set => _toggleTipSleeveRustAmount = Math.Clamp(value, 0f, 1f);
+        }
+        public float ToggleTipSleeveWearAmount
+        {
+            get => _toggleTipSleeveWearAmount;
+            set => _toggleTipSleeveWearAmount = Math.Clamp(value, 0f, 1f);
+        }
+        public float ToggleTipSleeveGunkAmount
+        {
+            get => _toggleTipSleeveGunkAmount;
+            set => _toggleTipSleeveGunkAmount = Math.Clamp(value, 0f, 1f);
         }
         public string ToggleBaseImportedMeshPath
         {
@@ -528,6 +799,9 @@ namespace KnobForge.Core
         public void ApplyInteractorProjectTypeDefaults(InteractorProjectType projectType)
         {
             ProjectType = projectType;
+            SliderThumbPositionNormalized = 0.5f;
+            PushButtonPressAmountNormalized = 0f;
+            ToggleStateBlendPosition = float.NaN;
 
             switch (projectType)
             {
@@ -538,6 +812,13 @@ namespace KnobForge.Core
                 case InteractorProjectType.FlipSwitch:
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Enabled;
+                    ToggleLowerBushingShape = ToggleBushingShape.Hex;
+                    ToggleUpperBushingShape = ToggleBushingShape.Hex;
+                    ToggleInvertBaseFrontFaceWinding = true;
+                    ToggleInvertLeverFrontFaceWinding = true;
+                    ToggleTipSleeveEnabled = true;
+                    ToggleTipSleeveStyle = ToggleTipSleeveStyle.Round;
+                    ToggleTipSleeveTipStyle = ToggleTipSleeveTipStyle.Rounded;
                     break;
                 case InteractorProjectType.PushButton:
                     SliderMode = SliderAssemblyMode.Disabled;
@@ -777,6 +1058,54 @@ namespace KnobForge.Core
         {
             int max = count == ToggleAssemblyStateCount.ThreePosition ? 2 : 1;
             return Math.Clamp(value, 0, max);
+        }
+
+        private static float ClampToggleOffset(float value, float min, float max)
+        {
+            if (!float.IsFinite(value))
+            {
+                return 0f;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static int ClampToggleSegments(int value, int fallback, int min, int max)
+        {
+            if (value <= 0)
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static float ClampToggleRatio(float value, float fallback, float min, float max)
+        {
+            if (!float.IsFinite(value))
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static float ClampToggleScale(float value, float fallback, float min, float max)
+        {
+            if (!float.IsFinite(value) || value <= 0f)
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static Vector3 ClampColor01(Vector3 value)
+        {
+            return new Vector3(
+                Math.Clamp(value.X, 0f, 1f),
+                Math.Clamp(value.Y, 0f, 1f),
+                Math.Clamp(value.Z, 0f, 1f));
         }
 
         private static string NormalizeOptionalPath(string? value)

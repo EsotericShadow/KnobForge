@@ -521,6 +521,41 @@ namespace KnobForge.App.Controls
                 referenceRadius = MathF.Max(referenceRadius, _collarResources.ReferenceRadius);
             }
 
+            if (_sliderBackplateResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _sliderBackplateResources.ReferenceRadius);
+            }
+
+            if (_sliderThumbResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _sliderThumbResources.ReferenceRadius);
+            }
+
+            if (_toggleBaseResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _toggleBaseResources.ReferenceRadius);
+            }
+
+            if (_toggleLeverResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _toggleLeverResources.ReferenceRadius);
+            }
+
+            if (_toggleSleeveResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _toggleSleeveResources.ReferenceRadius);
+            }
+
+            if (_pushButtonBaseResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _pushButtonBaseResources.ReferenceRadius);
+            }
+
+            if (_pushButtonCapResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _pushButtonCapResources.ReferenceRadius);
+            }
+
             float cameraDistance = MathF.Max(1f, referenceRadius * 6f);
             Vector3 cameraPos = -forward * cameraDistance;
             Vector3 viewOrigin = -cameraPos;

@@ -124,6 +124,10 @@ namespace KnobForge.Rendering
             var originalRotations = modelNodes
                 .Select(model => (Model: model, Rotation: model.RotationRadians))
                 .ToList();
+            int originalToggleStateIndex = _project.ToggleStateIndex;
+            float originalToggleStateBlendPosition = _project.ToggleStateBlendPosition;
+            float originalSliderThumbPositionNormalized = _project.SliderThumbPositionNormalized;
+            float originalPushButtonPressAmountNormalized = _project.PushButtonPressAmountNormalized;
 
             try
             {
@@ -211,12 +215,15 @@ namespace KnobForge.Rendering
                                 totalFrames,
                                 $"Rendering {viewVariant.Name} {i + 1}/{frameCount}"));
 
-                            float angle = i * angleStep;
-                            for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
-                            {
-                                var entry = originalRotations[modelIndex];
-                                entry.Model.RotationRadians = entry.Rotation + angle;
-                            }
+                            ApplyFrameState(
+                                i,
+                                frameCount,
+                                angleStep,
+                                originalRotations,
+                                originalToggleStateIndex,
+                                originalToggleStateBlendPosition,
+                                originalSliderThumbPositionNormalized,
+                                originalPushButtonPressAmountNormalized);
 
                             frameCanvas.Clear(new SKColor(0, 0, 0, 0));
 
@@ -311,6 +318,104 @@ namespace KnobForge.Rendering
                 foreach (var entry in originalRotations)
                 {
                     entry.Model.RotationRadians = entry.Rotation;
+                }
+
+                _project.ToggleStateIndex = originalToggleStateIndex;
+                _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+            }
+        }
+
+        private void ApplyFrameState(
+            int frameIndex,
+            int frameCount,
+            float angleStep,
+            IReadOnlyList<(ModelNode Model, float Rotation)> originalRotations,
+            int originalToggleStateIndex,
+            float originalToggleStateBlendPosition,
+            float originalSliderThumbPositionNormalized,
+            float originalPushButtonPressAmountNormalized)
+        {
+            switch (_project.ProjectType)
+            {
+                case InteractorProjectType.RotaryKnob:
+                {
+                    float angle = frameIndex * angleStep;
+                    for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
+                    {
+                        var entry = originalRotations[modelIndex];
+                        entry.Model.RotationRadians = entry.Rotation + angle;
+                    }
+
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.FlipSwitch:
+                {
+                    for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
+                    {
+                        var entry = originalRotations[modelIndex];
+                        entry.Model.RotationRadians = entry.Rotation;
+                    }
+
+                    float toggleBlendPosition = InteractorFrameTimeline.ResolveToggleBlendPosition(
+                        frameIndex,
+                        frameCount,
+                        _project.ToggleStateCount);
+                    _project.ToggleStateBlendPosition = toggleBlendPosition;
+                    _project.ToggleStateIndex = InteractorFrameTimeline.ResolveToggleStateIndex(
+                        frameIndex,
+                        frameCount,
+                        _project.ToggleStateCount);
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.ThumbSlider:
+                {
+                    for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
+                    {
+                        var entry = originalRotations[modelIndex];
+                        entry.Model.RotationRadians = entry.Rotation;
+                    }
+
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = InteractorFrameTimeline.ResolveNormalizedProgress(frameIndex, frameCount);
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.PushButton:
+                {
+                    for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
+                    {
+                        var entry = originalRotations[modelIndex];
+                        entry.Model.RotationRadians = entry.Rotation;
+                    }
+
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = InteractorFrameTimeline.ResolveNormalizedProgress(frameIndex, frameCount);
+                    break;
+                }
+                default:
+                {
+                    for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
+                    {
+                        var entry = originalRotations[modelIndex];
+                        entry.Model.RotationRadians = entry.Rotation;
+                    }
+
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
                 }
             }
         }

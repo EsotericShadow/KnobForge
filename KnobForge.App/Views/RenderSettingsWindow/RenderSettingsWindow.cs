@@ -27,6 +27,9 @@ namespace KnobForge.App.Views
     {
         private const int MinFrameCount = 1;
         private const int MaxFrameCount = 1440;
+        private const int MinFlipSwitchFrameCount = 12;
+        private const int MaxFlipSwitchFrameCount = 24;
+        private const int DefaultFlipSwitchFrameCount = 18;
         private const int MinResolution = 1;
         private const int MaxResolution = 16384;
         private const int MinSupersample = 1;
@@ -58,6 +61,8 @@ namespace KnobForge.App.Views
         private readonly CheckBox _exportFramesCheckBox;
         private readonly CheckBox _exportSpritesheetCheckBox;
         private readonly Button _autoCorrectButton;
+        private readonly Border _rotaryPreviewSection;
+        private readonly TextBlock _interactivePreviewTitleTextBlock;
         private readonly ListBox _viewpointsListBox;
         private readonly Button _addViewpointButton;
         private readonly Button _duplicateViewpointButton;
@@ -158,6 +163,10 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("ExportSpritesheetCheckBox not found.");
             _autoCorrectButton = this.FindControl<Button>("AutoCorrectButton")
                 ?? throw new InvalidOperationException("AutoCorrectButton not found.");
+            _rotaryPreviewSection = this.FindControl<Border>("RotaryPreviewSection")
+                ?? throw new InvalidOperationException("RotaryPreviewSection not found.");
+            _interactivePreviewTitleTextBlock = this.FindControl<TextBlock>("InteractivePreviewTitleTextBlock")
+                ?? throw new InvalidOperationException("InteractivePreviewTitleTextBlock not found.");
             _viewpointsListBox = this.FindControl<ListBox>("ViewpointsListBox")
                 ?? throw new InvalidOperationException("ViewpointsListBox not found.");
             _addViewpointButton = this.FindControl<Button>("AddViewpointButton")
@@ -265,7 +274,7 @@ namespace KnobForge.App.Views
             UpdateSpritesheetLayoutEnabled();
             UpdateOrbitVariantControlsEnabled();
             UpdateStartRenderAvailability();
-            _rotaryPreviewInfoTextBlock.Text = "Choose perspective, then click Create Rotary Preview. Interactive spin uses CPU UI drawing.";
+            ConfigureRotaryPreviewAvailability();
         }
 
         private static OutputStrategyOption[] BuildOutputStrategyOptions()

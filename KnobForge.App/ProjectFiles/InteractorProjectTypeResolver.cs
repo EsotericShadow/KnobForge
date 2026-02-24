@@ -25,6 +25,7 @@ namespace KnobForge.App.ProjectFiles
         float ToggleBushingHeight,
         float ToggleLeverLength,
         float ToggleLeverRadius,
+        float ToggleLeverTopRadius,
         float ToggleTipRadius,
         ToggleAssemblyStateCount ToggleStateCount,
         float ToggleMaxAngleDeg);
@@ -87,6 +88,7 @@ namespace KnobForge.App.ProjectFiles
                 hint.ToggleBushingHeight > 0f ||
                 hint.ToggleLeverLength > 0f ||
                 hint.ToggleLeverRadius > 0f ||
+                hint.ToggleLeverTopRadius > 0f ||
                 hint.ToggleTipRadius > 0f ||
                 hint.ToggleStateCount == ToggleAssemblyStateCount.ThreePosition ||
                 Math.Abs(hint.ToggleMaxAngleDeg - 24f) > 0.001f;

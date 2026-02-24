@@ -22,6 +22,7 @@ public readonly record struct SliderAssemblyConfig(
     float ThumbWidth,
     float ThumbHeight,
     float ThumbDepth,
+    float ThumbPositionNormalized,
     string BackplateImportedMeshPath,
     long BackplateImportedMeshTicks,
     string ThumbImportedMeshPath,
@@ -49,7 +50,7 @@ public static class SliderAssemblyMeshBuilder
 
     public static SliderAssemblyConfig ResolveConfig(KnobProject? project)
     {
-        if (project is null)
+        if (project is null || project.ProjectType != InteractorProjectType.ThumbSlider)
         {
             return default;
         }
@@ -60,10 +61,7 @@ public static class SliderAssemblyMeshBuilder
             return default;
         }
 
-        string root = ResolveSliderRootDirectory();
-        bool sliderRootExists = Directory.Exists(root);
-        bool envEnabled = IsFeatureEnabledByEnvironmentVariable();
-        bool enabled = ResolveEnabled(project.SliderMode, sliderRootExists, envEnabled);
+        bool enabled = project.SliderMode != SliderAssemblyMode.Disabled;
         if (!enabled)
         {
             return default;
@@ -84,17 +82,7 @@ public static class SliderAssemblyMeshBuilder
         float thumbWidth = ResolveDimensionOverride(project.SliderThumbWidth, defaultThumbWidth);
         float thumbHeight = ResolveDimensionOverride(project.SliderThumbHeight, defaultThumbHeight);
         float thumbDepth = ResolveDimensionOverride(project.SliderThumbDepth, defaultThumbDepth);
-
-        string backplateImportedPath = ResolveImportedMeshPath(
-            project.SliderBackplateImportedMeshPath,
-            root,
-            SliderPartKind.Backplate);
-        string thumbImportedPath = ResolveImportedMeshPath(
-            project.SliderThumbImportedMeshPath,
-            root,
-            SliderPartKind.Thumb);
-        long backplateTicks = ResolveFileTicks(backplateImportedPath);
-        long thumbTicks = ResolveFileTicks(thumbImportedPath);
+        float thumbPositionNormalized = Math.Clamp(project.SliderThumbPositionNormalized, 0f, 1f);
 
         return new SliderAssemblyConfig(
             Enabled: true,
@@ -104,10 +92,11 @@ public static class SliderAssemblyMeshBuilder
             ThumbWidth: thumbWidth,
             ThumbHeight: thumbHeight,
             ThumbDepth: thumbDepth,
-            BackplateImportedMeshPath: backplateImportedPath,
-            BackplateImportedMeshTicks: backplateTicks,
-            ThumbImportedMeshPath: thumbImportedPath,
-            ThumbImportedMeshTicks: thumbTicks);
+            ThumbPositionNormalized: thumbPositionNormalized,
+            BackplateImportedMeshPath: string.Empty,
+            BackplateImportedMeshTicks: 0L,
+            ThumbImportedMeshPath: string.Empty,
+            ThumbImportedMeshTicks: 0L);
     }
 
     public static SliderPartMesh BuildBackplateMesh(in SliderAssemblyConfig config)
@@ -142,12 +131,14 @@ public static class SliderAssemblyMeshBuilder
             return new SliderPartMesh();
         }
 
+        Vector3 thumbCenter = ResolveThumbCenter(config);
         SliderPartMesh? imported = TryBuildImportedPart(
             config.ThumbImportedMeshPath,
             config.ThumbWidth,
             config.ThumbHeight,
             config.ThumbDepth,
-            SliderPartKind.Thumb);
+            SliderPartKind.Thumb,
+            thumbCenter);
         if (imported is not null)
         {
             return imported;
@@ -157,7 +148,7 @@ public static class SliderAssemblyMeshBuilder
             config.ThumbWidth,
             config.ThumbHeight,
             config.ThumbDepth,
-            new Vector3(0f, 0f, config.ThumbDepth * 0.25f));
+            thumbCenter);
     }
 
     private static SliderPartMesh? TryBuildImportedPart(
@@ -165,7 +156,8 @@ public static class SliderAssemblyMeshBuilder
         float targetWidth,
         float targetHeight,
         float targetDepth,
-        SliderPartKind partKind)
+        SliderPartKind partKind,
+        Vector3? centerOverride = null)
     {
         if (string.IsNullOrWhiteSpace(importedPath))
         {
@@ -184,9 +176,9 @@ public static class SliderAssemblyMeshBuilder
             return null;
         }
 
-        Vector3 offset = partKind == SliderPartKind.Backplate
+        Vector3 offset = centerOverride ?? (partKind == SliderPartKind.Backplate
             ? new Vector3(0f, 0f, -targetDepth * 0.90f)
-            : new Vector3(0f, 0f, targetDepth * 0.25f);
+            : new Vector3(0f, 0f, targetDepth * 0.25f));
         MetalVertex[] transformedVertices = vertices;
         if (offset.LengthSquared() > 1e-6f)
         {
@@ -281,6 +273,14 @@ public static class SliderAssemblyMeshBuilder
         indices.Add(start + 0);
         indices.Add(start + 2);
         indices.Add(start + 3);
+    }
+
+    private static Vector3 ResolveThumbCenter(in SliderAssemblyConfig config)
+    {
+        float travel = MathF.Max(0f, config.BackplateHeight - config.ThumbHeight);
+        float minY = -travel * 0.5f;
+        float y = minY + (travel * config.ThumbPositionNormalized);
+        return new Vector3(0f, y, config.ThumbDepth * 0.25f);
     }
 
     private static string ResolveSliderRootDirectory()

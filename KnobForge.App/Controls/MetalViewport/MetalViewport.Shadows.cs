@@ -292,8 +292,18 @@ namespace KnobForge.App.Controls
                 dir = Vector3.Normalize(lightPos);
             }
 
+            float sceneRadius = 220f;
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _meshResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _collarResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _sliderBackplateResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _sliderThumbResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _toggleBaseResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _toggleLeverResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _toggleSleeveResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _pushButtonBaseResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _pushButtonCapResources);
             float distNorm = light.Type == LightType.Point
-                ? MathF.Max(0.2f, new Vector3(light.X, light.Y, light.Z).Length() / MathF.Max(1f, (_meshResources?.ReferenceRadius ?? 220f) * 2f))
+                ? MathF.Max(0.2f, new Vector3(light.X, light.Y, light.Z).Length() / MathF.Max(1f, sceneRadius * 2f))
                 : 1f;
             float attenuation = light.Type == LightType.Point
                 ? 1f / (1f + (MathF.Max(0f, light.Falloff) * distNorm * distNorm))

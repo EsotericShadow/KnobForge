@@ -324,14 +324,16 @@
                             MinWidth="220"/>
                 </StackPanel>
 
-                <Border Background="#151B22"
+                <Border x:Name="RotaryPreviewSection"
+                        Background="#151B22"
                         BorderBrush="#3A4654"
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="10"
                         Margin="0,4,0,0">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Interactive Rotary Preview (1:1)"
+                        <TextBlock x:Name="InteractivePreviewTitleTextBlock"
+                                   Text="Interactive Preview (1:1)"
                                    FontSize="13"
                                    FontWeight="SemiBold"/>
                         <Grid ColumnDefinitions="Auto,*"
@@ -350,7 +352,7 @@
                                     Grid.Row="1"
                                     Grid.Column="1"
                                     HorizontalAlignment="Left"
-                                    Content="Create Rotary Preview"
+                                    Content="Create Preview"
                                     MinWidth="190"/>
                         </Grid>
                         <TextBlock x:Name="RotaryPreviewInfoTextBlock"

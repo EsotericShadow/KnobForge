@@ -75,6 +75,15 @@ namespace KnobForge.App.Views
                 return;
             }
 
+            bool switchFrameAdjusted = false;
+            if (_project.ProjectType == InteractorProjectType.FlipSwitch &&
+                (frameCount < MinFlipSwitchFrameCount || frameCount > MaxFlipSwitchFrameCount))
+            {
+                frameCount = DefaultFlipSwitchFrameCount;
+                _frameCountTextBox.Text = frameCount.ToString(CultureInfo.InvariantCulture);
+                switchFrameAdjusted = true;
+            }
+
             int supersample = Math.Clamp(GetMinimumSupersampleScaleForResolution(resolution), MinSupersample, MaxSupersample);
             int maxSupersampleForDimension = Math.Max(1, MaxResolution / Math.Max(1, resolution));
             supersample = Math.Min(supersample, Math.Clamp(maxSupersampleForDimension, MinSupersample, MaxSupersample));
@@ -101,7 +110,10 @@ namespace KnobForge.App.Views
 
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
-            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout.";
+            string switchFrameNote = switchFrameAdjusted
+                ? $", switch frame count set to {DefaultFlipSwitchFrameCount}"
+                : string.Empty;
+            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout{switchFrameNote}.";
         }
 
         private async void OnStartRenderButtonClick(object? sender, RoutedEventArgs e)
@@ -262,8 +274,12 @@ namespace KnobForge.App.Views
             _isRendering = isRendering;
             _settingsPanel.IsEnabled = !isRendering;
             _autoCorrectButton.IsEnabled = !isRendering;
-            _createRotaryPreviewButton.IsEnabled = !isRendering && !_isBuildingRotaryPreview;
-            _rotaryPreviewVariantComboBox.IsEnabled = !isRendering && !_isBuildingRotaryPreview;
+            bool enableRotaryPreviewControls =
+                SupportsRotaryPreview &&
+                !isRendering &&
+                !_isBuildingRotaryPreview;
+            _createRotaryPreviewButton.IsEnabled = enableRotaryPreviewControls;
+            _rotaryPreviewVariantComboBox.IsEnabled = enableRotaryPreviewControls;
             _cancelButton.Content = isRendering ? "Cancel Render" : "Cancel";
             UpdateOrbitVariantControlsEnabled();
 

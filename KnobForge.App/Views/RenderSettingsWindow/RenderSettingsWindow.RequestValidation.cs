@@ -34,6 +34,10 @@ namespace KnobForge.App.Views
             {
                 return false;
             }
+            if (!TryValidateProjectTypeFrameCount(frameCount, out error))
+            {
+                return false;
+            }
 
             string resolutionText = (_resolutionComboBox.Text ?? _resolutionComboBox.SelectedItem?.ToString() ?? string.Empty).Trim();
             if (!TryParseInt(resolutionText, MinResolution, MaxResolution, "Resolution", out int resolution, out error))
@@ -67,7 +71,7 @@ namespace KnobForge.App.Views
             long sheetHeight = (long)rows * resolution;
             if (sheetWidth > MaxResolution || sheetHeight > MaxResolution)
             {
-                error = $"Rotary preview sheet would be {sheetWidth}x{sheetHeight}px. Reduce frame count or resolution for preview.";
+                error = $"Interactive preview sheet would be {sheetWidth}x{sheetHeight}px. Reduce frame count or resolution for preview.";
                 return false;
             }
 
@@ -182,6 +186,10 @@ namespace KnobForge.App.Views
             error = string.Empty;
 
             if (!TryParseInt(_frameCountTextBox.Text, MinFrameCount, MaxFrameCount, "FrameCount", out int frameCount, out error))
+            {
+                return false;
+            }
+            if (!TryValidateProjectTypeFrameCount(frameCount, out error))
             {
                 return false;
             }
@@ -328,6 +336,23 @@ namespace KnobForge.App.Views
             };
 
             return true;
+        }
+
+        private bool TryValidateProjectTypeFrameCount(int frameCount, out string error)
+        {
+            error = string.Empty;
+            if (_project.ProjectType != InteractorProjectType.FlipSwitch)
+            {
+                return true;
+            }
+
+            if (frameCount >= MinFlipSwitchFrameCount && frameCount <= MaxFlipSwitchFrameCount)
+            {
+                return true;
+            }
+
+            error = $"Flip Switch exports require {MinFlipSwitchFrameCount}-{MaxFlipSwitchFrameCount} frames for snapped motion (recommended: {DefaultFlipSwitchFrameCount}).";
+            return false;
         }
 
         private static ExportViewpoint[] BuildLegacyUiViewpoints(

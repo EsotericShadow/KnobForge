@@ -256,6 +256,16 @@ namespace KnobForge.App.Views
                 _togglePlateThicknessValueText.Text = FormatSliderDimensionValue(_togglePlateThicknessSlider.Value);
             }
 
+            if (_togglePlateOffsetYSlider != null && _togglePlateOffsetYValueText != null)
+            {
+                _togglePlateOffsetYValueText.Text = $"{_togglePlateOffsetYSlider.Value:0.0}px";
+            }
+
+            if (_togglePlateOffsetZSlider != null && _togglePlateOffsetZValueText != null)
+            {
+                _togglePlateOffsetZValueText.Text = $"{_togglePlateOffsetZSlider.Value:0.0}px";
+            }
+
             if (_toggleBushingRadiusSlider != null && _toggleBushingRadiusValueText != null)
             {
                 _toggleBushingRadiusValueText.Text = FormatSliderDimensionValue(_toggleBushingRadiusSlider.Value);
@@ -264,6 +274,31 @@ namespace KnobForge.App.Views
             if (_toggleBushingHeightSlider != null && _toggleBushingHeightValueText != null)
             {
                 _toggleBushingHeightValueText.Text = FormatSliderDimensionValue(_toggleBushingHeightSlider.Value);
+            }
+
+            if (_toggleBushingSidesSlider != null && _toggleBushingSidesValueText != null)
+            {
+                _toggleBushingSidesValueText.Text = $"{Math.Round(_toggleBushingSidesSlider.Value):0}";
+            }
+
+            if (_toggleLowerBushingRadiusScaleSlider != null && _toggleLowerBushingRadiusScaleValueText != null)
+            {
+                _toggleLowerBushingRadiusScaleValueText.Text = $"{_toggleLowerBushingRadiusScaleSlider.Value:0.00}x";
+            }
+
+            if (_toggleLowerBushingHeightRatioSlider != null && _toggleLowerBushingHeightRatioValueText != null)
+            {
+                _toggleLowerBushingHeightRatioValueText.Text = $"{_toggleLowerBushingHeightRatioSlider.Value:0.00}x";
+            }
+
+            if (_toggleUpperBushingRadiusScaleSlider != null && _toggleUpperBushingRadiusScaleValueText != null)
+            {
+                _toggleUpperBushingRadiusScaleValueText.Text = $"{_toggleUpperBushingRadiusScaleSlider.Value:0.00}x";
+            }
+
+            if (_toggleUpperBushingHeightRatioSlider != null && _toggleUpperBushingHeightRatioValueText != null)
+            {
+                _toggleUpperBushingHeightRatioValueText.Text = $"{_toggleUpperBushingHeightRatioSlider.Value:0.00}x";
             }
 
             if (_toggleLeverLengthSlider != null && _toggleLeverLengthValueText != null)
@@ -276,9 +311,129 @@ namespace KnobForge.App.Views
                 _toggleLeverRadiusValueText.Text = FormatSliderDimensionValue(_toggleLeverRadiusSlider.Value);
             }
 
+            if (_toggleLeverTopRadiusSlider != null && _toggleLeverTopRadiusValueText != null)
+            {
+                _toggleLeverTopRadiusValueText.Text = FormatSliderDimensionValue(_toggleLeverTopRadiusSlider.Value);
+            }
+
+            if (_toggleLeverSidesSlider != null && _toggleLeverSidesValueText != null)
+            {
+                _toggleLeverSidesValueText.Text = $"{Math.Round(_toggleLeverSidesSlider.Value):0}";
+            }
+
+            if (_toggleLeverPivotOffsetSlider != null && _toggleLeverPivotOffsetValueText != null)
+            {
+                _toggleLeverPivotOffsetValueText.Text = $"{_toggleLeverPivotOffsetSlider.Value:0.0}px";
+            }
+
             if (_toggleTipRadiusSlider != null && _toggleTipRadiusValueText != null)
             {
                 _toggleTipRadiusValueText.Text = FormatSliderDimensionValue(_toggleTipRadiusSlider.Value);
+            }
+
+            if (_toggleTipLatitudeSegmentsSlider != null && _toggleTipLatitudeSegmentsValueText != null)
+            {
+                _toggleTipLatitudeSegmentsValueText.Text = $"{Math.Round(_toggleTipLatitudeSegmentsSlider.Value):0}";
+            }
+
+            if (_toggleTipLongitudeSegmentsSlider != null && _toggleTipLongitudeSegmentsValueText != null)
+            {
+                _toggleTipLongitudeSegmentsValueText.Text = $"{Math.Round(_toggleTipLongitudeSegmentsSlider.Value):0}";
+            }
+
+            if (_toggleTipSleeveLengthSlider != null && _toggleTipSleeveLengthValueText != null)
+            {
+                _toggleTipSleeveLengthValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveLengthSlider.Value);
+            }
+
+            if (_toggleTipSleeveThicknessSlider != null && _toggleTipSleeveThicknessValueText != null)
+            {
+                _toggleTipSleeveThicknessValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveThicknessSlider.Value);
+            }
+
+            if (_toggleTipSleeveOuterRadiusSlider != null && _toggleTipSleeveOuterRadiusValueText != null)
+            {
+                _toggleTipSleeveOuterRadiusValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveOuterRadiusSlider.Value);
+            }
+
+            if (_toggleTipSleeveCoverageSlider != null && _toggleTipSleeveCoverageValueText != null)
+            {
+                _toggleTipSleeveCoverageValueText.Text = $"{_toggleTipSleeveCoverageSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveSidesSlider != null && _toggleTipSleeveSidesValueText != null)
+            {
+                _toggleTipSleeveSidesValueText.Text = $"{Math.Round(_toggleTipSleeveSidesSlider.Value):0}";
+            }
+
+            if (_toggleTipSleevePatternCountSlider != null && _toggleTipSleevePatternCountValueText != null)
+            {
+                _toggleTipSleevePatternCountValueText.Text = $"{Math.Round(_toggleTipSleevePatternCountSlider.Value):0}";
+            }
+
+            if (_toggleTipSleevePatternDepthSlider != null && _toggleTipSleevePatternDepthValueText != null)
+            {
+                _toggleTipSleevePatternDepthValueText.Text = $"{_toggleTipSleevePatternDepthSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveTipAmountSlider != null && _toggleTipSleeveTipAmountValueText != null)
+            {
+                _toggleTipSleeveTipAmountValueText.Text = $"{_toggleTipSleeveTipAmountSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveColorRSlider != null && _toggleTipSleeveColorRValueText != null)
+            {
+                _toggleTipSleeveColorRValueText.Text = $"{_toggleTipSleeveColorRSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveColorGSlider != null && _toggleTipSleeveColorGValueText != null)
+            {
+                _toggleTipSleeveColorGValueText.Text = $"{_toggleTipSleeveColorGSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveColorBSlider != null && _toggleTipSleeveColorBValueText != null)
+            {
+                _toggleTipSleeveColorBValueText.Text = $"{_toggleTipSleeveColorBSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveMetallicSlider != null && _toggleTipSleeveMetallicValueText != null)
+            {
+                _toggleTipSleeveMetallicValueText.Text = $"{_toggleTipSleeveMetallicSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveRoughnessSlider != null && _toggleTipSleeveRoughnessValueText != null)
+            {
+                _toggleTipSleeveRoughnessValueText.Text = $"{_toggleTipSleeveRoughnessSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleevePearlescenceSlider != null && _toggleTipSleevePearlescenceValueText != null)
+            {
+                _toggleTipSleevePearlescenceValueText.Text = $"{_toggleTipSleevePearlescenceSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveDiffuseStrengthSlider != null && _toggleTipSleeveDiffuseStrengthValueText != null)
+            {
+                _toggleTipSleeveDiffuseStrengthValueText.Text = $"{_toggleTipSleeveDiffuseStrengthSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveSpecularStrengthSlider != null && _toggleTipSleeveSpecularStrengthValueText != null)
+            {
+                _toggleTipSleeveSpecularStrengthValueText.Text = $"{_toggleTipSleeveSpecularStrengthSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveRustSlider != null && _toggleTipSleeveRustValueText != null)
+            {
+                _toggleTipSleeveRustValueText.Text = $"{_toggleTipSleeveRustSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveWearSlider != null && _toggleTipSleeveWearValueText != null)
+            {
+                _toggleTipSleeveWearValueText.Text = $"{_toggleTipSleeveWearSlider.Value:0.00}";
+            }
+
+            if (_toggleTipSleeveGunkSlider != null && _toggleTipSleeveGunkValueText != null)
+            {
+                _toggleTipSleeveGunkValueText.Text = $"{_toggleTipSleeveGunkSlider.Value:0.00}";
             }
 
             if (_spiralRidgeHeightSlider != null && _spiralRidgeHeightValueText != null)

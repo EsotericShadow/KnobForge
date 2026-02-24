@@ -80,10 +80,7 @@ namespace KnobForge.App.Views
                 InspectorSectionId.EnvironmentTab,
                 InspectorSectionId.ShadowsTab,
                 InspectorSectionId.Transform,
-                InspectorSectionId.BodyShape,
                 InspectorSectionId.Material,
-                InspectorSectionId.SurfaceTexture,
-                InspectorSectionId.MicroDetail
             };
 
             switch (projectType)
@@ -95,15 +92,17 @@ namespace KnobForge.App.Views
                     sections.Add(InspectorSectionId.ToggleAssembly);
                     break;
                 case InteractorProjectType.PushButton:
-                    sections.Add(InspectorSectionId.ReferenceProfiles);
                     sections.Add(InspectorSectionId.Indicator);
                     break;
                 default:
                     sections.Add(InspectorSectionId.ReferenceProfiles);
+                    sections.Add(InspectorSectionId.BodyShape);
                     sections.Add(InspectorSectionId.SpiralRidge);
                     sections.Add(InspectorSectionId.Grip);
                     sections.Add(InspectorSectionId.Collar);
                     sections.Add(InspectorSectionId.Indicator);
+                    sections.Add(InspectorSectionId.SurfaceTexture);
+                    sections.Add(InspectorSectionId.MicroDetail);
                     break;
             }
 

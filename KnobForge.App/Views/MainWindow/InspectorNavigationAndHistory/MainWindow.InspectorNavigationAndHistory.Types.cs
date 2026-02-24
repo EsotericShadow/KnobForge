@@ -96,11 +96,49 @@ namespace KnobForge.App.Views
             public float TogglePlateWidth { get; set; }
             public float TogglePlateHeight { get; set; }
             public float TogglePlateThickness { get; set; }
+            public float TogglePlateOffsetY { get; set; }
+            public float TogglePlateOffsetZ { get; set; }
             public float ToggleBushingRadius { get; set; }
             public float ToggleBushingHeight { get; set; }
+            public int ToggleBushingSides { get; set; } = 6;
+            public ToggleBushingShape ToggleLowerBushingShape { get; set; } = ToggleBushingShape.Hex;
+            public ToggleBushingShape ToggleUpperBushingShape { get; set; } = ToggleBushingShape.Hex;
+            public float ToggleLowerBushingRadiusScale { get; set; } = 1.22f;
+            public float ToggleLowerBushingHeightRatio { get; set; } = 0.45f;
+            public float ToggleUpperBushingRadiusScale { get; set; } = 1.00f;
+            public float ToggleUpperBushingHeightRatio { get; set; } = 0.75f;
+            public bool ToggleInvertBaseFrontFaceWinding { get; set; }
+            public bool ToggleInvertLeverFrontFaceWinding { get; set; }
             public float ToggleLeverLength { get; set; }
             public float ToggleLeverRadius { get; set; }
+            public float ToggleLeverTopRadius { get; set; }
+            public int ToggleLeverSides { get; set; } = 20;
+            public float ToggleLeverPivotOffset { get; set; }
             public float ToggleTipRadius { get; set; }
+            public int ToggleTipLatitudeSegments { get; set; } = 10;
+            public int ToggleTipLongitudeSegments { get; set; } = 16;
+            public bool ToggleTipSleeveEnabled { get; set; } = true;
+            public float ToggleTipSleeveLength { get; set; }
+            public float ToggleTipSleeveThickness { get; set; }
+            public float ToggleTipSleeveOuterRadius { get; set; }
+            public float ToggleTipSleeveCoverage { get; set; } = 0.55f;
+            public int ToggleTipSleeveSides { get; set; } = 24;
+            public ToggleTipSleeveStyle ToggleTipSleeveStyle { get; set; } = ToggleTipSleeveStyle.Round;
+            public ToggleTipSleeveTipStyle ToggleTipSleeveTipStyle { get; set; } = ToggleTipSleeveTipStyle.Rounded;
+            public int ToggleTipSleevePatternCount { get; set; } = 14;
+            public float ToggleTipSleevePatternDepth { get; set; } = 0.22f;
+            public float ToggleTipSleeveTipAmount { get; set; } = 0.35f;
+            public float ToggleTipSleeveColorX { get; set; } = 0.82f;
+            public float ToggleTipSleeveColorY { get; set; } = 0.83f;
+            public float ToggleTipSleeveColorZ { get; set; } = 0.86f;
+            public float ToggleTipSleeveMetallic { get; set; } = 0.94f;
+            public float ToggleTipSleeveRoughness { get; set; } = 0.22f;
+            public float ToggleTipSleevePearlescence { get; set; } = 0.03f;
+            public float ToggleTipSleeveDiffuseStrength { get; set; } = 1f;
+            public float ToggleTipSleeveSpecularStrength { get; set; } = 1f;
+            public float ToggleTipSleeveRustAmount { get; set; }
+            public float ToggleTipSleeveWearAmount { get; set; }
+            public float ToggleTipSleeveGunkAmount { get; set; }
             public SceneSelectionSnapshot Selection { get; set; } = new();
         }
 

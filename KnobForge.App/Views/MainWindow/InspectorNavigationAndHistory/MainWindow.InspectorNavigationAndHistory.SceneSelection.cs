@@ -89,12 +89,51 @@ namespace KnobForge.App.Views
             _project.TogglePlateWidth = snapshot.TogglePlateWidth;
             _project.TogglePlateHeight = snapshot.TogglePlateHeight;
             _project.TogglePlateThickness = snapshot.TogglePlateThickness;
+            _project.TogglePlateOffsetY = snapshot.TogglePlateOffsetY;
+            _project.TogglePlateOffsetZ = snapshot.TogglePlateOffsetZ;
             _project.ToggleBushingRadius = snapshot.ToggleBushingRadius;
             _project.ToggleBushingHeight = snapshot.ToggleBushingHeight;
+            _project.ToggleBushingSides = snapshot.ToggleBushingSides;
+            _project.ToggleLowerBushingShape = snapshot.ToggleLowerBushingShape;
+            _project.ToggleUpperBushingShape = snapshot.ToggleUpperBushingShape;
+            _project.ToggleLowerBushingRadiusScale = snapshot.ToggleLowerBushingRadiusScale;
+            _project.ToggleLowerBushingHeightRatio = snapshot.ToggleLowerBushingHeightRatio;
+            _project.ToggleUpperBushingRadiusScale = snapshot.ToggleUpperBushingRadiusScale;
+            _project.ToggleUpperBushingHeightRatio = snapshot.ToggleUpperBushingHeightRatio;
+            _project.ToggleInvertBaseFrontFaceWinding = snapshot.ToggleInvertBaseFrontFaceWinding;
+            _project.ToggleInvertLeverFrontFaceWinding = snapshot.ToggleInvertLeverFrontFaceWinding;
             _project.ToggleLeverLength = snapshot.ToggleLeverLength;
             _project.ToggleLeverRadius = snapshot.ToggleLeverRadius;
+            _project.ToggleLeverTopRadius = snapshot.ToggleLeverTopRadius;
+            _project.ToggleLeverSides = snapshot.ToggleLeverSides;
+            _project.ToggleLeverPivotOffset = snapshot.ToggleLeverPivotOffset;
             _project.ToggleTipRadius = snapshot.ToggleTipRadius;
-            _project.EnsureInteractorModulesForProjectType(_project.ProjectType, pruneUnsupportedModules: false);
+            _project.ToggleTipLatitudeSegments = snapshot.ToggleTipLatitudeSegments;
+            _project.ToggleTipLongitudeSegments = snapshot.ToggleTipLongitudeSegments;
+            _project.ToggleTipSleeveEnabled = snapshot.ToggleTipSleeveEnabled;
+            _project.ToggleTipSleeveLength = snapshot.ToggleTipSleeveLength;
+            _project.ToggleTipSleeveThickness = snapshot.ToggleTipSleeveThickness;
+            _project.ToggleTipSleeveOuterRadius = snapshot.ToggleTipSleeveOuterRadius;
+            _project.ToggleTipSleeveCoverage = snapshot.ToggleTipSleeveCoverage;
+            _project.ToggleTipSleeveSides = snapshot.ToggleTipSleeveSides;
+            _project.ToggleTipSleeveStyle = snapshot.ToggleTipSleeveStyle;
+            _project.ToggleTipSleeveTipStyle = snapshot.ToggleTipSleeveTipStyle;
+            _project.ToggleTipSleevePatternCount = snapshot.ToggleTipSleevePatternCount;
+            _project.ToggleTipSleevePatternDepth = snapshot.ToggleTipSleevePatternDepth;
+            _project.ToggleTipSleeveTipAmount = snapshot.ToggleTipSleeveTipAmount;
+            _project.ToggleTipSleeveColor = new(
+                snapshot.ToggleTipSleeveColorX,
+                snapshot.ToggleTipSleeveColorY,
+                snapshot.ToggleTipSleeveColorZ);
+            _project.ToggleTipSleeveMetallic = snapshot.ToggleTipSleeveMetallic;
+            _project.ToggleTipSleeveRoughness = snapshot.ToggleTipSleeveRoughness;
+            _project.ToggleTipSleevePearlescence = snapshot.ToggleTipSleevePearlescence;
+            _project.ToggleTipSleeveDiffuseStrength = snapshot.ToggleTipSleeveDiffuseStrength;
+            _project.ToggleTipSleeveSpecularStrength = snapshot.ToggleTipSleeveSpecularStrength;
+            _project.ToggleTipSleeveRustAmount = snapshot.ToggleTipSleeveRustAmount;
+            _project.ToggleTipSleeveWearAmount = snapshot.ToggleTipSleeveWearAmount;
+            _project.ToggleTipSleeveGunkAmount = snapshot.ToggleTipSleeveGunkAmount;
+            _project.EnsureInteractorModulesForProjectType(_project.ProjectType, pruneUnsupportedModules: true);
 
             if (_metalViewport != null)
             {
@@ -117,7 +156,7 @@ namespace KnobForge.App.Views
             model.ReferenceStyle = snapshot.ModelReferenceStyle;
             _selectedUserReferenceProfileName = snapshot.SelectedUserReferenceProfileName;
 
-            if (snapshot.CollarSnapshot != null)
+            if (_project.ProjectType == InteractorProjectType.RotaryKnob && snapshot.CollarSnapshot != null)
             {
                 CollarNode collar = EnsureCollarNode();
                 ApplyCollarStateSnapshot(collar, snapshot.CollarSnapshot);
@@ -162,6 +201,7 @@ namespace KnobForge.App.Views
                 ToggleBushingHeight: snapshot.ToggleBushingHeight,
                 ToggleLeverLength: snapshot.ToggleLeverLength,
                 ToggleLeverRadius: snapshot.ToggleLeverRadius,
+                ToggleLeverTopRadius: snapshot.ToggleLeverTopRadius,
                 ToggleTipRadius: snapshot.ToggleTipRadius,
                 ToggleStateCount: snapshot.ToggleStateCount,
                 ToggleMaxAngleDeg: snapshot.ToggleMaxAngleDeg));

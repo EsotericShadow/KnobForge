@@ -637,6 +637,14 @@
                                         <controls:SpriteKnobSlider x:Name="TogglePlateThicknessSlider" Minimum="0" Maximum="500"/>
                                         <TextBlock x:Name="TogglePlateThicknessValueText"/>
 
+                                        <TextBlock Text="Plate Offset Y"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePlateOffsetYSlider" Minimum="-1200" Maximum="1200"/>
+                                        <TextBlock x:Name="TogglePlateOffsetYValueText"/>
+
+                                        <TextBlock Text="Plate Offset Z"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePlateOffsetZSlider" Minimum="-1200" Maximum="1200"/>
+                                        <TextBlock x:Name="TogglePlateOffsetZValueText"/>
+
                                         <TextBlock Text="Bushing Radius (0 = Auto)"/>
                                         <controls:SpriteKnobSlider x:Name="ToggleBushingRadiusSlider" Minimum="0" Maximum="500"/>
                                         <TextBlock x:Name="ToggleBushingRadiusValueText"/>
@@ -645,17 +653,153 @@
                                         <controls:SpriteKnobSlider x:Name="ToggleBushingHeightSlider" Minimum="0" Maximum="500"/>
                                         <TextBlock x:Name="ToggleBushingHeightValueText"/>
 
+                                        <TextBlock Text="Bushing Sides"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleBushingSidesSlider" Minimum="3" Maximum="32"/>
+                                        <TextBlock x:Name="ToggleBushingSidesValueText"/>
+
+                                        <TextBlock Text="Lower Bushing Shape"/>
+                                        <ComboBox x:Name="ToggleLowerBushingShapeCombo"/>
+
+                                        <TextBlock Text="Upper Bushing Shape"/>
+                                        <ComboBox x:Name="ToggleUpperBushingShapeCombo"/>
+
+                                        <TextBlock Text="Lower Bushing Radius Scale"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLowerBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
+                                        <TextBlock x:Name="ToggleLowerBushingRadiusScaleValueText"/>
+
+                                        <TextBlock Text="Lower Bushing Height Ratio"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLowerBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
+                                        <TextBlock x:Name="ToggleLowerBushingHeightRatioValueText"/>
+
+                                        <TextBlock Text="Upper Bushing Radius Scale"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
+                                        <TextBlock x:Name="ToggleUpperBushingRadiusScaleValueText"/>
+
+                                        <TextBlock Text="Upper Bushing Height Ratio"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
+                                        <TextBlock x:Name="ToggleUpperBushingHeightRatioValueText"/>
+
+                                        <CheckBox x:Name="ToggleInvertBaseWindingCheckBox"
+                                                  Content="Invert Base/Bushing Winding"/>
+                                        <CheckBox x:Name="ToggleInvertLeverWindingCheckBox"
+                                                  Content="Invert Lever Winding"/>
+
                                         <TextBlock Text="Lever Length (0 = Auto)"/>
                                         <controls:SpriteKnobSlider x:Name="ToggleLeverLengthSlider" Minimum="0" Maximum="2200"/>
                                         <TextBlock x:Name="ToggleLeverLengthValueText"/>
 
-                                        <TextBlock Text="Lever Radius (0 = Auto)"/>
+                                        <TextBlock Text="Shaft Bottom Radius (0 = Auto)"/>
                                         <controls:SpriteKnobSlider x:Name="ToggleLeverRadiusSlider" Minimum="0" Maximum="500"/>
                                         <TextBlock x:Name="ToggleLeverRadiusValueText"/>
+
+                                        <TextBlock Text="Shaft Top Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLeverTopRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleLeverTopRadiusValueText"/>
+
+                                        <TextBlock Text="Lever Sides"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLeverSidesSlider" Minimum="6" Maximum="64"/>
+                                        <TextBlock x:Name="ToggleLeverSidesValueText"/>
+
+                                        <TextBlock Text="Lever Pivot Offset"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleLeverPivotOffsetSlider" Minimum="-800" Maximum="800"/>
+                                        <TextBlock x:Name="ToggleLeverPivotOffsetValueText"/>
 
                                         <TextBlock Text="Tip Radius (0 = Auto)"/>
                                         <controls:SpriteKnobSlider x:Name="ToggleTipRadiusSlider" Minimum="0" Maximum="500"/>
                                         <TextBlock x:Name="ToggleTipRadiusValueText"/>
+
+                                        <TextBlock Text="Tip Latitude Segments"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
+                                        <TextBlock x:Name="ToggleTipLatitudeSegmentsValueText"/>
+
+                                        <TextBlock Text="Tip Longitude Segments"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipLongitudeSegmentsSlider" Minimum="6" Maximum="128"/>
+                                        <TextBlock x:Name="ToggleTipLongitudeSegmentsValueText"/>
+
+                                        <CheckBox x:Name="ToggleTipSleeveEnabledCheckBox"
+                                                  Content="Enable Tip Sleeve"/>
+
+                                        <TextBlock Text="Sleeve Length (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveLengthSlider" Minimum="0" Maximum="900"/>
+                                        <TextBlock x:Name="ToggleTipSleeveLengthValueText"/>
+
+                                        <TextBlock Text="Sleeve Thickness (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveThicknessSlider" Minimum="0" Maximum="220"/>
+                                        <TextBlock x:Name="ToggleTipSleeveThicknessValueText"/>
+
+                                        <TextBlock Text="Sleeve Outer Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveOuterRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="ToggleTipSleeveOuterRadiusValueText"/>
+
+                                        <TextBlock Text="Sleeve Coverage"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveCoverageSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveCoverageValueText"/>
+
+                                        <TextBlock Text="Sleeve Sides"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSidesSlider" Minimum="6" Maximum="64"/>
+                                        <TextBlock x:Name="ToggleTipSleeveSidesValueText"/>
+
+                                        <TextBlock Text="Sleeve Style"/>
+                                        <ComboBox x:Name="ToggleTipSleeveStyleCombo"/>
+
+                                        <TextBlock Text="Sleeve Tip Style"/>
+                                        <ComboBox x:Name="ToggleTipSleeveTipStyleCombo"/>
+
+                                        <TextBlock Text="Sleeve Pattern Count"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternCountSlider" Minimum="3" Maximum="64"/>
+                                        <TextBlock x:Name="ToggleTipSleevePatternCountValueText"/>
+
+                                        <TextBlock Text="Sleeve Pattern Depth"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternDepthSlider" Minimum="0" Maximum="0.9"/>
+                                        <TextBlock x:Name="ToggleTipSleevePatternDepthValueText"/>
+
+                                        <TextBlock Text="Sleeve Tip Amount"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveTipAmountSlider" Minimum="0" Maximum="0.95"/>
+                                        <TextBlock x:Name="ToggleTipSleeveTipAmountValueText"/>
+
+                                        <TextBlock Text="Sleeve Base Color R"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorRSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveColorRValueText"/>
+
+                                        <TextBlock Text="Sleeve Base Color G"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorGSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveColorGValueText"/>
+
+                                        <TextBlock Text="Sleeve Base Color B"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorBSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveColorBValueText"/>
+
+                                        <TextBlock Text="Sleeve Metallic"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveMetallicSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveMetallicValueText"/>
+
+                                        <TextBlock Text="Sleeve Roughness"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRoughnessSlider" Minimum="0.04" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveRoughnessValueText"/>
+
+                                        <TextBlock Text="Sleeve Pearlescence"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePearlescenceSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleevePearlescenceValueText"/>
+
+                                        <TextBlock Text="Sleeve Diffuse Strength"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveDiffuseStrengthSlider" Minimum="0" Maximum="4"/>
+                                        <TextBlock x:Name="ToggleTipSleeveDiffuseStrengthValueText"/>
+
+                                        <TextBlock Text="Sleeve Specular Strength"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSpecularStrengthSlider" Minimum="0" Maximum="4"/>
+                                        <TextBlock x:Name="ToggleTipSleeveSpecularStrengthValueText"/>
+
+                                        <TextBlock Text="Sleeve Rust"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRustSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveRustValueText"/>
+
+                                        <TextBlock Text="Sleeve Wear"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveWearSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveWearValueText"/>
+
+                                        <TextBlock Text="Sleeve Gunk"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveGunkSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleTipSleeveGunkValueText"/>
                                     </StackPanel>
                                 </Expander>
 

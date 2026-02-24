@@ -48,12 +48,6 @@ namespace KnobForge.App.Controls
 
                 RefreshMeshResources(_project, modelNode);
                 CollarNode? collarNode = modelNode.Children.OfType<CollarNode>().FirstOrDefault();
-                if (_meshResources == null ||
-                    _meshResources.VertexBuffer.Handle == IntPtr.Zero ||
-                    _meshResources.IndexBuffer.Handle == IntPtr.Zero)
-                {
-                    return false;
-                }
 
                 IntPtr colorDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
                     ObjCClasses.MTLTextureDescriptor,
@@ -128,68 +122,136 @@ namespace KnobForge.App.Controls
                     return false;
                 }
 
-                bool drawCollar = _collarResources != null && _collarResources.VertexBuffer.Handle != IntPtr.Zero && _collarResources.IndexBuffer.Handle != IntPtr.Zero && collarNode is { Enabled: true };
+                bool drawKnob =
+                    _project.ProjectType == InteractorProjectType.RotaryKnob &&
+                    IsRenderableMesh(_meshResources);
+                bool drawCollar =
+                    drawKnob &&
+                    collarNode is { Enabled: true } &&
+                    IsRenderableMesh(_collarResources);
                 bool drawSliderBackplate =
-                    _sliderBackplateResources != null &&
-                    _sliderBackplateResources.VertexBuffer.Handle != IntPtr.Zero &&
-                    _sliderBackplateResources.IndexBuffer.Handle != IntPtr.Zero;
+                    _project.ProjectType == InteractorProjectType.ThumbSlider &&
+                    IsRenderableMesh(_sliderBackplateResources);
                 bool drawSliderThumb =
-                    _sliderThumbResources != null &&
-                    _sliderThumbResources.VertexBuffer.Handle != IntPtr.Zero &&
-                    _sliderThumbResources.IndexBuffer.Handle != IntPtr.Zero;
+                    _project.ProjectType == InteractorProjectType.ThumbSlider &&
+                    IsRenderableMesh(_sliderThumbResources);
                 bool drawToggleBase =
-                    _toggleBaseResources != null &&
-                    _toggleBaseResources.VertexBuffer.Handle != IntPtr.Zero &&
-                    _toggleBaseResources.IndexBuffer.Handle != IntPtr.Zero;
+                    _project.ProjectType == InteractorProjectType.FlipSwitch &&
+                    IsRenderableMesh(_toggleBaseResources);
                 bool drawToggleLever =
-                    _toggleLeverResources != null &&
-                    _toggleLeverResources.VertexBuffer.Handle != IntPtr.Zero &&
-                    _toggleLeverResources.IndexBuffer.Handle != IntPtr.Zero;
+                    _project.ProjectType == InteractorProjectType.FlipSwitch &&
+                    IsRenderableMesh(_toggleLeverResources);
+                bool drawToggleSleeve =
+                    _project.ProjectType == InteractorProjectType.FlipSwitch &&
+                    IsRenderableMesh(_toggleSleeveResources);
+                bool drawPushButtonBase =
+                    _project.ProjectType == InteractorProjectType.PushButton &&
+                    IsRenderableMesh(_pushButtonBaseResources);
+                bool drawPushButtonCap =
+                    _project.ProjectType == InteractorProjectType.PushButton &&
+                    IsRenderableMesh(_pushButtonCapResources);
+                if (!drawKnob &&
+                    !drawCollar &&
+                    !drawSliderBackplate &&
+                    !drawSliderThumb &&
+                    !drawToggleBase &&
+                    !drawToggleLever &&
+                    !drawToggleSleeve &&
+                    !drawPushButtonBase &&
+                    !drawPushButtonCap)
+                {
+                    return false;
+                }
                 if (!_offscreenCollarStateLogged)
                 {
                     _offscreenCollarStateLogged = true;
                     LogCollarState("offscreen", collarNode, _collarResources);
                 }
-                float sceneReferenceRadius = _meshResources.ReferenceRadius;
-                if (drawCollar)
-                {
-                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _collarResources!.ReferenceRadius);
-                }
-
-                if (drawSliderBackplate)
-                {
-                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _sliderBackplateResources!.ReferenceRadius);
-                }
-
-                if (drawSliderThumb)
-                {
-                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _sliderThumbResources!.ReferenceRadius);
-                }
-
-                if (drawToggleBase)
-                {
-                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _toggleBaseResources!.ReferenceRadius);
-                }
-
-                if (drawToggleLever)
-                {
-                    sceneReferenceRadius = MathF.Max(sceneReferenceRadius, _toggleLeverResources!.ReferenceRadius);
-                }
+                float sceneReferenceRadius = MathF.Max(1f, modelNode.Radius);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawKnob ? _meshResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawCollar ? _collarResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawSliderBackplate ? _sliderBackplateResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawSliderThumb ? _sliderThumbResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawToggleBase ? _toggleBaseResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawToggleLever ? _toggleLeverResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawToggleSleeve ? _toggleSleeveResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawPushButtonBase ? _pushButtonBaseResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawPushButtonCap ? _pushButtonCapResources : null);
                 GpuUniforms knobUniforms = BuildUniformsForPixels(_project, modelNode, sceneReferenceRadius, width, height);
+                MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
+                AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
                     ? BuildCollarUniforms(knobUniforms, collarNode!)
                     : default;
                 GpuUniforms sliderBackplateUniforms = drawSliderBackplate
-                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.20f, 0.22f, 0.24f), 0.74f, 0.42f, 0.05f)
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.BaseColor,
+                        assemblyMaterialPalette.BaseMetallic,
+                        assemblyMaterialPalette.BaseRoughness,
+                        assemblyMaterialPalette.Pearlescence)
                     : default;
                 GpuUniforms sliderThumbUniforms = drawSliderThumb
-                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.52f, 0.53f, 0.55f), 0.86f, 0.26f, 0.08f)
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.AccentColor,
+                        assemblyMaterialPalette.AccentMetallic,
+                        assemblyMaterialPalette.AccentRoughness,
+                        assemblyMaterialPalette.Pearlescence)
                     : default;
+                Vector3 toggleSleeveColor = _project.ToggleTipSleeveColor;
+                float toggleSleeveMetallic = Math.Clamp(_project.ToggleTipSleeveMetallic, 0f, 1f);
+                float toggleSleeveRoughness = Math.Clamp(_project.ToggleTipSleeveRoughness, 0.04f, 1f);
+                float toggleSleevePearlescence = Math.Clamp(_project.ToggleTipSleevePearlescence, 0f, 1f);
+                float toggleSleeveDiffuseStrength = _project.ToggleTipSleeveDiffuseStrength;
+                float toggleSleeveSpecularStrength = _project.ToggleTipSleeveSpecularStrength;
+                float toggleSleeveRust = _project.ToggleTipSleeveRustAmount;
+                float toggleSleeveWear = _project.ToggleTipSleeveWearAmount;
+                float toggleSleeveGunk = _project.ToggleTipSleeveGunkAmount;
                 GpuUniforms toggleBaseUniforms = drawToggleBase
-                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.28f, 0.29f, 0.31f), 0.82f, 0.30f, 0.08f)
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.BaseColor,
+                        assemblyMaterialPalette.BaseMetallic,
+                        assemblyMaterialPalette.BaseRoughness,
+                        assemblyMaterialPalette.Pearlescence)
                     : default;
                 GpuUniforms toggleLeverUniforms = drawToggleLever
-                    ? BuildSliderPartUniforms(knobUniforms, new Vector3(0.62f, 0.63f, 0.66f), 0.94f, 0.18f, 0.05f)
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.AccentColor,
+                        assemblyMaterialPalette.AccentMetallic,
+                        assemblyMaterialPalette.AccentRoughness,
+                        assemblyMaterialPalette.Pearlescence)
+                    : default;
+                GpuUniforms toggleSleeveUniforms = drawToggleSleeve
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        toggleSleeveColor,
+                        toggleSleeveMetallic,
+                        toggleSleeveRoughness,
+                        toggleSleevePearlescence,
+                        toggleSleeveDiffuseStrength,
+                        toggleSleeveSpecularStrength,
+                        toggleSleeveRust,
+                        toggleSleeveWear,
+                        toggleSleeveGunk)
+                    : default;
+                GpuUniforms pushButtonBaseUniforms = drawPushButtonBase
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.BaseColor,
+                        assemblyMaterialPalette.BaseMetallic,
+                        assemblyMaterialPalette.BaseRoughness,
+                        assemblyMaterialPalette.Pearlescence)
+                    : default;
+                GpuUniforms pushButtonCapUniforms = drawPushButtonCap
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        assemblyMaterialPalette.AccentColor,
+                        assemblyMaterialPalette.AccentMetallic,
+                        assemblyMaterialPalette.AccentRoughness,
+                        assemblyMaterialPalette.Pearlescence)
                     : default;
                 EnsurePaintMaskTexture(_project);
                 EnsurePaintColorTexture(_project);
@@ -232,6 +294,16 @@ namespace KnobForge.App.Controls
                 bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
                     ? !frontFacingClockwiseBase
                     : frontFacingClockwiseBase;
+                bool frontFacingClockwiseAssembly = !frontFacingClockwiseBase;
+                bool frontFacingClockwiseToggleBase = _project?.ToggleInvertBaseFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
+                bool frontFacingClockwiseToggleLever = _project?.ToggleInvertLeverFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
+                bool frontFacingClockwiseToggleSleeve = _project?.ToggleInvertLeverFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
                 bool frontFacingClockwiseCollar = frontFacingClockwiseBase;
                 if (drawCollar &&
                     IsImportedCollarPreset(collarNode) &&
@@ -246,7 +318,7 @@ namespace KnobForge.App.Controls
                 {
                     MetalPipelineManager.SetFrontFacingWinding(
                         new MTLRenderCommandEncoderHandle(encoderPtr),
-                        frontFacingClockwiseKnob);
+                        frontFacingClockwiseAssembly);
                     ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
                         encoderPtr,
                         Selectors.SetVertexBufferOffsetAtIndex,
@@ -268,7 +340,7 @@ namespace KnobForge.App.Controls
                 {
                     MetalPipelineManager.SetFrontFacingWinding(
                         new MTLRenderCommandEncoderHandle(encoderPtr),
-                        frontFacingClockwiseKnob);
+                        frontFacingClockwiseAssembly);
                     ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
                         encoderPtr,
                         Selectors.SetVertexBufferOffsetAtIndex,
@@ -290,7 +362,7 @@ namespace KnobForge.App.Controls
                 {
                     MetalPipelineManager.SetFrontFacingWinding(
                         new MTLRenderCommandEncoderHandle(encoderPtr),
-                        frontFacingClockwiseKnob);
+                        frontFacingClockwiseToggleBase);
                     ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
                         encoderPtr,
                         Selectors.SetVertexBufferOffsetAtIndex,
@@ -312,7 +384,7 @@ namespace KnobForge.App.Controls
                 {
                     MetalPipelineManager.SetFrontFacingWinding(
                         new MTLRenderCommandEncoderHandle(encoderPtr),
-                        frontFacingClockwiseKnob);
+                        frontFacingClockwiseToggleLever);
                     ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
                         encoderPtr,
                         Selectors.SetVertexBufferOffsetAtIndex,
@@ -327,6 +399,72 @@ namespace KnobForge.App.Controls
                         (nuint)_toggleLeverResources.IndexCount,
                         (nuint)_toggleLeverResources.IndexType,
                         _toggleLeverResources.IndexBuffer.Handle,
+                        0);
+                }
+
+                if (drawToggleSleeve)
+                {
+                    MetalPipelineManager.SetFrontFacingWinding(
+                        new MTLRenderCommandEncoderHandle(encoderPtr),
+                        frontFacingClockwiseToggleSleeve);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                        encoderPtr,
+                        Selectors.SetVertexBufferOffsetAtIndex,
+                        _toggleSleeveResources!.VertexBuffer.Handle,
+                        0,
+                        0);
+                    UploadUniforms(encoderPtr, toggleSleeveUniforms);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                        3, // MTLPrimitiveTypeTriangle
+                        (nuint)_toggleSleeveResources.IndexCount,
+                        (nuint)_toggleSleeveResources.IndexType,
+                        _toggleSleeveResources.IndexBuffer.Handle,
+                        0);
+                }
+
+                if (drawPushButtonBase)
+                {
+                    MetalPipelineManager.SetFrontFacingWinding(
+                        new MTLRenderCommandEncoderHandle(encoderPtr),
+                        frontFacingClockwiseAssembly);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                        encoderPtr,
+                        Selectors.SetVertexBufferOffsetAtIndex,
+                        _pushButtonBaseResources!.VertexBuffer.Handle,
+                        0,
+                        0);
+                    UploadUniforms(encoderPtr, pushButtonBaseUniforms);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                        3, // MTLPrimitiveTypeTriangle
+                        (nuint)_pushButtonBaseResources.IndexCount,
+                        (nuint)_pushButtonBaseResources.IndexType,
+                        _pushButtonBaseResources.IndexBuffer.Handle,
+                        0);
+                }
+
+                if (drawPushButtonCap)
+                {
+                    MetalPipelineManager.SetFrontFacingWinding(
+                        new MTLRenderCommandEncoderHandle(encoderPtr),
+                        frontFacingClockwiseAssembly);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                        encoderPtr,
+                        Selectors.SetVertexBufferOffsetAtIndex,
+                        _pushButtonCapResources!.VertexBuffer.Handle,
+                        0,
+                        0);
+                    UploadUniforms(encoderPtr, pushButtonCapUniforms);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                        3, // MTLPrimitiveTypeTriangle
+                        (nuint)_pushButtonCapResources.IndexCount,
+                        (nuint)_pushButtonCapResources.IndexType,
+                        _pushButtonCapResources.IndexBuffer.Handle,
                         0);
                 }
 
@@ -362,24 +500,27 @@ namespace KnobForge.App.Controls
                     throw new InvalidOperationException("Collar was enabled with valid GPU resources but was not drawn in offscreen render.");
                 }
 
-                MetalPipelineManager.SetFrontFacingWinding(
-                    new MTLRenderCommandEncoderHandle(encoderPtr),
-                    frontFacingClockwiseKnob);
-                ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
-                    encoderPtr,
-                    Selectors.SetVertexBufferOffsetAtIndex,
-                    _meshResources.VertexBuffer.Handle,
-                    0,
-                    0);
-                UploadUniforms(encoderPtr, knobUniforms);
-                ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
-                    encoderPtr,
-                    Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
-                    3, // MTLPrimitiveTypeTriangle
-                    (nuint)_meshResources.IndexCount,
-                    (nuint)_meshResources.IndexType,
-                    _meshResources.IndexBuffer.Handle,
-                    0);
+                if (drawKnob)
+                {
+                    MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                        encoderPtr,
+                        Selectors.SetVertexBufferOffsetAtIndex,
+                        _meshResources!.VertexBuffer.Handle,
+                        0,
+                        0);
+                    UploadUniforms(encoderPtr, knobUniforms);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                        3, // MTLPrimitiveTypeTriangle
+                        (nuint)_meshResources!.IndexCount,
+                        (nuint)_meshResources!.IndexType,
+                        _meshResources!.IndexBuffer.Handle,
+                        0);
+                }
 
                 if (shadowConfigs.Count > 0)
                 {
@@ -400,10 +541,56 @@ namespace KnobForge.App.Controls
                             RenderShadowPasses(encoderPtr, collarUniforms, shadowConfig, _collarResources!);
                         }
 
-                        MetalPipelineManager.SetFrontFacingWinding(
+                        if (drawSliderBackplate)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
                             new MTLRenderCommandEncoderHandle(encoderPtr),
-                            frontFacingClockwiseKnob);
-                        RenderShadowPasses(encoderPtr, knobUniforms, shadowConfig, _meshResources);
+                            frontFacingClockwiseAssembly);
+                            RenderShadowPasses(encoderPtr, sliderBackplateUniforms, shadowConfig, _sliderBackplateResources!);
+                        }
+
+                        if (drawSliderThumb)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                            RenderShadowPasses(encoderPtr, sliderThumbUniforms, shadowConfig, _sliderThumbResources!);
+                        }
+
+                        if (drawToggleBase)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseToggleBase);
+                            RenderShadowPasses(encoderPtr, toggleBaseUniforms, shadowConfig, _toggleBaseResources!);
+                        }
+
+                        // Skip lever shadow projection for export as well to avoid the same
+                        // self-shadowing artifact seen in the interactive viewport.
+
+                        if (drawPushButtonBase)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                            RenderShadowPasses(encoderPtr, pushButtonBaseUniforms, shadowConfig, _pushButtonBaseResources!);
+                        }
+
+                        if (drawPushButtonCap)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                                new MTLRenderCommandEncoderHandle(encoderPtr),
+                                frontFacingClockwiseAssembly);
+                            RenderShadowPasses(encoderPtr, pushButtonCapUniforms, shadowConfig, _pushButtonCapResources!);
+                        }
+
+                        if (drawKnob)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                                new MTLRenderCommandEncoderHandle(encoderPtr),
+                                frontFacingClockwiseKnob);
+                            RenderShadowPasses(encoderPtr, knobUniforms, shadowConfig, _meshResources!);
+                        }
                     }
                     pipelineManager.UseDepthWriteState(new MTLRenderCommandEncoderHandle(encoderPtr));
                 }

@@ -145,6 +145,22 @@ namespace KnobForge.App.Views
             {
                 _toggleStateCountCombo.ItemsSource = Enum.GetValues<ToggleAssemblyStateCount>().Cast<ToggleAssemblyStateCount>().ToList();
             }
+            if (_toggleLowerBushingShapeCombo != null)
+            {
+                _toggleLowerBushingShapeCombo.ItemsSource = Enum.GetValues<ToggleBushingShape>().Cast<ToggleBushingShape>().ToList();
+            }
+            if (_toggleUpperBushingShapeCombo != null)
+            {
+                _toggleUpperBushingShapeCombo.ItemsSource = Enum.GetValues<ToggleBushingShape>().Cast<ToggleBushingShape>().ToList();
+            }
+            if (_toggleTipSleeveStyleCombo != null)
+            {
+                _toggleTipSleeveStyleCombo.ItemsSource = Enum.GetValues<ToggleTipSleeveStyle>().Cast<ToggleTipSleeveStyle>().ToList();
+            }
+            if (_toggleTipSleeveTipStyleCombo != null)
+            {
+                _toggleTipSleeveTipStyleCombo.ItemsSource = Enum.GetValues<ToggleTipSleeveTipStyle>().Cast<ToggleTipSleeveTipStyle>().ToList();
+            }
             RebuildSliderMeshOptions();
             RebuildToggleMeshOptions();
             _gripStyleCombo.ItemsSource = Enum.GetValues<GripStyle>().Cast<GripStyle>().ToList();
@@ -373,6 +389,14 @@ namespace KnobForge.App.Views
             {
                 _togglePlateThicknessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
+            if (_togglePlateOffsetYSlider != null)
+            {
+                _togglePlateOffsetYSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePlateOffsetZSlider != null)
+            {
+                _togglePlateOffsetZSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
             if (_toggleBushingRadiusSlider != null)
             {
                 _toggleBushingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
@@ -380,6 +404,42 @@ namespace KnobForge.App.Views
             if (_toggleBushingHeightSlider != null)
             {
                 _toggleBushingHeightSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleBushingSidesSlider != null)
+            {
+                _toggleBushingSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLowerBushingShapeCombo != null)
+            {
+                _toggleLowerBushingShapeCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingShapeCombo != null)
+            {
+                _toggleUpperBushingShapeCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLowerBushingRadiusScaleSlider != null)
+            {
+                _toggleLowerBushingRadiusScaleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLowerBushingHeightRatioSlider != null)
+            {
+                _toggleLowerBushingHeightRatioSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingRadiusScaleSlider != null)
+            {
+                _toggleUpperBushingRadiusScaleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingHeightRatioSlider != null)
+            {
+                _toggleUpperBushingHeightRatioSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleInvertBaseWindingCheckBox != null)
+            {
+                _toggleInvertBaseWindingCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleInvertLeverWindingCheckBox != null)
+            {
+                _toggleInvertLeverWindingCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleLeverLengthSlider != null)
             {
@@ -389,9 +449,117 @@ namespace KnobForge.App.Views
             {
                 _toggleLeverRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
+            if (_toggleLeverTopRadiusSlider != null)
+            {
+                _toggleLeverTopRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLeverSidesSlider != null)
+            {
+                _toggleLeverSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleLeverPivotOffsetSlider != null)
+            {
+                _toggleLeverPivotOffsetSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
             if (_toggleTipRadiusSlider != null)
             {
                 _toggleTipRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipLatitudeSegmentsSlider != null)
+            {
+                _toggleTipLatitudeSegmentsSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipLongitudeSegmentsSlider != null)
+            {
+                _toggleTipLongitudeSegmentsSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveEnabledCheckBox != null)
+            {
+                _toggleTipSleeveEnabledCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveLengthSlider != null)
+            {
+                _toggleTipSleeveLengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveThicknessSlider != null)
+            {
+                _toggleTipSleeveThicknessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveOuterRadiusSlider != null)
+            {
+                _toggleTipSleeveOuterRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveCoverageSlider != null)
+            {
+                _toggleTipSleeveCoverageSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveSidesSlider != null)
+            {
+                _toggleTipSleeveSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveStyleCombo != null)
+            {
+                _toggleTipSleeveStyleCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveTipStyleCombo != null)
+            {
+                _toggleTipSleeveTipStyleCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleevePatternCountSlider != null)
+            {
+                _toggleTipSleevePatternCountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleevePatternDepthSlider != null)
+            {
+                _toggleTipSleevePatternDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveTipAmountSlider != null)
+            {
+                _toggleTipSleeveTipAmountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveColorRSlider != null)
+            {
+                _toggleTipSleeveColorRSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveColorGSlider != null)
+            {
+                _toggleTipSleeveColorGSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveColorBSlider != null)
+            {
+                _toggleTipSleeveColorBSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveMetallicSlider != null)
+            {
+                _toggleTipSleeveMetallicSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveRoughnessSlider != null)
+            {
+                _toggleTipSleeveRoughnessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleevePearlescenceSlider != null)
+            {
+                _toggleTipSleevePearlescenceSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveDiffuseStrengthSlider != null)
+            {
+                _toggleTipSleeveDiffuseStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveSpecularStrengthSlider != null)
+            {
+                _toggleTipSleeveSpecularStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveRustSlider != null)
+            {
+                _toggleTipSleeveRustSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveWearSlider != null)
+            {
+                _toggleTipSleeveWearSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleTipSleeveGunkSlider != null)
+            {
+                _toggleTipSleeveGunkSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             _spiralRidgeHeightSlider.PropertyChanged += OnSpiralGeometryChanged;
             _spiralRidgeWidthSlider.PropertyChanged += OnSpiralGeometryChanged;

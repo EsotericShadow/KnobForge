@@ -20,6 +20,9 @@ namespace KnobForge.App.Controls
             ReplaceMeshResources(ref _sliderThumbResources, null);
             ReplaceMeshResources(ref _toggleBaseResources, null);
             ReplaceMeshResources(ref _toggleLeverResources, null);
+            ReplaceMeshResources(ref _toggleSleeveResources, null);
+            ReplaceMeshResources(ref _pushButtonBaseResources, null);
+            ReplaceMeshResources(ref _pushButtonCapResources, null);
             _paintPickMapDirty = true;
         }
 
@@ -43,12 +46,16 @@ namespace KnobForge.App.Controls
                 _collarShapeKey = default;
                 _sliderAssemblyShapeKey = default;
                 _toggleAssemblyShapeKey = default;
+                _pushButtonAssemblyShapeKey = default;
                 return;
             }
 
             CollarNode? collarNode = modelNode.Children.OfType<CollarNode>().FirstOrDefault();
             CollarShapeKey nextCollarKey = BuildCollarShapeKey(modelNode, collarNode);
-            bool collarEnabled = collarNode is { Enabled: true } && collarNode.Preset != CollarPreset.None;
+            bool collarEnabled =
+                project.ProjectType == InteractorProjectType.RotaryKnob &&
+                collarNode is { Enabled: true } &&
+                collarNode.Preset != CollarPreset.None;
             bool collarShapeChanged = !nextCollarKey.Equals(_collarShapeKey);
             if (!collarEnabled)
             {
@@ -112,15 +119,18 @@ namespace KnobForge.App.Controls
             {
                 ReplaceMeshResources(ref _toggleBaseResources, null);
                 ReplaceMeshResources(ref _toggleLeverResources, null);
+                ReplaceMeshResources(ref _toggleSleeveResources, null);
                 _toggleAssemblyShapeKey = default;
             }
-            else if (toggleShapeChanged || _toggleBaseResources == null || _toggleLeverResources == null)
+            else if (toggleShapeChanged || _toggleBaseResources == null || _toggleLeverResources == null || _toggleSleeveResources == null)
             {
                 _toggleAssemblyShapeKey = nextToggleKey;
                 TogglePartMesh baseMesh = ToggleAssemblyMeshBuilder.BuildBaseMesh(toggleConfig);
                 TogglePartMesh leverMesh = ToggleAssemblyMeshBuilder.BuildLeverMesh(toggleConfig);
+                TogglePartMesh sleeveMesh = ToggleAssemblyMeshBuilder.BuildSleeveMesh(toggleConfig);
                 MetalMeshGpuResources? nextBaseResources = null;
                 MetalMeshGpuResources? nextLeverResources = null;
+                MetalMeshGpuResources? nextSleeveResources = null;
                 if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
                 {
                     nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
@@ -131,8 +141,54 @@ namespace KnobForge.App.Controls
                     nextLeverResources = CreateGpuResources(leverMesh.Vertices, leverMesh.Indices, leverMesh.ReferenceRadius);
                 }
 
+                if (sleeveMesh.Vertices.Length > 0 && sleeveMesh.Indices.Length > 0)
+                {
+                    nextSleeveResources = CreateGpuResources(sleeveMesh.Vertices, sleeveMesh.Indices, sleeveMesh.ReferenceRadius);
+                }
+
                 ReplaceMeshResources(ref _toggleBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _toggleLeverResources, nextLeverResources);
+                ReplaceMeshResources(ref _toggleSleeveResources, nextSleeveResources);
+            }
+
+            PushButtonAssemblyConfig pushButtonConfig = PushButtonAssemblyMeshBuilder.ResolveConfig(project);
+            PushButtonAssemblyShapeKey nextPushButtonKey = BuildPushButtonAssemblyShapeKey(pushButtonConfig);
+            bool pushButtonEnabled = pushButtonConfig.Enabled;
+            bool pushButtonShapeChanged = !nextPushButtonKey.Equals(_pushButtonAssemblyShapeKey);
+            if (!pushButtonEnabled)
+            {
+                ReplaceMeshResources(ref _pushButtonBaseResources, null);
+                ReplaceMeshResources(ref _pushButtonCapResources, null);
+                _pushButtonAssemblyShapeKey = default;
+            }
+            else if (pushButtonShapeChanged || _pushButtonBaseResources == null || _pushButtonCapResources == null)
+            {
+                _pushButtonAssemblyShapeKey = nextPushButtonKey;
+                PushButtonPartMesh baseMesh = PushButtonAssemblyMeshBuilder.BuildBaseMesh(pushButtonConfig);
+                PushButtonPartMesh capMesh = PushButtonAssemblyMeshBuilder.BuildCapMesh(pushButtonConfig);
+                MetalMeshGpuResources? nextBaseResources = null;
+                MetalMeshGpuResources? nextCapResources = null;
+                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
+                {
+                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
+                }
+
+                if (capMesh.Vertices.Length > 0 && capMesh.Indices.Length > 0)
+                {
+                    nextCapResources = CreateGpuResources(capMesh.Vertices, capMesh.Indices, capMesh.ReferenceRadius);
+                }
+
+                ReplaceMeshResources(ref _pushButtonBaseResources, nextBaseResources);
+                ReplaceMeshResources(ref _pushButtonCapResources, nextCapResources);
+            }
+
+            if (project.ProjectType != InteractorProjectType.RotaryKnob)
+            {
+                ReplaceMeshResources(ref _meshResources, null);
+                _meshShapeKey = default;
+                ReleaseSpiralNormalTexture();
+                _spiralNormalMapKey = default;
+                return;
             }
 
             MeshShapeKey nextKey = new(
@@ -242,6 +298,24 @@ namespace KnobForge.App.Controls
             };
         }
 
+        private static bool IsRenderableMesh(MetalMeshGpuResources? mesh)
+        {
+            return mesh is not null &&
+                mesh.VertexBuffer.Handle != IntPtr.Zero &&
+                mesh.IndexBuffer.Handle != IntPtr.Zero &&
+                mesh.IndexCount > 0;
+        }
+
+        private static float IncludeReferenceRadius(float current, MetalMeshGpuResources? mesh)
+        {
+            if (!IsRenderableMesh(mesh))
+            {
+                return current;
+            }
+
+            return MathF.Max(current, mesh!.ReferenceRadius);
+        }
+
         private static bool IsImportedCollarPreset(CollarNode? collarNode)
         {
             return collarNode is not null && CollarNode.IsImportedMeshPreset(collarNode.Preset);
@@ -319,6 +393,7 @@ namespace KnobForge.App.Controls
                 ThumbWidth: MathF.Round(config.ThumbWidth, 3),
                 ThumbHeight: MathF.Round(config.ThumbHeight, 3),
                 ThumbDepth: MathF.Round(config.ThumbDepth, 3),
+                ThumbPositionNormalized: MathF.Round(config.ThumbPositionNormalized, 4),
                 BackplateImportedMeshPath: config.BackplateImportedMeshPath ?? string.Empty,
                 BackplateImportedMeshTicks: config.BackplateImportedMeshTicks,
                 ThumbImportedMeshPath: config.ThumbImportedMeshPath ?? string.Empty,
@@ -340,15 +415,59 @@ namespace KnobForge.App.Controls
                 PlateWidth: MathF.Round(config.PlateWidth, 3),
                 PlateHeight: MathF.Round(config.PlateHeight, 3),
                 PlateThickness: MathF.Round(config.PlateThickness, 3),
+                PlateOffsetY: MathF.Round(config.PlateOffsetY, 3),
+                PlateOffsetZ: MathF.Round(config.PlateOffsetZ, 3),
                 BushingRadius: MathF.Round(config.BushingRadius, 3),
                 BushingHeight: MathF.Round(config.BushingHeight, 3),
+                BushingSides: config.BushingSides,
+                LowerBushingShape: (int)config.LowerBushingShape,
+                UpperBushingShape: (int)config.UpperBushingShape,
+                LowerBushingRadiusScale: MathF.Round(config.LowerBushingRadiusScale, 3),
+                LowerBushingHeightRatio: MathF.Round(config.LowerBushingHeightRatio, 3),
+                UpperBushingRadiusScale: MathF.Round(config.UpperBushingRadiusScale, 3),
+                UpperBushingHeightRatio: MathF.Round(config.UpperBushingHeightRatio, 3),
                 LeverLength: MathF.Round(config.LeverLength, 3),
-                LeverRadius: MathF.Round(config.LeverRadius, 3),
+                LeverBottomRadius: MathF.Round(config.LeverBottomRadius, 3),
+                LeverTopRadius: MathF.Round(config.LeverTopRadius, 3),
+                LeverSides: config.LeverSides,
+                LeverPivotOffset: MathF.Round(config.LeverPivotOffset, 3),
                 TipRadius: MathF.Round(config.TipRadius, 3),
+                TipLatitudeSegments: config.TipLatitudeSegments,
+                TipLongitudeSegments: config.TipLongitudeSegments,
+                TipSleeveEnabled: config.TipSleeveEnabled ? 1 : 0,
+                TipSleeveLength: MathF.Round(config.TipSleeveLength, 3),
+                TipSleeveThickness: MathF.Round(config.TipSleeveThickness, 3),
+                TipSleeveOuterRadius: MathF.Round(config.TipSleeveOuterRadius, 3),
+                TipSleeveCoverage: MathF.Round(config.TipSleeveCoverage, 3),
+                TipSleeveSides: config.TipSleeveSides,
+                TipSleeveStyle: (int)config.TipSleeveStyle,
+                TipSleeveTipStyle: (int)config.TipSleeveTipStyle,
+                TipSleevePatternCount: config.TipSleevePatternCount,
+                TipSleevePatternDepth: MathF.Round(config.TipSleevePatternDepth, 4),
+                TipSleeveTipAmount: MathF.Round(config.TipSleeveTipAmount, 4),
                 BaseImportedMeshPath: config.BaseImportedMeshPath ?? string.Empty,
                 BaseImportedMeshTicks: config.BaseImportedMeshTicks,
                 LeverImportedMeshPath: config.LeverImportedMeshPath ?? string.Empty,
                 LeverImportedMeshTicks: config.LeverImportedMeshTicks);
+        }
+
+        private static PushButtonAssemblyShapeKey BuildPushButtonAssemblyShapeKey(in PushButtonAssemblyConfig config)
+        {
+            if (!config.Enabled)
+            {
+                return default;
+            }
+
+            return new PushButtonAssemblyShapeKey(
+                Enabled: 1,
+                PlateWidth: MathF.Round(config.PlateWidth, 3),
+                PlateHeight: MathF.Round(config.PlateHeight, 3),
+                PlateThickness: MathF.Round(config.PlateThickness, 3),
+                BezelRadius: MathF.Round(config.BezelRadius, 3),
+                BezelHeight: MathF.Round(config.BezelHeight, 3),
+                CapRadius: MathF.Round(config.CapRadius, 3),
+                CapHeight: MathF.Round(config.CapHeight, 3),
+                PressDepth: MathF.Round(config.PressDepth, 3));
         }
 
         private GpuUniforms BuildUniforms(KnobProject? project, ModelNode? modelNode, float referenceRadius, Size viewportDip)
@@ -436,7 +555,10 @@ namespace KnobForge.App.Controls
             float knobBaseRadius = MathF.Max(1f, modelNode?.Radius ?? radius);
             float knobTopRadius = knobBaseRadius * topScale;
             float spacingPx = (knobTopRadius / turns) * _zoom;
-            float geometryKeep = SmoothStep(0.20f, 0.90f, spacingPx);
+            float geometryKeep =
+                project?.ProjectType == InteractorProjectType.RotaryKnob
+                    ? SmoothStep(0.20f, 0.90f, spacingPx)
+                    : 1f;
             float frontZ = (modelNode?.Height ?? (radius * 2f)) * 0.5f;
 
             GpuUniforms uniforms = default;
@@ -582,21 +704,30 @@ namespace KnobForge.App.Controls
             Vector3 baseColor,
             float metallic,
             float roughness,
-            float pearlescence)
+            float pearlescence,
+            float diffuseStrength = 1f,
+            float specularStrength = 1f,
+            float rustAmount = 0f,
+            float wearAmount = 0f,
+            float gunkAmount = 0f)
         {
             GpuUniforms uniforms = baseUniforms;
             Vector4 material = new(baseColor, Math.Clamp(metallic, 0f, 1f));
             float clampedRoughness = Math.Clamp(roughness, 0.04f, 1f);
             uniforms.MaterialBaseColorAndMetallic = material;
             uniforms.MaterialRoughnessDiffuseSpecMode.X = clampedRoughness;
-            uniforms.MaterialRoughnessDiffuseSpecMode.Y = 1f;
-            uniforms.MaterialRoughnessDiffuseSpecMode.Z = 1f;
+            uniforms.MaterialRoughnessDiffuseSpecMode.Y = MathF.Max(0f, diffuseStrength);
+            uniforms.MaterialRoughnessDiffuseSpecMode.Z = MathF.Max(0f, specularStrength);
             uniforms.MaterialPartTopColorAndMetallic = material;
             uniforms.MaterialPartBevelColorAndMetallic = material;
             uniforms.MaterialPartSideColorAndMetallic = material;
             uniforms.MaterialPartRoughnessAndEnable = new Vector4(clampedRoughness, clampedRoughness, clampedRoughness, 0f);
             uniforms.MaterialSurfaceBrushParams = new Vector4(0f, 56f, 0f, 1f);
-            uniforms.WeatherParams = new Vector4(0f, 0f, 0f, baseUniforms.WeatherParams.W);
+            uniforms.WeatherParams = new Vector4(
+                Math.Clamp(rustAmount, 0f, 1f),
+                Math.Clamp(wearAmount, 0f, 1f),
+                Math.Clamp(gunkAmount, 0f, 1f),
+                baseUniforms.WeatherParams.W);
             uniforms.IndicatorParams0 = Vector4.Zero;
             uniforms.IndicatorParams1 = new Vector4(0f, 0f, 0f, Math.Clamp(pearlescence, 0f, 1f));
             uniforms.IndicatorColorAndBlend = Vector4.Zero;
@@ -605,6 +736,58 @@ namespace KnobForge.App.Controls
             uniforms.MicroDetailParams.W = 0f;
             return uniforms;
         }
+
+        private static AssemblyPartMaterialPalette ResolveAssemblyPartMaterialPalette(MaterialNode? materialNode)
+        {
+            // Assembly materials follow the global material by default.
+            // If part materials are enabled, map Side -> base/backplate and Top -> lever/thumb/cap.
+            if (materialNode == null)
+            {
+                return new AssemblyPartMaterialPalette(
+                    BaseColor: new Vector3(0.28f, 0.29f, 0.31f),
+                    BaseMetallic: 0.82f,
+                    BaseRoughness: 0.30f,
+                    AccentColor: new Vector3(0.62f, 0.63f, 0.66f),
+                    AccentMetallic: 0.94f,
+                    AccentRoughness: 0.18f,
+                    Pearlescence: 0.05f);
+            }
+
+            Vector3 globalColor = materialNode.BaseColor;
+            float globalMetallic = Math.Clamp(materialNode.Metallic, 0f, 1f);
+            float globalRoughness = Math.Clamp(materialNode.Roughness, 0.04f, 1f);
+            float pearlescence = Math.Clamp(materialNode.Pearlescence, 0f, 1f);
+
+            if (!materialNode.PartMaterialsEnabled)
+            {
+                return new AssemblyPartMaterialPalette(
+                    BaseColor: globalColor,
+                    BaseMetallic: globalMetallic,
+                    BaseRoughness: globalRoughness,
+                    AccentColor: globalColor,
+                    AccentMetallic: globalMetallic,
+                    AccentRoughness: globalRoughness,
+                    Pearlescence: pearlescence);
+            }
+
+            return new AssemblyPartMaterialPalette(
+                BaseColor: materialNode.SideBaseColor,
+                BaseMetallic: Math.Clamp(materialNode.SideMetallic, 0f, 1f),
+                BaseRoughness: Math.Clamp(materialNode.SideRoughness, 0.04f, 1f),
+                AccentColor: materialNode.TopBaseColor,
+                AccentMetallic: Math.Clamp(materialNode.TopMetallic, 0f, 1f),
+                AccentRoughness: Math.Clamp(materialNode.TopRoughness, 0.04f, 1f),
+                Pearlescence: pearlescence);
+        }
+
+        private readonly record struct AssemblyPartMaterialPalette(
+            Vector3 BaseColor,
+            float BaseMetallic,
+            float BaseRoughness,
+            Vector3 AccentColor,
+            float AccentMetallic,
+            float AccentRoughness,
+            float Pearlescence);
 
         private static void LogCollarState(string pass, CollarNode? collarNode, MetalMeshGpuResources? collarResources)
         {

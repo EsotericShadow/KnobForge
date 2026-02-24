@@ -25,11 +25,62 @@ namespace KnobForge.App.Views
 {
     public partial class RenderSettingsWindow : Window
     {
+        private bool SupportsRotaryPreview =>
+            _project.ProjectType == InteractorProjectType.RotaryKnob ||
+            _project.ProjectType == InteractorProjectType.ThumbSlider ||
+            _project.ProjectType == InteractorProjectType.FlipSwitch ||
+            _project.ProjectType == InteractorProjectType.PushButton;
+
+        private string InteractivePreviewModeDisplayName => _project.ProjectType switch
+        {
+            InteractorProjectType.RotaryKnob => "Rotary",
+            InteractorProjectType.ThumbSlider => "Slider",
+            InteractorProjectType.FlipSwitch => "Switch",
+            InteractorProjectType.PushButton => "Button",
+            _ => "Interactor"
+        };
+
+        private string BuildInteractivePreviewHelpText()
+        {
+            return _project.ProjectType switch
+            {
+                InteractorProjectType.RotaryKnob => "Choose perspective, then click Create Rotary Preview. Drag to spin through output frames.",
+                InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames.",
+                InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames.",
+                InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames.",
+                _ => "Interactive preview is unavailable for this project type."
+            };
+        }
+
+        private void ConfigureRotaryPreviewAvailability()
+        {
+            bool supportsRotaryPreview = SupportsRotaryPreview;
+            _rotaryPreviewSection.IsVisible = supportsRotaryPreview;
+            _interactivePreviewTitleTextBlock.Text = supportsRotaryPreview
+                ? $"Interactive {InteractivePreviewModeDisplayName} Preview (1:1)"
+                : "Interactive Preview (1:1)";
+            _createRotaryPreviewButton.Content = supportsRotaryPreview
+                ? $"Create {InteractivePreviewModeDisplayName} Preview"
+                : "Create Preview";
+            _createRotaryPreviewButton.IsEnabled = supportsRotaryPreview && !_isRendering && !_isBuildingRotaryPreview;
+            _rotaryPreviewVariantComboBox.IsEnabled = supportsRotaryPreview && !_isRendering && !_isBuildingRotaryPreview;
+            _rotaryPreviewKnob.IsEnabled = false;
+            _rotaryPreviewValueTextBlock.Text = supportsRotaryPreview ? "Frame 1 / 1" : "Not available for this project type";
+            _rotaryPreviewInfoTextBlock.Text = supportsRotaryPreview
+                ? BuildInteractivePreviewHelpText()
+                : "Interactive preview is only shown for supported interactor project types.";
+        }
+
         private void MarkRotaryPreviewDirty()
         {
+            if (!SupportsRotaryPreview)
+            {
+                return;
+            }
+
             if (_isBuildingRotaryPreview || !string.IsNullOrWhiteSpace(_rotaryPreviewTempPath))
             {
-                _rotaryPreviewInfoTextBlock.Text = "Settings changed. Click Create Rotary Preview to refresh.";
+                _rotaryPreviewInfoTextBlock.Text = $"Settings changed. Click Create {InteractivePreviewModeDisplayName} Preview to refresh.";
             }
         }
 
@@ -50,6 +101,12 @@ namespace KnobForge.App.Views
 
         private async void OnCreateRotaryPreviewButtonClick(object? sender, RoutedEventArgs e)
         {
+            if (!SupportsRotaryPreview)
+            {
+                _rotaryPreviewInfoTextBlock.Text = "Interactive preview is unavailable for this project type.";
+                return;
+            }
+
             if (_isBuildingRotaryPreview)
             {
                 return;
@@ -57,13 +114,13 @@ namespace KnobForge.App.Views
 
             if (!CanUseGpuExport)
             {
-                _rotaryPreviewInfoTextBlock.Text = "Rotary preview unavailable: GPU offscreen rendering is unavailable.";
+                _rotaryPreviewInfoTextBlock.Text = "Interactive preview unavailable: GPU offscreen rendering is unavailable.";
                 return;
             }
 
             if (!TryBuildPreviewRequest(out PreviewRenderRequest request, out string validationError))
             {
-                _rotaryPreviewInfoTextBlock.Text = $"Cannot build rotary preview: {validationError}";
+                _rotaryPreviewInfoTextBlock.Text = $"Cannot build interactive preview: {validationError}";
                 return;
             }
 
@@ -82,15 +139,15 @@ namespace KnobForge.App.Views
                 CleanupRotaryPreviewTempPath();
                 _rotaryPreviewTempPath = previewSheet.SpriteSheetPath;
                 ApplyRotaryPreviewSheet(previewSheet);
-                _rotaryPreviewInfoTextBlock.Text = $"Ready: {variant.DisplayName}, {previewSheet.FrameCount} frames at {previewSheet.FrameSizePx}px. Drag to spin.";
+                _rotaryPreviewInfoTextBlock.Text = $"Ready: {variant.DisplayName}, {previewSheet.FrameCount} frames at {previewSheet.FrameSizePx}px. Drag to scrub frames.";
             }
             catch (OperationCanceledException)
             {
-                _rotaryPreviewInfoTextBlock.Text = "Rotary preview canceled.";
+                _rotaryPreviewInfoTextBlock.Text = "Interactive preview canceled.";
             }
             catch (Exception ex)
             {
-                _rotaryPreviewInfoTextBlock.Text = $"Rotary preview failed: {ex.Message}";
+                _rotaryPreviewInfoTextBlock.Text = $"Interactive preview failed: {ex.Message}";
             }
             finally
             {
@@ -103,8 +160,11 @@ namespace KnobForge.App.Views
         private void SetRotaryPreviewBusy(bool isBusy, string? status = null)
         {
             _isBuildingRotaryPreview = isBusy;
-            _createRotaryPreviewButton.IsEnabled = !isBusy && !_isRendering;
-            _rotaryPreviewVariantComboBox.IsEnabled = !isBusy && !_isRendering;
+            _createRotaryPreviewButton.Content = SupportsRotaryPreview
+                ? $"Create {InteractivePreviewModeDisplayName} Preview"
+                : "Create Preview";
+            _createRotaryPreviewButton.IsEnabled = SupportsRotaryPreview && !isBusy && !_isRendering;
+            _rotaryPreviewVariantComboBox.IsEnabled = SupportsRotaryPreview && !isBusy && !_isRendering;
             if (!string.IsNullOrWhiteSpace(status))
             {
                 _rotaryPreviewInfoTextBlock.Text = status;
@@ -165,16 +225,31 @@ namespace KnobForge.App.Views
             SKSamplingOptions downsampleSampling = new(new SKCubicResampler(1f / 3f, 1f / 3f));
             SKSamplingOptions directSampling = new(SKFilterMode.Linear, SKMipmapMode.None);
 
-            ModelRotationSnapshot[] snapshots = await Dispatcher.UIThread.InvokeAsync(
-                CaptureModelRotations,
+            var stateSnapshot = await Dispatcher.UIThread.InvokeAsync(
+                () => (
+                    ModelRotations: CaptureModelRotations(),
+                    ToggleStateIndex: _project.ToggleStateIndex,
+                    ToggleStateBlendPosition: _project.ToggleStateBlendPosition,
+                    SliderThumbPositionNormalized: _project.SliderThumbPositionNormalized,
+                    PushButtonPressAmountNormalized: _project.PushButtonPressAmountNormalized),
                 DispatcherPriority.Background);
 
             float angleStep = 2f * MathF.PI / frameCount;
             int progressStep = Math.Max(1, frameCount / 8);
+            bool anyOpaqueFrame = false;
             try
             {
                 int fittingSamples = Math.Clamp(Math.Min(frameCount, 12), 4, 12);
-                cameraState = await FitRotaryPreviewCameraAsync(request, cameraState, snapshots, fittingSamples, cancellationToken);
+                cameraState = await FitRotaryPreviewCameraAsync(
+                    request,
+                    cameraState,
+                    stateSnapshot.ModelRotations,
+                    stateSnapshot.ToggleStateIndex,
+                    stateSnapshot.ToggleStateBlendPosition,
+                    stateSnapshot.SliderThumbPositionNormalized,
+                    stateSnapshot.PushButtonPressAmountNormalized,
+                    fittingSamples,
+                    cancellationToken);
 
                 for (int i = 0; i < frameCount; i++)
                 {
@@ -188,9 +263,16 @@ namespace KnobForge.App.Views
                             DispatcherPriority.Background);
                     }
 
-                    float angle = i * angleStep;
                     await Dispatcher.UIThread.InvokeAsync(
-                        () => ApplyModelRotationDelta(snapshots, angle),
+                        () => ApplyPreviewFrameState(
+                            i,
+                            frameCount,
+                            angleStep,
+                            stateSnapshot.ModelRotations,
+                            stateSnapshot.ToggleStateIndex,
+                            stateSnapshot.ToggleStateBlendPosition,
+                            stateSnapshot.SliderThumbPositionNormalized,
+                            stateSnapshot.PushButtonPressAmountNormalized),
                         DispatcherPriority.Render);
 
                     SKBitmap? gpuFrame = await Dispatcher.UIThread.InvokeAsync(
@@ -242,12 +324,26 @@ namespace KnobForge.App.Views
                     int col = i % columns;
                     int row = i / columns;
                     sheetCanvas.DrawBitmap(frameBitmap, col * resolution, row * resolution, sheetPaint);
+                    anyOpaqueFrame |= TryGetOpaqueBounds(frameBitmap, 2, out _);
+                }
+
+                if (!anyOpaqueFrame)
+                {
+                    throw new InvalidOperationException(
+                        "Interactive preview captured empty frames. Recenter the preview camera and try again.");
                 }
             }
             finally
             {
                 await Dispatcher.UIThread.InvokeAsync(
-                    () => RestoreModelRotations(snapshots),
+                    () =>
+                    {
+                        RestoreModelRotations(stateSnapshot.ModelRotations);
+                        _project.ToggleStateIndex = stateSnapshot.ToggleStateIndex;
+                        _project.ToggleStateBlendPosition = stateSnapshot.ToggleStateBlendPosition;
+                        _project.SliderThumbPositionNormalized = stateSnapshot.SliderThumbPositionNormalized;
+                        _project.PushButtonPressAmountNormalized = stateSnapshot.PushButtonPressAmountNormalized;
+                    },
                     DispatcherPriority.Render);
             }
 
@@ -263,6 +359,10 @@ namespace KnobForge.App.Views
             PreviewRenderRequest request,
             ViewportCameraState cameraState,
             ModelRotationSnapshot[] snapshots,
+            int originalToggleStateIndex,
+            float originalToggleStateBlendPosition,
+            float originalSliderThumbPositionNormalized,
+            float originalPushButtonPressAmountNormalized,
             int sampleCount,
             CancellationToken cancellationToken)
         {
@@ -276,18 +376,30 @@ namespace KnobForge.App.Views
 
             try
             {
+                float angleStep = 2f * MathF.PI / Math.Max(1, request.FrameCount);
                 for (int iteration = 0; iteration < maxFitIterations; iteration++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     float fitScale = 1f;
+                    bool iterationSawOpaque = false;
                     for (int sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        float angle = (2f * MathF.PI * sampleIndex) / sampleCount;
+                        int sampleFrameIndex = sampleCount <= 1
+                            ? 0
+                            : (int)MathF.Round((sampleIndex / MathF.Max(1f, sampleCount - 1f)) * MathF.Max(0, request.FrameCount - 1));
 
                         await Dispatcher.UIThread.InvokeAsync(
-                            () => ApplyModelRotationDelta(snapshots, angle),
+                            () => ApplyPreviewFrameState(
+                                sampleFrameIndex,
+                                request.FrameCount,
+                                angleStep,
+                                snapshots,
+                                originalToggleStateIndex,
+                                originalToggleStateBlendPosition,
+                                originalSliderThumbPositionNormalized,
+                                originalPushButtonPressAmountNormalized),
                             DispatcherPriority.Render);
 
                         SKBitmap? sampleBitmap = await Dispatcher.UIThread.InvokeAsync(
@@ -317,6 +429,7 @@ namespace KnobForge.App.Views
                             {
                                 continue;
                             }
+                            iterationSawOpaque = true;
 
                             float frameMin = 0f;
                             float frameMaxX = request.Resolution - 1f;
@@ -343,6 +456,23 @@ namespace KnobForge.App.Views
                         }
                     }
 
+                    if (!iterationSawOpaque)
+                    {
+                        float paddingScale = request.RenderResolution / (float)Math.Max(1, request.Resolution);
+                        float paddingPx = MathF.Max(0f, request.Padding) * paddingScale;
+                        float safeZoom = ComputeSafeZoomForFrame(
+                            GetSceneReferenceRadius(),
+                            request.RenderResolution,
+                            paddingPx,
+                            new SKPoint(0f, 0f));
+                        cameraState = cameraState with
+                        {
+                            Zoom = Math.Clamp(safeZoom, 0.2f, 32f),
+                            PanPx = new SKPoint(0f, 0f)
+                        };
+                        continue;
+                    }
+
                     if (fitScale >= 0.998f)
                     {
                         break;
@@ -358,7 +488,14 @@ namespace KnobForge.App.Views
             finally
             {
                 await Dispatcher.UIThread.InvokeAsync(
-                    () => RestoreModelRotations(snapshots),
+                    () =>
+                    {
+                        RestoreModelRotations(snapshots);
+                        _project.ToggleStateIndex = originalToggleStateIndex;
+                        _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                        _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                        _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    },
                     DispatcherPriority.Render);
             }
 
@@ -434,6 +571,68 @@ namespace KnobForge.App.Views
             for (int i = 0; i < snapshots.Length; i++)
             {
                 snapshots[i].Model.RotationRadians = snapshots[i].RotationRadians;
+            }
+        }
+
+        private void ApplyPreviewFrameState(
+            int frameIndex,
+            int frameCount,
+            float angleStep,
+            ModelRotationSnapshot[] snapshots,
+            int originalToggleStateIndex,
+            float originalToggleStateBlendPosition,
+            float originalSliderThumbPositionNormalized,
+            float originalPushButtonPressAmountNormalized)
+        {
+            switch (_project.ProjectType)
+            {
+                case InteractorProjectType.RotaryKnob:
+                {
+                    float angle = frameIndex * angleStep;
+                    ApplyModelRotationDelta(snapshots, angle);
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.FlipSwitch:
+                {
+                    RestoreModelRotations(snapshots);
+                    float toggleBlendPosition = InteractorFrameTimeline.ResolveToggleBlendPosition(frameIndex, frameCount, _project.ToggleStateCount);
+                    _project.ToggleStateBlendPosition = toggleBlendPosition;
+                    _project.ToggleStateIndex = InteractorFrameTimeline.ResolveToggleStateIndex(frameIndex, frameCount, _project.ToggleStateCount);
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.ThumbSlider:
+                {
+                    RestoreModelRotations(snapshots);
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = InteractorFrameTimeline.ResolveNormalizedProgress(frameIndex, frameCount);
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
+                case InteractorProjectType.PushButton:
+                {
+                    RestoreModelRotations(snapshots);
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = InteractorFrameTimeline.ResolveNormalizedProgress(frameIndex, frameCount);
+                    break;
+                }
+                default:
+                {
+                    RestoreModelRotations(snapshots);
+                    _project.ToggleStateIndex = originalToggleStateIndex;
+                    _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
+                    _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
+                    _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
+                    break;
+                }
             }
         }
 
