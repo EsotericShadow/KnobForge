@@ -246,16 +246,11 @@ namespace KnobForge.App.Views
                 _envTopRSlider != null && _envTopGSlider != null && _envTopBSlider != null &&
                 _envBottomRSlider != null && _envBottomGSlider != null && _envBottomBSlider != null)
             {
-                _project.EnvironmentIntensity = (float)_envIntensitySlider.Value;
-                _project.EnvironmentRoughnessMix = (float)_envRoughnessMixSlider.Value;
-                _project.EnvironmentTopColor = new Vector3(
-                    (float)_envTopRSlider.Value,
-                    (float)_envTopGSlider.Value,
-                    (float)_envTopBSlider.Value);
-                _project.EnvironmentBottomColor = new Vector3(
-                    (float)_envBottomRSlider.Value,
-                    (float)_envBottomGSlider.Value,
-                    (float)_envBottomBSlider.Value);
+                CommitEnvironmentStateFromUi();
+                if (_envHdriPathTextBox != null)
+                {
+                    _project.EnvironmentHdriPath = _envHdriPathTextBox.Text ?? string.Empty;
+                }
             }
 
             if (_shadowStrengthInputTextBox != null && _shadowStrengthSlider != null)

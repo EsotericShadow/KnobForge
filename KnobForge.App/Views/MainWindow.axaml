@@ -548,290 +548,328 @@
 
                                 <Expander x:Name="NodeSliderAssemblyExpander" Header="Slider Assembly (Preview)" IsExpanded="False">
                                     <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <TextBlock Text="Mode"/>
-                                        <ComboBox x:Name="SliderAssemblyModeCombo"/>
+                                        <Expander Header="Quick Setup" IsExpanded="True">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Mode"/>
+                                                <ComboBox x:Name="SliderAssemblyModeCombo"/>
 
-                                        <DockPanel LastChildFill="True">
-                                            <Button x:Name="RefreshSliderLibraryButton"
-                                                    Content="Refresh Library"
-                                                    DockPanel.Dock="Right"
-                                                    Margin="8,0,0,0"
-                                                    MinWidth="120"/>
-                                            <TextBlock Text="Mesh Sources"
-                                                       VerticalAlignment="Center"/>
-                                        </DockPanel>
+                                                <DockPanel LastChildFill="True">
+                                                    <Button x:Name="RefreshSliderLibraryButton"
+                                                            Content="Refresh Library"
+                                                            DockPanel.Dock="Right"
+                                                            Margin="8,0,0,0"
+                                                            MinWidth="120"/>
+                                                    <TextBlock Text="Mesh Sources"
+                                                               VerticalAlignment="Center"/>
+                                                </DockPanel>
 
-                                        <TextBlock Text="Backplate Mesh Source"/>
-                                        <ComboBox x:Name="SliderBackplateMeshCombo"/>
+                                                <TextBlock Text="Backplate Mesh Source"/>
+                                                <ComboBox x:Name="SliderBackplateMeshCombo"/>
 
-                                        <TextBlock Text="Thumb Mesh Source"/>
-                                        <ComboBox x:Name="SliderThumbMeshCombo"/>
+                                                <TextBlock Text="Thumb Mesh Source"/>
+                                                <ComboBox x:Name="SliderThumbMeshCombo"/>
+                                            </StackPanel>
+                                        </Expander>
 
-                                        <TextBlock Text="Backplate Width (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderBackplateWidthSlider" Minimum="0" Maximum="2000"/>
-                                        <TextBlock x:Name="SliderBackplateWidthValueText"/>
+                                        <Expander Header="Geometry (Advanced)" IsExpanded="False">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Backplate Width (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderBackplateWidthSlider" Minimum="0" Maximum="2000"/>
+                                                <TextBlock x:Name="SliderBackplateWidthValueText"/>
 
-                                        <TextBlock Text="Backplate Height (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderBackplateHeightSlider" Minimum="0" Maximum="3000"/>
-                                        <TextBlock x:Name="SliderBackplateHeightValueText"/>
+                                                <TextBlock Text="Backplate Height (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderBackplateHeightSlider" Minimum="0" Maximum="3000"/>
+                                                <TextBlock x:Name="SliderBackplateHeightValueText"/>
 
-                                        <TextBlock Text="Backplate Thickness (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderBackplateThicknessSlider" Minimum="0" Maximum="400"/>
-                                        <TextBlock x:Name="SliderBackplateThicknessValueText"/>
+                                                <TextBlock Text="Backplate Thickness (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderBackplateThicknessSlider" Minimum="0" Maximum="400"/>
+                                                <TextBlock x:Name="SliderBackplateThicknessValueText"/>
 
-                                        <TextBlock Text="Thumb Width (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderThumbWidthSlider" Minimum="0" Maximum="1200"/>
-                                        <TextBlock x:Name="SliderThumbWidthValueText"/>
+                                                <TextBlock Text="Thumb Width (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderThumbWidthSlider" Minimum="0" Maximum="1200"/>
+                                                <TextBlock x:Name="SliderThumbWidthValueText"/>
 
-                                        <TextBlock Text="Thumb Height (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderThumbHeightSlider" Minimum="0" Maximum="1600"/>
-                                        <TextBlock x:Name="SliderThumbHeightValueText"/>
+                                                <TextBlock Text="Thumb Height (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderThumbHeightSlider" Minimum="0" Maximum="1600"/>
+                                                <TextBlock x:Name="SliderThumbHeightValueText"/>
 
-                                        <TextBlock Text="Thumb Depth (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="SliderThumbDepthSlider" Minimum="0" Maximum="1200"/>
-                                        <TextBlock x:Name="SliderThumbDepthValueText"/>
+                                                <TextBlock Text="Thumb Depth (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="SliderThumbDepthSlider" Minimum="0" Maximum="1200"/>
+                                                <TextBlock x:Name="SliderThumbDepthValueText"/>
+                                            </StackPanel>
+                                        </Expander>
                                     </StackPanel>
                                 </Expander>
 
                                 <Expander x:Name="NodeToggleAssemblyExpander" Header="Toggle Switch (Preview)" IsExpanded="False">
                                     <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <TextBlock Text="Mode"/>
-                                        <ComboBox x:Name="ToggleAssemblyModeCombo"/>
+                                        <Expander Header="Quick Setup" IsExpanded="True">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Mode"/>
+                                                <ComboBox x:Name="ToggleAssemblyModeCombo"/>
 
-                                        <DockPanel LastChildFill="True">
-                                            <Button x:Name="RefreshToggleLibraryButton"
-                                                    Content="Refresh Library"
-                                                    DockPanel.Dock="Right"
-                                                    Margin="8,0,0,0"
-                                                    MinWidth="120"/>
-                                            <TextBlock Text="Mesh Sources"
-                                                       VerticalAlignment="Center"/>
-                                        </DockPanel>
+                                                <DockPanel LastChildFill="True">
+                                                    <Button x:Name="RefreshToggleLibraryButton"
+                                                            Content="Refresh Library"
+                                                            DockPanel.Dock="Right"
+                                                            Margin="8,0,0,0"
+                                                            MinWidth="120"/>
+                                                    <TextBlock Text="Mesh Sources"
+                                                               VerticalAlignment="Center"/>
+                                                </DockPanel>
 
-                                        <TextBlock Text="Base Mesh Source"/>
-                                        <ComboBox x:Name="ToggleBaseMeshCombo"/>
+                                                <TextBlock Text="Base Mesh Source"/>
+                                                <ComboBox x:Name="ToggleBaseMeshCombo"/>
 
-                                        <TextBlock Text="Lever Mesh Source"/>
-                                        <ComboBox x:Name="ToggleLeverMeshCombo"/>
+                                                <TextBlock Text="Lever Mesh Source"/>
+                                                <ComboBox x:Name="ToggleLeverMeshCombo"/>
 
-                                        <TextBlock Text="State Count"/>
-                                        <ComboBox x:Name="ToggleStateCountCombo"/>
+                                                <TextBlock Text="State Count"/>
+                                                <ComboBox x:Name="ToggleStateCountCombo"/>
 
-                                        <TextBlock Text="State Index"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleStateIndexSlider" Minimum="0" Maximum="2"/>
-                                        <TextBlock x:Name="ToggleStateIndexValueText"/>
+                                                <TextBlock Text="State Index"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleStateIndexSlider" Minimum="0" Maximum="2"/>
+                                                <TextBlock x:Name="ToggleStateIndexValueText"/>
 
-                                        <TextBlock Text="Max Lever Angle"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleMaxAngleSlider" Minimum="5" Maximum="85"/>
-                                        <TextBlock x:Name="ToggleMaxAngleValueText"/>
+                                                <TextBlock Text="Max Lever Angle"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleMaxAngleSlider" Minimum="5" Maximum="85"/>
+                                                <TextBlock x:Name="ToggleMaxAngleValueText"/>
+                                            </StackPanel>
+                                        </Expander>
 
-                                        <TextBlock Text="Plate Width (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePlateWidthSlider" Minimum="0" Maximum="2200"/>
-                                        <TextBlock x:Name="TogglePlateWidthValueText"/>
+                                        <Expander Header="Base And Plate (Advanced)" IsExpanded="False">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Plate Width (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePlateWidthSlider" Minimum="0" Maximum="2200"/>
+                                                <TextBlock x:Name="TogglePlateWidthValueText"/>
 
-                                        <TextBlock Text="Plate Height (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePlateHeightSlider" Minimum="0" Maximum="2600"/>
-                                        <TextBlock x:Name="TogglePlateHeightValueText"/>
+                                                <TextBlock Text="Plate Height (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePlateHeightSlider" Minimum="0" Maximum="2600"/>
+                                                <TextBlock x:Name="TogglePlateHeightValueText"/>
 
-                                        <TextBlock Text="Plate Thickness (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePlateThicknessSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="TogglePlateThicknessValueText"/>
+                                                <TextBlock Text="Plate Thickness (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePlateThicknessSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="TogglePlateThicknessValueText"/>
 
-                                        <TextBlock Text="Plate Offset Y"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePlateOffsetYSlider" Minimum="-1200" Maximum="1200"/>
-                                        <TextBlock x:Name="TogglePlateOffsetYValueText"/>
+                                                <TextBlock Text="Plate Offset Y"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePlateOffsetYSlider" Minimum="-1200" Maximum="1200"/>
+                                                <TextBlock x:Name="TogglePlateOffsetYValueText"/>
 
-                                        <TextBlock Text="Plate Offset Z"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePlateOffsetZSlider" Minimum="-1200" Maximum="1200"/>
-                                        <TextBlock x:Name="TogglePlateOffsetZValueText"/>
+                                                <TextBlock Text="Plate Offset Z"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePlateOffsetZSlider" Minimum="-1200" Maximum="1200"/>
+                                                <TextBlock x:Name="TogglePlateOffsetZValueText"/>
 
-                                        <TextBlock Text="Bushing Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleBushingRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleBushingRadiusValueText"/>
+                                                <TextBlock Text="Bushing Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleBushingRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleBushingRadiusValueText"/>
 
-                                        <TextBlock Text="Bushing Height (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleBushingHeightSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleBushingHeightValueText"/>
+                                                <TextBlock Text="Bushing Height (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleBushingHeightSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleBushingHeightValueText"/>
 
-                                        <TextBlock Text="Bushing Sides"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleBushingSidesSlider" Minimum="3" Maximum="32"/>
-                                        <TextBlock x:Name="ToggleBushingSidesValueText"/>
+                                                <TextBlock Text="Bushing Sides"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleBushingSidesSlider" Minimum="3" Maximum="32"/>
+                                                <TextBlock x:Name="ToggleBushingSidesValueText"/>
 
-                                        <TextBlock Text="Lower Bushing Shape"/>
-                                        <ComboBox x:Name="ToggleLowerBushingShapeCombo"/>
+                                                <TextBlock Text="Lower Bushing Shape"/>
+                                                <ComboBox x:Name="ToggleLowerBushingShapeCombo"/>
 
-                                        <TextBlock Text="Upper Bushing Shape"/>
-                                        <ComboBox x:Name="ToggleUpperBushingShapeCombo"/>
+                                                <TextBlock Text="Upper Bushing Shape"/>
+                                                <ComboBox x:Name="ToggleUpperBushingShapeCombo"/>
 
-                                        <TextBlock Text="Lower Bushing Radius Scale"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLowerBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
-                                        <TextBlock x:Name="ToggleLowerBushingRadiusScaleValueText"/>
+                                                <TextBlock Text="Lower Bushing Radius Scale"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLowerBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
+                                                <TextBlock x:Name="ToggleLowerBushingRadiusScaleValueText"/>
 
-                                        <TextBlock Text="Lower Bushing Height Ratio"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLowerBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
-                                        <TextBlock x:Name="ToggleLowerBushingHeightRatioValueText"/>
+                                                <TextBlock Text="Lower Bushing Height Ratio"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLowerBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
+                                                <TextBlock x:Name="ToggleLowerBushingHeightRatioValueText"/>
 
-                                        <TextBlock Text="Upper Bushing Radius Scale"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
-                                        <TextBlock x:Name="ToggleUpperBushingRadiusScaleValueText"/>
+                                                <TextBlock Text="Upper Bushing Radius Scale"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingRadiusScaleSlider" Minimum="0.25" Maximum="4"/>
+                                                <TextBlock x:Name="ToggleUpperBushingRadiusScaleValueText"/>
 
-                                        <TextBlock Text="Upper Bushing Height Ratio"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
-                                        <TextBlock x:Name="ToggleUpperBushingHeightRatioValueText"/>
+                                                <TextBlock Text="Upper Bushing Height Ratio"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
+                                                <TextBlock x:Name="ToggleUpperBushingHeightRatioValueText"/>
 
-                                        <TextBlock Text="Upper Bushing Knurl Amount"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlAmountSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleUpperBushingKnurlAmountValueText"/>
+                                                <TextBlock Text="Upper Bushing Knurl Amount"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlAmountSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleUpperBushingKnurlAmountValueText"/>
 
-                                        <TextBlock Text="Upper Bushing Knurl Density"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDensitySlider" Minimum="3" Maximum="96"/>
-                                        <TextBlock x:Name="ToggleUpperBushingKnurlDensityValueText"/>
+                                                <TextBlock Text="Upper Bushing Knurl Density"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDensitySlider" Minimum="3" Maximum="96"/>
+                                                <TextBlock x:Name="ToggleUpperBushingKnurlDensityValueText"/>
 
-                                        <TextBlock Text="Upper Bushing Knurl Depth"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDepthSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleUpperBushingKnurlDepthValueText"/>
+                                                <TextBlock Text="Upper Bushing Knurl Depth"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDepthSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleUpperBushingKnurlDepthValueText"/>
 
-                                        <TextBlock Text="Pivot Housing Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="TogglePivotHousingRadiusValueText"/>
+                                                <CheckBox x:Name="ToggleInvertBaseWindingCheckBox"
+                                                          Content="Invert Base/Bushing Winding"/>
+                                            </StackPanel>
+                                        </Expander>
 
-                                        <TextBlock Text="Pivot Housing Depth (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingDepthSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="TogglePivotHousingDepthValueText"/>
+                                        <Expander Header="Lever And Pivot (Advanced)" IsExpanded="False">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Pivot Housing Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePivotHousingRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="TogglePivotHousingRadiusValueText"/>
 
-                                        <TextBlock Text="Pivot Housing Bevel (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingBevelSlider" Minimum="0" Maximum="250"/>
-                                        <TextBlock x:Name="TogglePivotHousingBevelValueText"/>
+                                                <TextBlock Text="Pivot Housing Depth (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePivotHousingDepthSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="TogglePivotHousingDepthValueText"/>
 
-                                        <TextBlock Text="Pivot Ball Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePivotBallRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="TogglePivotBallRadiusValueText"/>
+                                                <TextBlock Text="Pivot Housing Bevel (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePivotHousingBevelSlider" Minimum="0" Maximum="250"/>
+                                                <TextBlock x:Name="TogglePivotHousingBevelValueText"/>
 
-                                        <TextBlock Text="Pivot Clearance"/>
-                                        <controls:SpriteKnobSlider x:Name="TogglePivotClearanceSlider" Minimum="0" Maximum="128"/>
-                                        <TextBlock x:Name="TogglePivotClearanceValueText"/>
+                                                <TextBlock Text="Pivot Ball Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePivotBallRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="TogglePivotBallRadiusValueText"/>
 
-                                        <CheckBox x:Name="ToggleInvertBaseWindingCheckBox"
-                                                  Content="Invert Base/Bushing Winding"/>
-                                        <CheckBox x:Name="ToggleInvertLeverWindingCheckBox"
-                                                  Content="Invert Lever Winding"/>
+                                                <TextBlock Text="Pivot Clearance"/>
+                                                <controls:SpriteKnobSlider x:Name="TogglePivotClearanceSlider" Minimum="0" Maximum="128"/>
+                                                <TextBlock x:Name="TogglePivotClearanceValueText"/>
 
-                                        <TextBlock Text="Lever Length (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLeverLengthSlider" Minimum="0" Maximum="2200"/>
-                                        <TextBlock x:Name="ToggleLeverLengthValueText"/>
+                                                <TextBlock Text="Lever Length (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLeverLengthSlider" Minimum="0" Maximum="2200"/>
+                                                <TextBlock x:Name="ToggleLeverLengthValueText"/>
 
-                                        <TextBlock Text="Shaft Bottom Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLeverRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleLeverRadiusValueText"/>
+                                                <TextBlock Text="Shaft Bottom Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLeverRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleLeverRadiusValueText"/>
 
-                                        <TextBlock Text="Shaft Top Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLeverTopRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleLeverTopRadiusValueText"/>
+                                                <TextBlock Text="Shaft Top Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLeverTopRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleLeverTopRadiusValueText"/>
 
-                                        <TextBlock Text="Lever Sides"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLeverSidesSlider" Minimum="6" Maximum="64"/>
-                                        <TextBlock x:Name="ToggleLeverSidesValueText"/>
+                                                <TextBlock Text="Lever Sides"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLeverSidesSlider" Minimum="6" Maximum="64"/>
+                                                <TextBlock x:Name="ToggleLeverSidesValueText"/>
 
-                                        <TextBlock Text="Lever Pivot Offset"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleLeverPivotOffsetSlider" Minimum="-800" Maximum="800"/>
-                                        <TextBlock x:Name="ToggleLeverPivotOffsetValueText"/>
+                                                <TextBlock Text="Lever Pivot Offset"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleLeverPivotOffsetSlider" Minimum="-800" Maximum="800"/>
+                                                <TextBlock x:Name="ToggleLeverPivotOffsetValueText"/>
 
-                                        <TextBlock Text="Tip Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleTipRadiusValueText"/>
+                                                <TextBlock Text="Tip Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleTipRadiusValueText"/>
 
-                                        <TextBlock Text="Tip Latitude Segments"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
-                                        <TextBlock x:Name="ToggleTipLatitudeSegmentsValueText"/>
+                                                <TextBlock Text="Tip Latitude Segments"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
+                                                <TextBlock x:Name="ToggleTipLatitudeSegmentsValueText"/>
 
-                                        <TextBlock Text="Tip Longitude Segments"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipLongitudeSegmentsSlider" Minimum="6" Maximum="128"/>
-                                        <TextBlock x:Name="ToggleTipLongitudeSegmentsValueText"/>
+                                                <TextBlock Text="Tip Longitude Segments"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipLongitudeSegmentsSlider" Minimum="6" Maximum="128"/>
+                                                <TextBlock x:Name="ToggleTipLongitudeSegmentsValueText"/>
 
-                                        <CheckBox x:Name="ToggleTipSleeveEnabledCheckBox"
-                                                  Content="Enable Tip Sleeve"/>
+                                                <CheckBox x:Name="ToggleInvertLeverWindingCheckBox"
+                                                          Content="Invert Lever Winding"/>
+                                            </StackPanel>
+                                        </Expander>
 
-                                        <TextBlock Text="Sleeve Length (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveLengthSlider" Minimum="0" Maximum="900"/>
-                                        <TextBlock x:Name="ToggleTipSleeveLengthValueText"/>
+                                        <Expander Header="Tip Sleeve (Advanced)" IsExpanded="False">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <CheckBox x:Name="ToggleTipSleeveEnabledCheckBox"
+                                                          Content="Enable Tip Sleeve"/>
 
-                                        <TextBlock Text="Sleeve Thickness (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveThicknessSlider" Minimum="0" Maximum="220"/>
-                                        <TextBlock x:Name="ToggleTipSleeveThicknessValueText"/>
+                                                <TextBlock Text="Sleeve Length (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveLengthSlider" Minimum="0" Maximum="900"/>
+                                                <TextBlock x:Name="ToggleTipSleeveLengthValueText"/>
 
-                                        <TextBlock Text="Sleeve Outer Radius (0 = Auto)"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveOuterRadiusSlider" Minimum="0" Maximum="500"/>
-                                        <TextBlock x:Name="ToggleTipSleeveOuterRadiusValueText"/>
+                                                <TextBlock Text="Sleeve Thickness (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveThicknessSlider" Minimum="0" Maximum="220"/>
+                                                <TextBlock x:Name="ToggleTipSleeveThicknessValueText"/>
 
-                                        <TextBlock Text="Sleeve Coverage"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveCoverageSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveCoverageValueText"/>
+                                                <TextBlock Text="Sleeve Outer Radius (0 = Auto)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveOuterRadiusSlider" Minimum="0" Maximum="500"/>
+                                                <TextBlock x:Name="ToggleTipSleeveOuterRadiusValueText"/>
 
-                                        <TextBlock Text="Sleeve Sides"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSidesSlider" Minimum="6" Maximum="64"/>
-                                        <TextBlock x:Name="ToggleTipSleeveSidesValueText"/>
+                                                <TextBlock Text="Sleeve Coverage"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveCoverageSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveCoverageValueText"/>
 
-                                        <TextBlock Text="Sleeve Style"/>
-                                        <ComboBox x:Name="ToggleTipSleeveStyleCombo"/>
+                                                <TextBlock Text="Sleeve Sides"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSidesSlider" Minimum="6" Maximum="64"/>
+                                                <TextBlock x:Name="ToggleTipSleeveSidesValueText"/>
 
-                                        <TextBlock Text="Sleeve Tip Style"/>
-                                        <ComboBox x:Name="ToggleTipSleeveTipStyleCombo"/>
+                                                <TextBlock Text="Sleeve Style"/>
+                                                <ComboBox x:Name="ToggleTipSleeveStyleCombo"/>
 
-                                        <TextBlock Text="Sleeve Pattern Count"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternCountSlider" Minimum="3" Maximum="64"/>
-                                        <TextBlock x:Name="ToggleTipSleevePatternCountValueText"/>
+                                                <TextBlock Text="Sleeve Tip Style"/>
+                                                <ComboBox x:Name="ToggleTipSleeveTipStyleCombo"/>
 
-                                        <TextBlock Text="Sleeve Pattern Depth"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternDepthSlider" Minimum="0" Maximum="0.9"/>
-                                        <TextBlock x:Name="ToggleTipSleevePatternDepthValueText"/>
+                                                <TextBlock Text="Sleeve Pattern Count"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternCountSlider" Minimum="3" Maximum="64"/>
+                                                <TextBlock x:Name="ToggleTipSleevePatternCountValueText"/>
 
-                                        <TextBlock Text="Sleeve Tip Amount"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveTipAmountSlider" Minimum="0" Maximum="0.95"/>
-                                        <TextBlock x:Name="ToggleTipSleeveTipAmountValueText"/>
+                                                <TextBlock Text="Sleeve Pattern Depth"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleevePatternDepthSlider" Minimum="0" Maximum="0.9"/>
+                                                <TextBlock x:Name="ToggleTipSleevePatternDepthValueText"/>
 
-                                        <TextBlock Text="Sleeve Base Color R"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorRSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveColorRValueText"/>
+                                                <TextBlock Text="Sleeve Tip Amount"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveTipAmountSlider" Minimum="0" Maximum="0.95"/>
+                                                <TextBlock x:Name="ToggleTipSleeveTipAmountValueText"/>
 
-                                        <TextBlock Text="Sleeve Base Color G"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorGSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveColorGValueText"/>
+                                                <TextBlock Text="Sleeve Base Color R"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorRSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveColorRValueText"/>
 
-                                        <TextBlock Text="Sleeve Base Color B"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorBSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveColorBValueText"/>
+                                                <TextBlock Text="Sleeve Base Color G"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorGSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveColorGValueText"/>
 
-                                        <TextBlock Text="Sleeve Metallic"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveMetallicSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveMetallicValueText"/>
+                                                <TextBlock Text="Sleeve Base Color B"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveColorBSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveColorBValueText"/>
 
-                                        <TextBlock Text="Sleeve Roughness"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRoughnessSlider" Minimum="0.04" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveRoughnessValueText"/>
+                                                <TextBlock Text="Sleeve Metallic"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveMetallicSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveMetallicValueText"/>
 
-                                        <TextBlock Text="Sleeve Pearlescence"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleevePearlescenceSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleevePearlescenceValueText"/>
+                                                <TextBlock Text="Sleeve Roughness"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRoughnessSlider" Minimum="0.04" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveRoughnessValueText"/>
 
-                                        <TextBlock Text="Sleeve Diffuse Strength"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveDiffuseStrengthSlider" Minimum="0" Maximum="4"/>
-                                        <TextBlock x:Name="ToggleTipSleeveDiffuseStrengthValueText"/>
+                                                <TextBlock Text="Sleeve Pearlescence"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleevePearlescenceSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleevePearlescenceValueText"/>
 
-                                        <TextBlock Text="Sleeve Specular Strength"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSpecularStrengthSlider" Minimum="0" Maximum="4"/>
-                                        <TextBlock x:Name="ToggleTipSleeveSpecularStrengthValueText"/>
+                                                <TextBlock Text="Sleeve Diffuse Strength"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveDiffuseStrengthSlider" Minimum="0" Maximum="4"/>
+                                                <TextBlock x:Name="ToggleTipSleeveDiffuseStrengthValueText"/>
 
-                                        <TextBlock Text="Sleeve Rust"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRustSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveRustValueText"/>
+                                                <TextBlock Text="Sleeve Specular Strength"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveSpecularStrengthSlider" Minimum="0" Maximum="4"/>
+                                                <TextBlock x:Name="ToggleTipSleeveSpecularStrengthValueText"/>
 
-                                        <TextBlock Text="Sleeve Wear"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveWearSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveWearValueText"/>
+                                                <TextBlock Text="Sleeve Rust"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveRustSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveRustValueText"/>
 
-                                        <TextBlock Text="Sleeve Gunk"/>
-                                        <controls:SpriteKnobSlider x:Name="ToggleTipSleeveGunkSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="ToggleTipSleeveGunkValueText"/>
+                                                <TextBlock Text="Sleeve Wear"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveWearSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveWearValueText"/>
+
+                                                <TextBlock Text="Sleeve Gunk"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleTipSleeveGunkSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleTipSleeveGunkValueText"/>
+                                            </StackPanel>
+                                        </Expander>
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander x:Name="NodePushButtonAssemblyExpander" Header="Push Button (Preview)" IsExpanded="False">
+                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Quick Setup" IsExpanded="True">
+                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <TextBlock Text="Procedural push-button assembly controls."/>
+                                                <TextBlock Text="Press Amount"/>
+                                                <controls:SpriteKnobSlider x:Name="PushButtonPressAmountSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="PushButtonPressAmountValueText"/>
+                                            </StackPanel>
+                                        </Expander>
                                     </StackPanel>
                                 </Expander>
 
@@ -1075,9 +1113,8 @@
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander x:Name="NodeIndicatorExpander" Header="Indicator" IsExpanded="True">
-                                    <StackPanel Spacing="10" Margin="0,6,0,0">
-                                        <StackPanel x:Name="RotaryIndicatorPanel" Spacing="6">
+                                <Expander x:Name="NodeRotaryIndicatorExpander" Header="Indicator" IsExpanded="True">
+                                    <StackPanel Spacing="6" Margin="0,6,0,0">
                                             <CheckBox x:Name="IndicatorEnabledCheckBox"
                                                       Content="Enable Indicator"/>
                                             <CheckBox x:Name="IndicatorCadWallsCheckBox"
@@ -1132,226 +1169,252 @@
                                                 <controls:SpriteKnobSlider x:Name="IndicatorColorBSlider" Minimum="0" Maximum="1" Width="210"/>
                                                 <TextBlock x:Name="IndicatorColorBValueText" Width="36"/>
                                             </StackPanel>
-                                        </StackPanel>
+                                    </StackPanel>
+                                </Expander>
 
-                                        <StackPanel x:Name="IndicatorLightAssemblyPanel" Spacing="6" IsVisible="False">
+                                <Expander x:Name="NodeIndicatorLightAssemblyExpander" Header="Indicator Light" IsExpanded="True">
+                                    <StackPanel Spacing="6" Margin="0,6,0,0">
                                             <TextBlock Text="Indicator Light Assembly"/>
                                             <CheckBox x:Name="IndicatorAssemblyEnabledCheckBox"
                                                       Content="Enable Assembly"/>
 
-                                            <TextBlock Text="Base Width"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseWidthSlider" Minimum="24" Maximum="1024"/>
-                                            <TextBlock x:Name="IndicatorBaseWidthValueText"/>
+                                            <Expander Header="Quick Light Controls" IsExpanded="True">
+                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                    <TextBlock Text="Fast control for on/off look tuning."/>
+                                                    <CheckBox x:Name="IndicatorQuickLightOnCheckBox"
+                                                              Content="Light On"/>
 
-                                            <TextBlock Text="Base Height"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseHeightSlider" Minimum="24" Maximum="1024"/>
-                                            <TextBlock x:Name="IndicatorBaseHeightValueText"/>
+                                                    <TextBlock Text="Brightness"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorQuickBrightnessSlider" Minimum="0" Maximum="4"/>
+                                                    <TextBlock x:Name="IndicatorQuickBrightnessValueText"/>
 
-                                            <TextBlock Text="Base Thickness"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseThicknessSlider" Minimum="2" Maximum="256"/>
-                                            <TextBlock x:Name="IndicatorBaseThicknessValueText"/>
+                                                    <TextBlock Text="Glow"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorQuickGlowSlider" Minimum="0" Maximum="4"/>
+                                                    <TextBlock x:Name="IndicatorQuickGlowValueText"/>
+                                                </StackPanel>
+                                            </Expander>
 
-                                            <TextBlock Text="Housing Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorHousingRadiusSlider" Minimum="4" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorHousingRadiusValueText"/>
+                                            <Expander Header="Geometry (Advanced)" IsExpanded="False">
+                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                    <TextBlock Text="Base Width"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorBaseWidthSlider" Minimum="24" Maximum="1024"/>
+                                                    <TextBlock x:Name="IndicatorBaseWidthValueText"/>
 
-                                            <TextBlock Text="Housing Height"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorHousingHeightSlider" Minimum="2" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorHousingHeightValueText"/>
+                                                    <TextBlock Text="Base Height"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorBaseHeightSlider" Minimum="24" Maximum="1024"/>
+                                                    <TextBlock x:Name="IndicatorBaseHeightValueText"/>
 
-                                            <TextBlock Text="Lens Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensRadiusSlider" Minimum="2" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorLensRadiusValueText"/>
+                                                    <TextBlock Text="Base Thickness"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorBaseThicknessSlider" Minimum="2" Maximum="256"/>
+                                                    <TextBlock x:Name="IndicatorBaseThicknessValueText"/>
 
-                                            <TextBlock Text="Lens Height"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensHeightSlider" Minimum="2" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorLensHeightValueText"/>
+                                                    <TextBlock Text="Housing Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorHousingRadiusSlider" Minimum="4" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorHousingRadiusValueText"/>
 
-                                            <Separator/>
-                                            <TextBlock Text="Lens Material"/>
+                                                    <TextBlock Text="Housing Height"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorHousingHeightSlider" Minimum="2" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorHousingHeightValueText"/>
 
-                                            <TextBlock Text="Lens Transmission"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensTransmissionSlider" Minimum="0" Maximum="1"/>
-                                            <TextBlock x:Name="IndicatorLensTransmissionValueText"/>
+                                                    <TextBlock Text="Lens Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensRadiusSlider" Minimum="2" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorLensRadiusValueText"/>
 
-                                            <TextBlock Text="Lens IOR"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensIorSlider" Minimum="1" Maximum="2.5"/>
-                                            <TextBlock x:Name="IndicatorLensIorValueText"/>
+                                                    <TextBlock Text="Lens Height"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensHeightSlider" Minimum="2" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorLensHeightValueText"/>
 
-                                            <TextBlock Text="Lens Thickness"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensThicknessSlider" Minimum="0" Maximum="10"/>
-                                            <TextBlock x:Name="IndicatorLensThicknessValueText"/>
+                                                    <TextBlock Text="Reflector Base Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorReflectorBaseRadiusSlider" Minimum="1" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorReflectorBaseRadiusValueText"/>
 
-                                            <TextBlock Text="Lens Absorption"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensAbsorptionSlider" Minimum="0" Maximum="8"/>
-                                            <TextBlock x:Name="IndicatorLensAbsorptionValueText"/>
+                                                    <TextBlock Text="Reflector Top Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorReflectorTopRadiusSlider" Minimum="1" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorReflectorTopRadiusValueText"/>
 
-                                            <TextBlock Text="Lens Surface Roughness"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceRoughnessSlider" Minimum="0.04" Maximum="1"/>
-                                            <TextBlock x:Name="IndicatorLensSurfaceRoughnessValueText"/>
+                                                    <TextBlock Text="Reflector Depth"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorReflectorDepthSlider" Minimum="1" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorReflectorDepthValueText"/>
 
-                                            <TextBlock Text="Lens Surface Specular"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceSpecularSlider" Minimum="0" Maximum="2.5"/>
-                                            <TextBlock x:Name="IndicatorLensSurfaceSpecularValueText"/>
+                                                    <TextBlock Text="Emitter Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterRadiusSlider" Minimum="0.5" Maximum="256"/>
+                                                    <TextBlock x:Name="IndicatorEmitterRadiusValueText"/>
 
-                                            <TextBlock Text="Lens Tint"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="R" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintRSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorLensTintRValueText" Width="36"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="G" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintGSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorLensTintGValueText" Width="36"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="B" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintBSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorLensTintBValueText" Width="36"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="IndicatorLensPresetClearButton" Content="Clear Lens"/>
-                                                <Button x:Name="IndicatorLensPresetFrostedButton" Content="Frosted"/>
-                                                <Button x:Name="IndicatorLensPresetSaturatedButton" Content="Saturated LED"/>
-                                            </StackPanel>
+                                                    <TextBlock Text="Emitter Spread"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSpreadSlider" Minimum="0" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSpreadValueText"/>
 
-                                            <TextBlock Text="Reflector Base Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorBaseRadiusSlider" Minimum="1" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorReflectorBaseRadiusValueText"/>
+                                                    <TextBlock Text="Emitter Depth"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterDepthSlider" Minimum="-256" Maximum="256"/>
+                                                    <TextBlock x:Name="IndicatorEmitterDepthValueText"/>
 
-                                            <TextBlock Text="Reflector Top Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorTopRadiusSlider" Minimum="1" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorReflectorTopRadiusValueText"/>
+                                                    <TextBlock Text="Emitter Count"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterCountSlider" Minimum="1" Maximum="8"/>
+                                                    <TextBlock x:Name="IndicatorEmitterCountValueText"/>
 
-                                            <TextBlock Text="Reflector Depth"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorDepthSlider" Minimum="1" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorReflectorDepthValueText"/>
+                                                    <TextBlock Text="Radial Segments"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorRadialSegmentsSlider" Minimum="8" Maximum="96"/>
+                                                    <TextBlock x:Name="IndicatorRadialSegmentsValueText"/>
 
-                                            <TextBlock Text="Emitter Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterRadiusSlider" Minimum="0.5" Maximum="256"/>
-                                            <TextBlock x:Name="IndicatorEmitterRadiusValueText"/>
+                                                    <TextBlock Text="Lens Latitude Segments"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
+                                                    <TextBlock x:Name="IndicatorLensLatitudeSegmentsValueText"/>
 
-                                            <TextBlock Text="Emitter Spread"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSpreadSlider" Minimum="0" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorEmitterSpreadValueText"/>
+                                                    <TextBlock Text="Lens Longitude Segments"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensLongitudeSegmentsSlider" Minimum="6" Maximum="96"/>
+                                                    <TextBlock x:Name="IndicatorLensLongitudeSegmentsValueText"/>
 
-                                            <TextBlock Text="Emitter Depth"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterDepthSlider" Minimum="-256" Maximum="256"/>
-                                            <TextBlock x:Name="IndicatorEmitterDepthValueText"/>
+                                                    <Button x:Name="IndicatorAssemblyResetDefaultsButton"
+                                                            Content="Reset Industrial Defaults"/>
+                                                </StackPanel>
+                                            </Expander>
 
-                                            <TextBlock Text="Emitter Count"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterCountSlider" Minimum="1" Maximum="8"/>
-                                            <TextBlock x:Name="IndicatorEmitterCountValueText"/>
+                                            <Expander Header="Lens Material (Advanced)" IsExpanded="False">
+                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                    <TextBlock Text="Lens Transmission"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensTransmissionSlider" Minimum="0" Maximum="1"/>
+                                                    <TextBlock x:Name="IndicatorLensTransmissionValueText"/>
 
-                                            <TextBlock Text="Radial Segments"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorRadialSegmentsSlider" Minimum="8" Maximum="96"/>
-                                            <TextBlock x:Name="IndicatorRadialSegmentsValueText"/>
+                                                    <TextBlock Text="Lens IOR"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensIorSlider" Minimum="1" Maximum="2.5"/>
+                                                    <TextBlock x:Name="IndicatorLensIorValueText"/>
 
-                                            <TextBlock Text="Lens Latitude Segments"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
-                                            <TextBlock x:Name="IndicatorLensLatitudeSegmentsValueText"/>
+                                                    <TextBlock Text="Lens Thickness"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensThicknessSlider" Minimum="0" Maximum="10"/>
+                                                    <TextBlock x:Name="IndicatorLensThicknessValueText"/>
 
-                                            <TextBlock Text="Lens Longitude Segments"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLensLongitudeSegmentsSlider" Minimum="6" Maximum="96"/>
-                                            <TextBlock x:Name="IndicatorLensLongitudeSegmentsValueText"/>
+                                                    <TextBlock Text="Lens Absorption"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensAbsorptionSlider" Minimum="0" Maximum="8"/>
+                                                    <TextBlock x:Name="IndicatorLensAbsorptionValueText"/>
 
-                                            <Button x:Name="IndicatorAssemblyResetDefaultsButton"
-                                                    Content="Reset Industrial Defaults"/>
+                                                    <TextBlock Text="Lens Surface Roughness"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceRoughnessSlider" Minimum="0.04" Maximum="1"/>
+                                                    <TextBlock x:Name="IndicatorLensSurfaceRoughnessValueText"/>
 
-                                            <Separator/>
-                                            <TextBlock Text="Dynamic Emitter Lights"/>
-                                            <CheckBox x:Name="IndicatorDynamicLightsEnabledCheckBox"
-                                                      Content="Enable Dynamic Lights"/>
+                                                    <TextBlock Text="Lens Surface Specular"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceSpecularSlider" Minimum="0" Maximum="2.5"/>
+                                                    <TextBlock x:Name="IndicatorLensSurfaceSpecularValueText"/>
 
-                                            <TextBlock Text="Animation Mode"/>
-                                            <ComboBox x:Name="IndicatorLightAnimationModeCombo"/>
+                                                    <TextBlock Text="Lens Tint"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="R" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorLensTintRSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorLensTintRValueText" Width="36"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="G" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorLensTintGSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorLensTintGValueText" Width="36"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="B" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorLensTintBSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorLensTintBValueText" Width="36"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <Button x:Name="IndicatorLensPresetClearButton" Content="Clear Lens"/>
+                                                        <Button x:Name="IndicatorLensPresetFrostedButton" Content="Frosted"/>
+                                                        <Button x:Name="IndicatorLensPresetSaturatedButton" Content="Saturated LED"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Expander>
 
-                                            <TextBlock Text="Animation Speed"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLightAnimationSpeedSlider" Minimum="0" Maximum="10"/>
-                                            <TextBlock x:Name="IndicatorLightAnimationSpeedValueText"/>
+                                            <Expander Header="Dynamic Lights (Advanced)" IsExpanded="False">
+                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                    <CheckBox x:Name="IndicatorDynamicLightsEnabledCheckBox"
+                                                              Content="Enable Dynamic Lights"/>
 
-                                            <TextBlock Text="Flicker Amount"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerAmountSlider" Minimum="0" Maximum="1"/>
-                                            <TextBlock x:Name="IndicatorLightFlickerAmountValueText"/>
+                                                    <TextBlock Text="Animation Mode"/>
+                                                    <ComboBox x:Name="IndicatorLightAnimationModeCombo"/>
 
-                                            <TextBlock Text="Flicker Dropout"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerDropoutSlider" Minimum="0" Maximum="1"/>
-                                            <TextBlock x:Name="IndicatorLightFlickerDropoutValueText"/>
+                                                    <TextBlock Text="Animation Speed"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLightAnimationSpeedSlider" Minimum="0" Maximum="10"/>
+                                                    <TextBlock x:Name="IndicatorLightAnimationSpeedValueText"/>
 
-                                            <TextBlock Text="Flicker Smoothing"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSmoothingSlider" Minimum="0" Maximum="1"/>
-                                            <TextBlock x:Name="IndicatorLightFlickerSmoothingValueText"/>
+                                                    <TextBlock Text="Flicker Amount"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerAmountSlider" Minimum="0" Maximum="1"/>
+                                                    <TextBlock x:Name="IndicatorLightFlickerAmountValueText"/>
 
-                                            <TextBlock Text="Flicker Seed"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSeedSlider" Minimum="1" Maximum="100000"/>
-                                            <TextBlock x:Name="IndicatorLightFlickerSeedValueText"/>
+                                                    <TextBlock Text="Flicker Dropout"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerDropoutSlider" Minimum="0" Maximum="1"/>
+                                                    <TextBlock x:Name="IndicatorLightFlickerDropoutValueText"/>
 
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="IndicatorLightPresetNeutralButton" Content="Neutral"/>
-                                                <Button x:Name="IndicatorLightPresetPulseButton" Content="Pulse"/>
-                                                <Button x:Name="IndicatorLightPresetFlickerButton" Content="Flicker"/>
-                                            </StackPanel>
+                                                    <TextBlock Text="Flicker Smoothing"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSmoothingSlider" Minimum="0" Maximum="1"/>
+                                                    <TextBlock x:Name="IndicatorLightFlickerSmoothingValueText"/>
 
-                                            <Separator/>
-                                            <TextBlock Text="Emitter Source Editor"/>
-                                            <TextBlock Text="Emitter"/>
-                                            <ComboBox x:Name="IndicatorEmitterSourceCombo"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="IndicatorEmitterSourceMoveUpButton" Content="Move Up"/>
-                                                <Button x:Name="IndicatorEmitterSourceMoveDownButton" Content="Move Down"/>
-                                                <Button x:Name="IndicatorEmitterSourceAutoPhaseButton" Content="Auto Phase Spread"/>
-                                            </StackPanel>
-                                            <TextBlock Text="Name"/>
-                                            <TextBox x:Name="IndicatorEmitterSourceNameTextBox"/>
-                                            <CheckBox x:Name="IndicatorEmitterSourceEnabledCheckBox"
-                                                      Content="Enabled"/>
+                                                    <TextBlock Text="Flicker Seed"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSeedSlider" Minimum="1" Maximum="100000"/>
+                                                    <TextBlock x:Name="IndicatorLightFlickerSeedValueText"/>
 
-                                            <TextBlock Text="Animation Phase Offset"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourcePhaseOffsetSlider" Minimum="-360" Maximum="360"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourcePhaseOffsetValueText"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <Button x:Name="IndicatorLightPresetNeutralButton" Content="Neutral"/>
+                                                        <Button x:Name="IndicatorLightPresetPulseButton" Content="Pulse"/>
+                                                        <Button x:Name="IndicatorLightPresetFlickerButton" Content="Flicker"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Expander>
 
-                                            <TextBlock Text="Offset X"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceXSlider" Minimum="-512" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceXValueText"/>
+                                            <Expander Header="Per-Emitter Sources (Advanced)" IsExpanded="False">
+                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                    <TextBlock Text="Emitter"/>
+                                                    <ComboBox x:Name="IndicatorEmitterSourceCombo"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <Button x:Name="IndicatorEmitterSourceMoveUpButton" Content="Move Up"/>
+                                                        <Button x:Name="IndicatorEmitterSourceMoveDownButton" Content="Move Down"/>
+                                                        <Button x:Name="IndicatorEmitterSourceAutoPhaseButton" Content="Auto Phase Spread"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="Name"/>
+                                                    <TextBox x:Name="IndicatorEmitterSourceNameTextBox"/>
+                                                    <CheckBox x:Name="IndicatorEmitterSourceEnabledCheckBox"
+                                                              Content="Enabled"/>
 
-                                            <TextBlock Text="Offset Y"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceYSlider" Minimum="-512" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceYValueText"/>
+                                                    <TextBlock Text="Animation Phase Offset"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourcePhaseOffsetSlider" Minimum="-360" Maximum="360"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourcePhaseOffsetValueText"/>
 
-                                            <TextBlock Text="Offset Z"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceZSlider" Minimum="-512" Maximum="512"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceZValueText"/>
+                                                    <TextBlock Text="Offset X"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceXSlider" Minimum="-512" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceXValueText"/>
 
-                                            <TextBlock Text="Intensity"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceIntensitySlider" Minimum="0" Maximum="8"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceIntensityValueText"/>
+                                                    <TextBlock Text="Offset Y"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceYSlider" Minimum="-512" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceYValueText"/>
 
-                                            <TextBlock Text="Radius"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRadiusSlider" Minimum="4" Maximum="2048"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceRadiusValueText"/>
+                                                    <TextBlock Text="Offset Z"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceZSlider" Minimum="-512" Maximum="512"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceZValueText"/>
 
-                                            <TextBlock Text="Falloff"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceFalloffSlider" Minimum="0.05" Maximum="4"/>
-                                            <TextBlock x:Name="IndicatorEmitterSourceFalloffValueText"/>
+                                                    <TextBlock Text="Intensity"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceIntensitySlider" Minimum="0" Maximum="8"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceIntensityValueText"/>
 
-                                            <TextBlock Text="Color"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="R" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorEmitterSourceRValueText" Width="36"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="G" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceGSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorEmitterSourceGValueText" Width="36"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="B" Width="14"/>
-                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceBSlider" Minimum="0" Maximum="1" Width="210"/>
-                                                <TextBlock x:Name="IndicatorEmitterSourceBValueText" Width="36"/>
-                                            </StackPanel>
-                                        </StackPanel>
+                                                    <TextBlock Text="Radius"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRadiusSlider" Minimum="4" Maximum="2048"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceRadiusValueText"/>
+
+                                                    <TextBlock Text="Falloff"/>
+                                                    <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceFalloffSlider" Minimum="0.05" Maximum="4"/>
+                                                    <TextBlock x:Name="IndicatorEmitterSourceFalloffValueText"/>
+
+                                                    <TextBlock Text="Color"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="R" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorEmitterSourceRValueText" Width="36"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="G" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceGSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorEmitterSourceGValueText" Width="36"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="B" Width="14"/>
+                                                        <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceBSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                        <TextBlock x:Name="IndicatorEmitterSourceBValueText" Width="36"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Expander>
                                     </StackPanel>
                                 </Expander>
 
@@ -1727,6 +1790,25 @@
                             <controls:SpriteKnobSlider x:Name="EnvRoughnessMixSlider" Minimum="0" Maximum="1"/>
                             <TextBlock x:Name="EnvRoughnessMixValueText"/>
 
+                            <TextBlock Text="Tone Mapping"/>
+                            <ComboBox x:Name="EnvTonemapCombo"/>
+
+                            <TextBlock Text="Exposure"/>
+                            <controls:SpriteKnobSlider x:Name="EnvExposureSlider" Minimum="0.1" Maximum="4"/>
+                            <TextBlock x:Name="EnvExposureValueText"/>
+
+                            <TextBlock Text="Bloom Strength"/>
+                            <controls:SpriteKnobSlider x:Name="EnvBloomStrengthSlider" Minimum="0" Maximum="4"/>
+                            <TextBlock x:Name="EnvBloomStrengthValueText"/>
+
+                            <TextBlock Text="Bloom Threshold"/>
+                            <controls:SpriteKnobSlider x:Name="EnvBloomThresholdSlider" Minimum="0" Maximum="16"/>
+                            <TextBlock x:Name="EnvBloomThresholdValueText"/>
+
+                            <TextBlock Text="Bloom Knee"/>
+                            <controls:SpriteKnobSlider x:Name="EnvBloomKneeSlider" Minimum="0.001" Maximum="8"/>
+                            <TextBlock x:Name="EnvBloomKneeValueText"/>
+
                             <Separator/>
                             <TextBlock Text="Sky Color (Top)"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -1762,6 +1844,22 @@
                                 <controls:SpriteKnobSlider x:Name="EnvBottomBSlider" Minimum="0" Maximum="1" Width="210"/>
                                 <TextBlock x:Name="EnvBottomBValueText" Width="36"/>
                             </StackPanel>
+
+                            <Separator/>
+                            <TextBlock Text="HDRI Environment (Optional)"/>
+                            <TextBox x:Name="EnvHdriPathTextBox" Watermark="Path to .hdr/.exr/.png"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="EnvHdriApplyButton" Content="Apply HDRI" Width="110"/>
+                                <Button x:Name="EnvHdriClearButton" Content="Clear HDRI" Width="110"/>
+                            </StackPanel>
+
+                            <TextBlock Text="HDRI Blend"/>
+                            <controls:SpriteKnobSlider x:Name="EnvHdriBlendSlider" Minimum="0" Maximum="1"/>
+                            <TextBlock x:Name="EnvHdriBlendValueText"/>
+
+                            <TextBlock Text="HDRI Rotation"/>
+                            <controls:SpriteKnobSlider x:Name="EnvHdriRotationSlider" Minimum="-360" Maximum="360"/>
+                            <TextBlock x:Name="EnvHdriRotationValueText"/>
                         </StackPanel>
                     </TabItem>
 

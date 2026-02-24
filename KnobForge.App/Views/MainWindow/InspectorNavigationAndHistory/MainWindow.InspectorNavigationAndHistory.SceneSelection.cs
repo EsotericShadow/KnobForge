@@ -31,6 +31,14 @@ namespace KnobForge.App.Views
                 snapshot.EnvironmentBottomColorZ);
             _project.EnvironmentIntensity = snapshot.EnvironmentIntensity;
             _project.EnvironmentRoughnessMix = snapshot.EnvironmentRoughnessMix;
+            _project.ToneMappingOperator = snapshot.ToneMappingOperator;
+            _project.EnvironmentExposure = snapshot.EnvironmentExposure;
+            _project.EnvironmentBloomStrength = snapshot.EnvironmentBloomStrength;
+            _project.EnvironmentBloomThreshold = snapshot.EnvironmentBloomThreshold;
+            _project.EnvironmentBloomKnee = snapshot.EnvironmentBloomKnee;
+            _project.EnvironmentHdriPath = snapshot.EnvironmentHdriPath;
+            _project.EnvironmentHdriBlend = snapshot.EnvironmentHdriBlend;
+            _project.EnvironmentHdriRotationDegrees = snapshot.EnvironmentHdriRotationDegrees;
 
             _project.ShadowsEnabled = snapshot.ShadowsEnabled;
             _project.ShadowMode = snapshot.ShadowMode;

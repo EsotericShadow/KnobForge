@@ -282,6 +282,7 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorLens ? _indicatorLensResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorReflector ? _indicatorReflectorResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorEmitters ? _indicatorEmitterResources : null);
+                EnsureEnvironmentMapTexture(_project);
                 GpuUniforms knobUniforms = BuildUniformsForPixels(
                     _project,
                     modelNode,
@@ -289,6 +290,7 @@ namespace KnobForge.App.Controls
                     width,
                     height,
                     dynamicLightAnimationTimeSeconds);
+                knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
@@ -374,6 +376,10 @@ namespace KnobForge.App.Controls
                     primaryEmitterColor.Red / 255f,
                     primaryEmitterColor.Green / 255f,
                     primaryEmitterColor.Blue / 255f);
+                float primaryEmitterIntensity = MathF.Max(0f, primaryEmitter?.Intensity ?? 0f);
+                float indicatorLightEnabledFactor = _project.DynamicLightRig.Enabled ? 1f : 0f;
+                float indicatorMasterBrightness = MathF.Max(0f, _project.DynamicLightRig.MasterIntensity);
+                float indicatorGlow = MathF.Max(0f, _project.DynamicLightRig.EmissiveGlow);
                 GpuUniforms indicatorBaseUniforms = drawIndicatorBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -417,7 +423,10 @@ namespace KnobForge.App.Controls
                     ? BuildIndicatorEmitterUniforms(
                         knobUniforms,
                         emissionColor: emitterColor,
-                        emissionStrength: 1.45f + (MathF.Max(0f, primaryEmitter?.Intensity ?? 1f) * 1.65f),
+                        emissionStrength:
+                            indicatorLightEnabledFactor *
+                            (0.15f + (primaryEmitterIntensity * indicatorMasterBrightness * 1.85f)) *
+                            (0.35f + (indicatorGlow * 0.65f)),
                         roughness: 0.10f)
                     : default;
                 EnsurePaintMaskTexture(_project);
@@ -457,6 +466,11 @@ namespace KnobForge.App.Controls
                         Selectors.SetFragmentTextureAtIndex,
                         _paintColorTexture,
                         2);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        _environmentMapTexture,
+                        3);
                     GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
                     bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
                     bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
@@ -726,6 +740,7 @@ namespace KnobForge.App.Controls
 
                 if (drawIndicatorLens)
                 {
+                    pipelineManager.UseDepthReadOnlyState(new MTLRenderCommandEncoderHandle(encoderPtr));
                     MetalPipelineManager.SetFrontFacingWinding(
                         new MTLRenderCommandEncoderHandle(encoderPtr),
                         frontFacingClockwiseAssembly);
@@ -744,6 +759,7 @@ namespace KnobForge.App.Controls
                         (nuint)_indicatorLensResources.IndexType,
                         _indicatorLensResources.IndexBuffer.Handle,
                         0);
+                    pipelineManager.UseDepthWriteState(new MTLRenderCommandEncoderHandle(encoderPtr));
                 }
 
                 if (drawCollar)

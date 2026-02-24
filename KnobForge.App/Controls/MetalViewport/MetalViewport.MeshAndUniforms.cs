@@ -750,9 +750,28 @@ namespace KnobForge.App.Controls
                 Math.Clamp(project?.PaintCoatRoughness ?? 0.56f, 0.04f, 1f));
             uniforms.LensMaterialParams0 = Vector4.Zero;
             uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
+            uniforms.EnvironmentMapParams = Vector4.Zero;
+            uniforms.PostProcessParams = new Vector4(1f, 1.10f, 0.55f, 0.40f);
+            uniforms.TonemapParams = new Vector4((float)TonemapOperator.Aces, 1f, 0f, 0f);
 
             if (project != null)
             {
+                uniforms.EnvironmentMapParams = new Vector4(
+                    Math.Clamp(project.EnvironmentHdriBlend, 0f, 1f),
+                    0f,
+                    project.EnvironmentHdriRotationDegrees * (MathF.PI / 180f),
+                    0f);
+                uniforms.PostProcessParams = new Vector4(
+                    Math.Clamp(project.EnvironmentExposure, 0.10f, 4f),
+                    Math.Clamp(project.EnvironmentBloomThreshold, 0f, 16f),
+                    Math.Clamp(project.EnvironmentBloomKnee, 0.001f, 8f),
+                    Math.Clamp(project.EnvironmentBloomStrength, 0f, 4f));
+                uniforms.TonemapParams = new Vector4(
+                    (float)project.ToneMappingOperator,
+                    1f,
+                    0f,
+                    0f);
+
                 int lightCount = Math.Min(project.Lights.Count, MaxGpuLights);
                 uniforms.ProjectionOffsetsAndLightCount.Z = lightCount;
 
@@ -882,7 +901,7 @@ namespace KnobForge.App.Controls
                 Math.Clamp(emissionColor.X, 0f, 1f),
                 Math.Clamp(emissionColor.Y, 0f, 1f),
                 Math.Clamp(emissionColor.Z, 0f, 1f),
-                Math.Clamp(emissionStrength, 0f, 8f));
+                Math.Clamp(emissionStrength, 0f, 24f));
             return uniforms;
         }
 
@@ -1145,7 +1164,8 @@ namespace KnobForge.App.Controls
             int sourceIndex,
             double timeSeconds)
         {
-            float baseIntensity = MathF.Max(0f, source.Intensity);
+            float masterIntensity = MathF.Max(0f, rig.MasterIntensity);
+            float baseIntensity = MathF.Max(0f, source.Intensity) * masterIntensity;
             if (baseIntensity <= 1e-6f)
             {
                 return 0f;

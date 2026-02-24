@@ -194,7 +194,8 @@ public static class IndicatorAssemblyMeshBuilder
             config.HousingRadius * 0.86f,
             config.RadialSegments,
             capStart: false,
-            capEnd: true);
+            // Keep the housing top open so reflector/emitter internals are visible through the lens.
+            capEnd: false);
 
         return BuildPartMesh(vertices, indices);
     }

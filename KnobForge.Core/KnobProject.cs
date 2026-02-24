@@ -37,6 +37,12 @@ namespace KnobForge.Core
         Bitangent = 3
     }
 
+    public enum TonemapOperator
+    {
+        Aces = 0,
+        AgX = 1
+    }
+
     public enum PaintBrushType
     {
         Spray,
@@ -267,6 +273,13 @@ namespace KnobForge.Core
         private ToggleAssemblyStateCount _toggleStateCount = ToggleAssemblyStateCount.TwoPosition;
         private int _toggleStateIndex;
         private float _toggleStateBlendPosition = float.NaN;
+        private float _environmentExposure = 1f;
+        private float _environmentBloomStrength = 0.40f;
+        private float _environmentBloomThreshold = 1.10f;
+        private float _environmentBloomKnee = 0.55f;
+        private float _environmentHdriBlend;
+        private float _environmentHdriRotationDegrees;
+        private string _environmentHdriPath = string.Empty;
         private readonly byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private int _paintMaskVersion = 1;
 
@@ -278,6 +291,42 @@ namespace KnobForge.Core
         public Vector3 EnvironmentBottomColor { get; set; } = new(0f, 0f, 0f);
         public float EnvironmentIntensity { get; set; } = 0.36f;
         public float EnvironmentRoughnessMix { get; set; } = 1.0f;
+        public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
+        public float EnvironmentExposure
+        {
+            get => _environmentExposure;
+            set => _environmentExposure = ClampFinite(value, 1f, 0.10f, 4.00f);
+        }
+        public float EnvironmentBloomStrength
+        {
+            get => _environmentBloomStrength;
+            set => _environmentBloomStrength = ClampFinite(value, 0.40f, 0f, 4.00f);
+        }
+        public float EnvironmentBloomThreshold
+        {
+            get => _environmentBloomThreshold;
+            set => _environmentBloomThreshold = ClampFinite(value, 1.10f, 0f, 16.00f);
+        }
+        public float EnvironmentBloomKnee
+        {
+            get => _environmentBloomKnee;
+            set => _environmentBloomKnee = ClampFinite(value, 0.55f, 0.001f, 8.00f);
+        }
+        public string EnvironmentHdriPath
+        {
+            get => _environmentHdriPath;
+            set => _environmentHdriPath = NormalizeOptionalPath(value);
+        }
+        public float EnvironmentHdriBlend
+        {
+            get => _environmentHdriBlend;
+            set => _environmentHdriBlend = ClampFinite(value, 0f, 0f, 1f);
+        }
+        public float EnvironmentHdriRotationDegrees
+        {
+            get => _environmentHdriRotationDegrees;
+            set => _environmentHdriRotationDegrees = ClampFinite(value, 0f, -360f, 360f);
+        }
         public BasisDebugMode BasisDebug { get; set; } = BasisDebugMode.Off;
         public bool ShadowsEnabled { get; set; } = true;
         public ShadowLightMode ShadowMode { get; set; } = ShadowLightMode.Weighted;
@@ -1483,6 +1532,16 @@ namespace KnobForge.Core
                 Math.Clamp(value.X, 0f, 1f),
                 Math.Clamp(value.Y, 0f, 1f),
                 Math.Clamp(value.Z, 0f, 1f));
+        }
+
+        private static float ClampFinite(float value, float fallback, float min, float max)
+        {
+            if (!float.IsFinite(value))
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
         }
 
         private static string NormalizeOptionalPath(string? value)

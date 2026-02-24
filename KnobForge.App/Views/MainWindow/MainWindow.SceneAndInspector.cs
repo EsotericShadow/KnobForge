@@ -476,6 +476,10 @@ namespace KnobForge.App.Views
                     {
                         _sliderThumbDepthSlider.Value = project.SliderThumbDepth;
                     }
+                    if (_pushButtonPressAmountSlider != null)
+                    {
+                        _pushButtonPressAmountSlider.Value = project.PushButtonPressAmountNormalized;
+                    }
                     if (_toggleAssemblyModeCombo != null)
                     {
                         _toggleAssemblyModeCombo.SelectedItem = project.ToggleMode;
@@ -976,6 +980,18 @@ namespace KnobForge.App.Views
                     {
                         _indicatorLensLongitudeSegmentsSlider.Value = project.IndicatorLensLongitudeSegments;
                     }
+                    if (_indicatorQuickLightOnCheckBox != null)
+                    {
+                        _indicatorQuickLightOnCheckBox.IsChecked = project.DynamicLightRig.Enabled;
+                    }
+                    if (_indicatorQuickBrightnessSlider != null)
+                    {
+                        _indicatorQuickBrightnessSlider.Value = project.DynamicLightRig.MasterIntensity;
+                    }
+                    if (_indicatorQuickGlowSlider != null)
+                    {
+                        _indicatorQuickGlowSlider.Value = project.DynamicLightRig.EmissiveGlow;
+                    }
                     if (_indicatorDynamicLightsEnabledCheckBox != null)
                     {
                         _indicatorDynamicLightsEnabledCheckBox.IsChecked = project.DynamicLightRig.Enabled;
@@ -1009,7 +1025,6 @@ namespace KnobForge.App.Views
 
                 bool hasModel = model != null;
                 bool indicatorProject = project.ProjectType == InteractorProjectType.IndicatorLight;
-                UpdateIndicatorPanelVisibility();
                 UpdateCollarControlEnablement(hasModel, collar?.Preset ?? CollarPreset.None);
                 _indicatorEnabledCheckBox.IsEnabled = hasModel && !indicatorProject;
                 if (_indicatorCadWallsCheckBox != null)
@@ -1031,6 +1046,18 @@ namespace KnobForge.App.Views
                 if (_indicatorAssemblyEnabledCheckBox != null)
                 {
                     _indicatorAssemblyEnabledCheckBox.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorQuickLightOnCheckBox != null)
+                {
+                    _indicatorQuickLightOnCheckBox.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorQuickBrightnessSlider != null)
+                {
+                    _indicatorQuickBrightnessSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorQuickGlowSlider != null)
+                {
+                    _indicatorQuickGlowSlider.IsEnabled = hasModel && indicatorProject;
                 }
                 if (_indicatorBaseWidthSlider != null)
                 {
@@ -1294,6 +1321,10 @@ namespace KnobForge.App.Views
                 if (_sliderThumbDepthSlider != null)
                 {
                     _sliderThumbDepthSlider.IsEnabled = hasModel;
+                }
+                if (_pushButtonPressAmountSlider != null)
+                {
+                    _pushButtonPressAmountSlider.IsEnabled = hasModel;
                 }
                 if (_toggleAssemblyModeCombo != null)
                 {
@@ -1727,6 +1758,38 @@ namespace KnobForge.App.Views
                 _envBottomRSlider.Value = project.EnvironmentBottomColor.X;
                 _envBottomGSlider.Value = project.EnvironmentBottomColor.Y;
                 _envBottomBSlider.Value = project.EnvironmentBottomColor.Z;
+                if (_envTonemapCombo != null)
+                {
+                    _envTonemapCombo.SelectedItem = project.ToneMappingOperator;
+                }
+                if (_envExposureSlider != null)
+                {
+                    _envExposureSlider.Value = project.EnvironmentExposure;
+                }
+                if (_envBloomStrengthSlider != null)
+                {
+                    _envBloomStrengthSlider.Value = project.EnvironmentBloomStrength;
+                }
+                if (_envBloomThresholdSlider != null)
+                {
+                    _envBloomThresholdSlider.Value = project.EnvironmentBloomThreshold;
+                }
+                if (_envBloomKneeSlider != null)
+                {
+                    _envBloomKneeSlider.Value = project.EnvironmentBloomKnee;
+                }
+                if (_envHdriPathTextBox != null)
+                {
+                    _envHdriPathTextBox.Text = project.EnvironmentHdriPath;
+                }
+                if (_envHdriBlendSlider != null)
+                {
+                    _envHdriBlendSlider.Value = project.EnvironmentHdriBlend;
+                }
+                if (_envHdriRotationSlider != null)
+                {
+                    _envHdriRotationSlider.Value = project.EnvironmentHdriRotationDegrees;
+                }
                 _shadowEnabledCheckBox.IsChecked = project.ShadowsEnabled;
                 _shadowSourceModeCombo.SelectedItem = project.ShadowMode;
                 _shadowStrengthSlider.Value = project.ShadowStrength;

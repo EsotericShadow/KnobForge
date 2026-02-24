@@ -37,6 +37,14 @@ namespace KnobForge.App.Views
             public float EnvironmentBottomColorZ { get; set; }
             public float EnvironmentIntensity { get; set; } = 0.36f;
             public float EnvironmentRoughnessMix { get; set; } = 1f;
+            public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
+            public float EnvironmentExposure { get; set; } = 1f;
+            public float EnvironmentBloomStrength { get; set; } = 0.40f;
+            public float EnvironmentBloomThreshold { get; set; } = 1.10f;
+            public float EnvironmentBloomKnee { get; set; } = 0.55f;
+            public string EnvironmentHdriPath { get; set; } = string.Empty;
+            public float EnvironmentHdriBlend { get; set; }
+            public float EnvironmentHdriRotationDegrees { get; set; }
             public bool ShadowsEnabled { get; set; } = true;
             public ShadowLightMode ShadowMode { get; set; } = ShadowLightMode.Weighted;
             public float ShadowStrength { get; set; } = 1f;

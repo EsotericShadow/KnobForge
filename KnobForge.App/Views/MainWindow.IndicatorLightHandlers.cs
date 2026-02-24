@@ -25,20 +25,6 @@ namespace KnobForge.App.Views
 
         private int _selectedIndicatorEmitterSourceIndex;
 
-        private void UpdateIndicatorPanelVisibility()
-        {
-            bool isIndicatorProject = _project.ProjectType == InteractorProjectType.IndicatorLight;
-            if (_rotaryIndicatorPanel != null)
-            {
-                _rotaryIndicatorPanel.IsVisible = !isIndicatorProject;
-            }
-
-            if (_indicatorLightAssemblyPanel != null)
-            {
-                _indicatorLightAssemblyPanel.IsVisible = isIndicatorProject;
-            }
-        }
-
         private void OnIndicatorLightSettingsChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi)
@@ -47,7 +33,8 @@ namespace KnobForge.App.Views
             }
 
             if (ReferenceEquals(sender, _indicatorAssemblyEnabledCheckBox) ||
-                ReferenceEquals(sender, _indicatorDynamicLightsEnabledCheckBox))
+                ReferenceEquals(sender, _indicatorDynamicLightsEnabledCheckBox) ||
+                ReferenceEquals(sender, _indicatorQuickLightOnCheckBox))
             {
                 if (e.Property != ToggleButton.IsCheckedProperty)
                 {
@@ -66,8 +53,30 @@ namespace KnobForge.App.Views
                 return;
             }
 
+            if (ReferenceEquals(sender, _indicatorQuickLightOnCheckBox) &&
+                _indicatorDynamicLightsEnabledCheckBox != null &&
+                _indicatorQuickLightOnCheckBox != null)
+            {
+                WithUiRefreshSuppressed(() =>
+                {
+                    _indicatorDynamicLightsEnabledCheckBox.IsChecked = _indicatorQuickLightOnCheckBox.IsChecked;
+                });
+            }
+            else if (ReferenceEquals(sender, _indicatorDynamicLightsEnabledCheckBox) &&
+                _indicatorQuickLightOnCheckBox != null &&
+                _indicatorDynamicLightsEnabledCheckBox != null)
+            {
+                WithUiRefreshSuppressed(() =>
+                {
+                    _indicatorQuickLightOnCheckBox.IsChecked = _indicatorDynamicLightsEnabledCheckBox.IsChecked;
+                });
+            }
+
             bool requestHeavyRefresh =
                 !ReferenceEquals(sender, _indicatorDynamicLightsEnabledCheckBox) &&
+                !ReferenceEquals(sender, _indicatorQuickLightOnCheckBox) &&
+                !ReferenceEquals(sender, _indicatorQuickBrightnessSlider) &&
+                !ReferenceEquals(sender, _indicatorQuickGlowSlider) &&
                 !ReferenceEquals(sender, _indicatorLightAnimationModeCombo) &&
                 !ReferenceEquals(sender, _indicatorLensTransmissionSlider) &&
                 !ReferenceEquals(sender, _indicatorLensIorSlider) &&
@@ -168,7 +177,10 @@ namespace KnobForge.App.Views
             _project.IndicatorLensLongitudeSegments = lensLongitudeSegments;
 
             DynamicLightRig rig = _project.DynamicLightRig;
-            rig.Enabled = _indicatorDynamicLightsEnabledCheckBox.IsChecked == true;
+            bool lightOn = _indicatorQuickLightOnCheckBox?.IsChecked
+                ?? _indicatorDynamicLightsEnabledCheckBox.IsChecked
+                ?? false;
+            rig.Enabled = lightOn;
             rig.AnimationMode = _indicatorLightAnimationModeCombo.SelectedItem is DynamicLightAnimationMode mode
                 ? mode
                 : DynamicLightAnimationMode.Steady;
@@ -176,6 +188,12 @@ namespace KnobForge.App.Views
             rig.FlickerAmount = (float)_indicatorLightFlickerAmountSlider.Value;
             rig.FlickerDropoutChance = (float)_indicatorLightFlickerDropoutSlider.Value;
             rig.FlickerSmoothing = (float)_indicatorLightFlickerSmoothingSlider.Value;
+            rig.MasterIntensity = _indicatorQuickBrightnessSlider != null
+                ? (float)_indicatorQuickBrightnessSlider.Value
+                : 1f;
+            rig.EmissiveGlow = _indicatorQuickGlowSlider != null
+                ? (float)_indicatorQuickGlowSlider.Value
+                : 1f;
             int seed = Math.Clamp((int)Math.Round(_indicatorLightFlickerSeedSlider.Value), 1, 100000);
             _indicatorLightFlickerSeedSlider.Value = seed;
             rig.FlickerSeed = seed;
@@ -219,6 +237,10 @@ namespace KnobForge.App.Views
             WithUiRefreshSuppressed(() =>
             {
                 _indicatorDynamicLightsEnabledCheckBox.IsChecked = true;
+                if (_indicatorQuickLightOnCheckBox != null)
+                {
+                    _indicatorQuickLightOnCheckBox.IsChecked = true;
+                }
                 switch (preset)
                 {
                     case IndicatorLightPreset.Pulse:
@@ -228,6 +250,14 @@ namespace KnobForge.App.Views
                         _indicatorLightFlickerDropoutSlider.Value = 0.00;
                         _indicatorLightFlickerSmoothingSlider.Value = 0.62;
                         _indicatorLightFlickerSeedSlider.Value = 1337;
+                        if (_indicatorQuickBrightnessSlider != null)
+                        {
+                            _indicatorQuickBrightnessSlider.Value = 1.55;
+                        }
+                        if (_indicatorQuickGlowSlider != null)
+                        {
+                            _indicatorQuickGlowSlider.Value = 1.65;
+                        }
                         break;
                     case IndicatorLightPreset.Flicker:
                         _indicatorLightAnimationModeCombo.SelectedItem = DynamicLightAnimationMode.Flicker;
@@ -236,6 +266,14 @@ namespace KnobForge.App.Views
                         _indicatorLightFlickerDropoutSlider.Value = 0.14;
                         _indicatorLightFlickerSmoothingSlider.Value = 0.22;
                         _indicatorLightFlickerSeedSlider.Value = 4242;
+                        if (_indicatorQuickBrightnessSlider != null)
+                        {
+                            _indicatorQuickBrightnessSlider.Value = 1.80;
+                        }
+                        if (_indicatorQuickGlowSlider != null)
+                        {
+                            _indicatorQuickGlowSlider.Value = 2.00;
+                        }
                         break;
                     default:
                         _indicatorLightAnimationModeCombo.SelectedItem = DynamicLightAnimationMode.Steady;
@@ -244,6 +282,14 @@ namespace KnobForge.App.Views
                         _indicatorLightFlickerDropoutSlider.Value = 0.00;
                         _indicatorLightFlickerSmoothingSlider.Value = 0.50;
                         _indicatorLightFlickerSeedSlider.Value = 1337;
+                        if (_indicatorQuickBrightnessSlider != null)
+                        {
+                            _indicatorQuickBrightnessSlider.Value = 1.25;
+                        }
+                        if (_indicatorQuickGlowSlider != null)
+                        {
+                            _indicatorQuickGlowSlider.Value = 1.20;
+                        }
                         break;
                 }
             });

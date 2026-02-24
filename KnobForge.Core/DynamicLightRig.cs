@@ -42,6 +42,8 @@ namespace KnobForge.Core
         private float _flickerDropoutChance;
         private float _flickerSmoothing = 0.5f;
         private int _flickerSeed = 1337;
+        private float _masterIntensity = 1f;
+        private float _emissiveGlow = 1f;
 
         public bool Enabled { get; set; }
 
@@ -75,6 +77,18 @@ namespace KnobForge.Core
         {
             get => _flickerSmoothing;
             set => _flickerSmoothing = Math.Clamp(value, 0f, 1f);
+        }
+
+        public float MasterIntensity
+        {
+            get => _masterIntensity;
+            set => _masterIntensity = Math.Clamp(value, 0f, 4f);
+        }
+
+        public float EmissiveGlow
+        {
+            get => _emissiveGlow;
+            set => _emissiveGlow = Math.Clamp(value, 0f, 4f);
         }
 
         public int FlickerSeed

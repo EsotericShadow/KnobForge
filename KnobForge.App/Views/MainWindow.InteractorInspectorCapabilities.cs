@@ -19,10 +19,12 @@ namespace KnobForge.App.Views
             BodyShape,
             SliderAssembly,
             ToggleAssembly,
+            PushButtonAssembly,
             SpiralRidge,
             Grip,
             Collar,
-            Indicator,
+            RotaryIndicator,
+            IndicatorLightAssembly,
             Material,
             SurfaceTexture,
             MicroDetail
@@ -59,10 +61,12 @@ namespace KnobForge.App.Views
                 [InspectorSectionId.BodyShape] = _nodeBodyShapeExpander,
                 [InspectorSectionId.SliderAssembly] = _nodeSliderAssemblyExpander,
                 [InspectorSectionId.ToggleAssembly] = _nodeToggleAssemblyExpander,
+                [InspectorSectionId.PushButtonAssembly] = _nodePushButtonAssemblyExpander,
                 [InspectorSectionId.SpiralRidge] = _nodeSpiralRidgeExpander,
                 [InspectorSectionId.Grip] = _nodeGripExpander,
                 [InspectorSectionId.Collar] = _nodeCollarExpander,
-                [InspectorSectionId.Indicator] = _nodeIndicatorExpander,
+                [InspectorSectionId.RotaryIndicator] = _nodeRotaryIndicatorExpander,
+                [InspectorSectionId.IndicatorLightAssembly] = _nodeIndicatorLightAssemblyExpander,
                 [InspectorSectionId.Material] = _nodeMaterialExpander,
                 [InspectorSectionId.SurfaceTexture] = _nodeSurfaceTextureExpander,
                 [InspectorSectionId.MicroDetail] = _nodeMicroDetailExpander
@@ -92,10 +96,10 @@ namespace KnobForge.App.Views
                     sections.Add(InspectorSectionId.ToggleAssembly);
                     break;
                 case InteractorProjectType.PushButton:
-                    sections.Add(InspectorSectionId.Indicator);
+                    sections.Add(InspectorSectionId.PushButtonAssembly);
                     break;
                 case InteractorProjectType.IndicatorLight:
-                    sections.Add(InspectorSectionId.Indicator);
+                    sections.Add(InspectorSectionId.IndicatorLightAssembly);
                     break;
                 default:
                     sections.Add(InspectorSectionId.ReferenceProfiles);
@@ -103,7 +107,7 @@ namespace KnobForge.App.Views
                     sections.Add(InspectorSectionId.SpiralRidge);
                     sections.Add(InspectorSectionId.Grip);
                     sections.Add(InspectorSectionId.Collar);
-                    sections.Add(InspectorSectionId.Indicator);
+                    sections.Add(InspectorSectionId.RotaryIndicator);
                     sections.Add(InspectorSectionId.SurfaceTexture);
                     sections.Add(InspectorSectionId.MicroDetail);
                     break;

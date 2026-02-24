@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -8,6 +9,7 @@ using Avalonia.Threading;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using KnobForge.Rendering.GPU;
+using SkiaSharp;
 
 namespace KnobForge.App.Controls
 {
@@ -323,6 +325,145 @@ namespace KnobForge.App.Controls
                 ObjC.Void_objc_msgSend(_spiralNormalTexture, Selectors.Release);
                 _spiralNormalTexture = IntPtr.Zero;
             }
+        }
+
+        private void EnsureEnvironmentMapTexture(KnobProject? project)
+        {
+            if (_context is null || _context.Device.Handle == IntPtr.Zero || project is null)
+            {
+                ReleaseEnvironmentMapTexture();
+                return;
+            }
+
+            string configuredPath = project.EnvironmentHdriPath;
+            if (string.IsNullOrWhiteSpace(configuredPath) || project.EnvironmentHdriBlend <= 0f)
+            {
+                ReleaseEnvironmentMapTexture();
+                return;
+            }
+
+            string fullPath;
+            try
+            {
+                fullPath = Path.GetFullPath(configuredPath);
+            }
+            catch
+            {
+                ReleaseEnvironmentMapTexture();
+                return;
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                ReleaseEnvironmentMapTexture();
+                return;
+            }
+
+            long writeTicks = File.GetLastWriteTimeUtc(fullPath).Ticks;
+            if (_environmentMapTexture != IntPtr.Zero &&
+                string.Equals(_environmentMapTexturePath, fullPath, StringComparison.OrdinalIgnoreCase) &&
+                _environmentMapTextureWriteTicks == writeTicks)
+            {
+                return;
+            }
+
+            ReleaseEnvironmentMapTexture();
+
+            using SKBitmap? bitmap = SKBitmap.Decode(fullPath);
+            if (bitmap is null || bitmap.Width < 2 || bitmap.Height < 2)
+            {
+                return;
+            }
+
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+            byte[] pixelBytes = new byte[width * height * 4];
+            int dst = 0;
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    SKColor color = bitmap.GetPixel(x, y);
+                    pixelBytes[dst++] = color.Red;
+                    pixelBytes[dst++] = color.Green;
+                    pixelBytes[dst++] = color.Blue;
+                    pixelBytes[dst++] = color.Alpha;
+                }
+            }
+
+            IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                NormalMapPixelFormat,
+                (nuint)width,
+                (nuint)height,
+                true);
+            if (descriptor == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 1); // MTLTextureUsageShaderRead
+            IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+            if (texture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            GCHandle pinned = GCHandle.Alloc(pixelBytes, GCHandleType.Pinned);
+            try
+            {
+                MTLRegion region = new(
+                    new MTLOrigin(0, 0, 0),
+                    new MTLSize((nuint)width, (nuint)height, 1));
+                ObjC.Void_objc_msgSend_MTLRegion_UInt_IntPtr_UInt(
+                    texture,
+                    Selectors.ReplaceRegionMipmapLevelWithBytesBytesPerRow,
+                    region,
+                    0,
+                    pinned.AddrOfPinnedObject(),
+                    (nuint)(width * 4));
+            }
+            finally
+            {
+                pinned.Free();
+            }
+
+            IntPtr commandBuffer = _context.CreateCommandBuffer().Handle;
+            if (commandBuffer != IntPtr.Zero)
+            {
+                IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
+                if (blitEncoder != IntPtr.Zero)
+                {
+                    try
+                    {
+                        ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
+                    }
+                    finally
+                    {
+                        ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                    }
+                }
+
+                ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
+                ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
+            }
+
+            _environmentMapTexture = texture;
+            _environmentMapTexturePath = fullPath;
+            _environmentMapTextureWriteTicks = writeTicks;
+        }
+
+        private void ReleaseEnvironmentMapTexture()
+        {
+            if (_environmentMapTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_environmentMapTexture, Selectors.Release);
+                _environmentMapTexture = IntPtr.Zero;
+            }
+
+            _environmentMapTexturePath = string.Empty;
+            _environmentMapTextureWriteTicks = 0;
         }
 
         public void DiscardPendingPaintStamps()

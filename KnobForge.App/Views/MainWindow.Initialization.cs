@@ -181,6 +181,10 @@ namespace KnobForge.App.Views
             _materialRegionCombo.ItemsSource = Enum.GetValues<MaterialRegionTarget>().Cast<MaterialRegionTarget>().ToList();
             _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
             _basisDebugModeCombo.ItemsSource = Enum.GetValues<BasisDebugMode>().Cast<BasisDebugMode>().ToList();
+            if (_envTonemapCombo != null)
+            {
+                _envTonemapCombo.ItemsSource = Enum.GetValues<TonemapOperator>().Cast<TonemapOperator>().ToList();
+            }
             _shadowSourceModeCombo.ItemsSource = Enum.GetValues<ShadowLightMode>().Cast<ShadowLightMode>().ToList();
             _brushPaintChannelCombo.ItemsSource = Enum.GetValues<PaintChannel>().Cast<PaintChannel>().ToList();
             _brushTypeCombo.ItemsSource = Enum.GetValues<PaintBrushType>().Cast<PaintBrushType>().ToList();
@@ -313,6 +317,14 @@ namespace KnobForge.App.Views
             {
                 _indicatorEmitterSourceAutoPhaseButton.Click += (_, _) => AutoDistributeIndicatorEmitterPhases();
             }
+            if (_envHdriApplyButton != null)
+            {
+                _envHdriApplyButton.Click += (_, _) => ApplyEnvironmentHdriPathFromUi();
+            }
+            if (_envHdriClearButton != null)
+            {
+                _envHdriClearButton.Click += (_, _) => ClearEnvironmentHdriPathFromUi();
+            }
             _resetViewButton.Click += (_, _) => _metalViewport?.ResetCamera();
             _clearPaintMaskButton.Click += (_, _) => OnClearPaintMask();
             _renderButton.Click += OnRenderButtonClick;
@@ -400,6 +412,10 @@ namespace KnobForge.App.Views
             if (_sliderThumbDepthSlider != null)
             {
                 _sliderThumbDepthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_pushButtonPressAmountSlider != null)
+            {
+                _pushButtonPressAmountSlider.PropertyChanged += OnPushButtonAssemblySettingsChanged;
             }
             if (_toggleAssemblyModeCombo != null)
             {
@@ -699,6 +715,18 @@ namespace KnobForge.App.Views
             {
                 _indicatorAssemblyEnabledCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
+            if (_indicatorQuickLightOnCheckBox != null)
+            {
+                _indicatorQuickLightOnCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorQuickBrightnessSlider != null)
+            {
+                _indicatorQuickBrightnessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorQuickGlowSlider != null)
+            {
+                _indicatorQuickGlowSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
             if (_indicatorBaseWidthSlider != null)
             {
                 _indicatorBaseWidthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
@@ -909,6 +937,34 @@ namespace KnobForge.App.Views
             _envBottomRSlider.PropertyChanged += OnEnvironmentChanged;
             _envBottomGSlider.PropertyChanged += OnEnvironmentChanged;
             _envBottomBSlider.PropertyChanged += OnEnvironmentChanged;
+            if (_envTonemapCombo != null)
+            {
+                _envTonemapCombo.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envExposureSlider != null)
+            {
+                _envExposureSlider.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomStrengthSlider != null)
+            {
+                _envBloomStrengthSlider.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomThresholdSlider != null)
+            {
+                _envBloomThresholdSlider.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomKneeSlider != null)
+            {
+                _envBloomKneeSlider.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envHdriBlendSlider != null)
+            {
+                _envHdriBlendSlider.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envHdriRotationSlider != null)
+            {
+                _envHdriRotationSlider.PropertyChanged += OnEnvironmentChanged;
+            }
             _shadowEnabledCheckBox.PropertyChanged += OnShadowSettingsChanged;
             _shadowSourceModeCombo.PropertyChanged += OnShadowSettingsChanged;
             _shadowStrengthSlider.PropertyChanged += OnShadowSettingsChanged;

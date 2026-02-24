@@ -12,8 +12,35 @@ namespace KnobForge.App.Views
     {
         private void OnEnvironmentChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (_updatingUi || e.Property != Slider.ValueProperty ||
+            if (_updatingUi ||
                 _envIntensitySlider == null || _envRoughnessMixSlider == null ||
+                _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
+                _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null)
+            {
+                return;
+            }
+
+            bool isTonemapCombo = ReferenceEquals(sender, _envTonemapCombo);
+            if (isTonemapCombo)
+            {
+                if (e.Property != ComboBox.SelectedItemProperty)
+                {
+                    return;
+                }
+            }
+            else if (e.Property != Slider.ValueProperty)
+            {
+                return;
+            }
+
+            CommitEnvironmentStateFromUi();
+
+            NotifyRenderOnly();
+        }
+
+        private void CommitEnvironmentStateFromUi()
+        {
+            if (_envIntensitySlider == null || _envRoughnessMixSlider == null ||
                 _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
                 _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null)
             {
@@ -30,6 +57,61 @@ namespace KnobForge.App.Views
                 (float)_envBottomRSlider.Value,
                 (float)_envBottomGSlider.Value,
                 (float)_envBottomBSlider.Value);
+
+            if (_envTonemapCombo?.SelectedItem is TonemapOperator tonemapOperator)
+            {
+                _project.ToneMappingOperator = tonemapOperator;
+            }
+
+            if (_envExposureSlider != null)
+            {
+                _project.EnvironmentExposure = (float)_envExposureSlider.Value;
+            }
+
+            if (_envBloomStrengthSlider != null)
+            {
+                _project.EnvironmentBloomStrength = (float)_envBloomStrengthSlider.Value;
+            }
+
+            if (_envBloomThresholdSlider != null)
+            {
+                _project.EnvironmentBloomThreshold = (float)_envBloomThresholdSlider.Value;
+            }
+
+            if (_envBloomKneeSlider != null)
+            {
+                _project.EnvironmentBloomKnee = (float)_envBloomKneeSlider.Value;
+            }
+
+            if (_envHdriBlendSlider != null)
+            {
+                _project.EnvironmentHdriBlend = (float)_envHdriBlendSlider.Value;
+            }
+
+            if (_envHdriRotationSlider != null)
+            {
+                _project.EnvironmentHdriRotationDegrees = (float)_envHdriRotationSlider.Value;
+            }
+        }
+
+        private void ApplyEnvironmentHdriPathFromUi()
+        {
+            if (_envHdriPathTextBox == null)
+            {
+                return;
+            }
+
+            _project.EnvironmentHdriPath = _envHdriPathTextBox.Text ?? string.Empty;
+            NotifyRenderOnly();
+        }
+
+        private void ClearEnvironmentHdriPathFromUi()
+        {
+            _project.EnvironmentHdriPath = string.Empty;
+            if (_envHdriPathTextBox != null)
+            {
+                _envHdriPathTextBox.Text = string.Empty;
+            }
 
             NotifyRenderOnly();
         }
@@ -224,6 +306,11 @@ namespace KnobForge.App.Views
             if (_sliderThumbDepthSlider != null && _sliderThumbDepthValueText != null)
             {
                 _sliderThumbDepthValueText.Text = FormatSliderDimensionValue(_sliderThumbDepthSlider.Value);
+            }
+
+            if (_pushButtonPressAmountSlider != null && _pushButtonPressAmountValueText != null)
+            {
+                _pushButtonPressAmountValueText.Text = $"{_pushButtonPressAmountSlider.Value:0.00}";
             }
 
             if (_toggleStateIndexSlider != null && _toggleStateIndexValueText != null)
@@ -666,6 +753,16 @@ namespace KnobForge.App.Views
                 _indicatorColorBValueText.Text = $"{_indicatorColorBSlider.Value:0.00}";
             }
 
+            if (_indicatorQuickBrightnessSlider != null && _indicatorQuickBrightnessValueText != null)
+            {
+                _indicatorQuickBrightnessValueText.Text = $"{_indicatorQuickBrightnessSlider.Value:0.00}x";
+            }
+
+            if (_indicatorQuickGlowSlider != null && _indicatorQuickGlowValueText != null)
+            {
+                _indicatorQuickGlowValueText.Text = $"{_indicatorQuickGlowSlider.Value:0.00}x";
+            }
+
             if (_indicatorBaseWidthSlider != null && _indicatorBaseWidthValueText != null)
             {
                 _indicatorBaseWidthValueText.Text = FormatSliderDimensionValue(_indicatorBaseWidthSlider.Value);
@@ -984,6 +1081,36 @@ namespace KnobForge.App.Views
             if (_envBottomBSlider != null && _envBottomBValueText != null)
             {
                 _envBottomBValueText.Text = $"{_envBottomBSlider.Value:0.00}";
+            }
+
+            if (_envExposureSlider != null && _envExposureValueText != null)
+            {
+                _envExposureValueText.Text = $"{_envExposureSlider.Value:0.00}";
+            }
+
+            if (_envBloomStrengthSlider != null && _envBloomStrengthValueText != null)
+            {
+                _envBloomStrengthValueText.Text = $"{_envBloomStrengthSlider.Value:0.00}";
+            }
+
+            if (_envBloomThresholdSlider != null && _envBloomThresholdValueText != null)
+            {
+                _envBloomThresholdValueText.Text = $"{_envBloomThresholdSlider.Value:0.00}";
+            }
+
+            if (_envBloomKneeSlider != null && _envBloomKneeValueText != null)
+            {
+                _envBloomKneeValueText.Text = $"{_envBloomKneeSlider.Value:0.00}";
+            }
+
+            if (_envHdriBlendSlider != null && _envHdriBlendValueText != null)
+            {
+                _envHdriBlendValueText.Text = $"{_envHdriBlendSlider.Value:0.00}";
+            }
+
+            if (_envHdriRotationSlider != null && _envHdriRotationValueText != null)
+            {
+                _envHdriRotationValueText.Text = $"{_envHdriRotationSlider.Value:0.0} deg";
             }
 
             if (_shadowStrengthSlider != null && _shadowStrengthValueText != null)

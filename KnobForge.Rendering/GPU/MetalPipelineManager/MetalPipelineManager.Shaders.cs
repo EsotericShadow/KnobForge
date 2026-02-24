@@ -53,6 +53,9 @@ struct GpuUniforms
     float4 debugBasisParams;
     float4 lensMaterialParams0;
     float4 lensMaterialTintAndAbsorption;
+    float4 environmentMapParams;
+    float4 postProcessParams;
+    float4 tonemapParams;
     GpuLight lights[MAX_LIGHTS];
     float4 dynamicLightParams;
     GpuLight dynamicLights[MAX_LIGHTS];
@@ -107,6 +110,51 @@ static inline float3 AcesFitted(float3 color)
     float3 aces = ACESInputMat * color;
     aces = RrtAndOdtFit(aces);
     return clamp(ACESOutputMat * aces, 0.0, 1.0);
+}
+
+static inline float3 AgxLikeTonemap(float3 color)
+{
+    float3 v = max(color, float3(1e-6));
+    float3 logEncoded = log2(v);
+    // Keep a broad dynamic range window similar to modern filmic looks.
+    logEncoded = clamp((logEncoded + 10.0) / 14.0, 0.0, 1.0);
+    float3 contrast = logEncoded * logEncoded * (3.0 - (2.0 * logEncoded));
+    float3 shaped = pow(clamp(contrast, 0.0, 1.0), float3(1.08));
+    return clamp(shaped, 0.0, 1.0);
+}
+
+static inline float3 ApplyTonemap(int mode, float3 color)
+{
+    if (mode == 1)
+    {
+        return AgxLikeTonemap(color);
+    }
+
+    return AcesFitted(color);
+}
+
+static inline float3 EvaluateEnvironmentLighting(
+    texture2d<float> environmentMap,
+    float3 direction,
+    float3 envBottom,
+    float3 envTop,
+    float envMapBlend,
+    bool envMapAvailable,
+    float envMapRotationRadians)
+{
+    float3 gradient = EvaluateEnvironmentColor(direction, envBottom, envTop);
+    if (!envMapAvailable || envMapBlend <= 1e-4)
+    {
+        return gradient;
+    }
+
+    float3 dir = normalize(direction);
+    float azimuth = atan2(dir.x, dir.z) + envMapRotationRadians;
+    float u = fract((azimuth * 0.15915494309) + 0.5);
+    float v = clamp(acos(clamp(dir.y, -1.0, 1.0)) * 0.31830988618, 0.0, 1.0);
+    constexpr sampler envSampler(filter::linear, mip_filter::linear, address::repeat);
+    float3 sampled = environmentMap.sample(envSampler, float2(u, v)).xyz;
+    return mix(gradient, sampled, clamp(envMapBlend, 0.0, 1.0));
 }
 
 static inline float Hash21(float2 p)
@@ -335,7 +383,8 @@ fragment float4 fragment_main(
     constant GpuUniforms& uniforms [[buffer(1)]],
     texture2d<float> spiralNormalMap [[texture(0)]],
     texture2d<float> paintMask [[texture(1)]],
-    texture2d<float> paintColor [[texture(2)]])
+    texture2d<float> paintColor [[texture(2)]],
+    texture2d<float> environmentMap [[texture(3)]])
 {
     if (uniforms.shadowParams.x > 0.5)
     {
@@ -370,7 +419,15 @@ fragment float4 fragment_main(
     int lightingMode = int(round(uniforms.materialRoughnessDiffuseSpecMode.w));
     bool emitterGlowMode = lightingMode == 4;
     float3 emitterGlowColor = Clamp01(uniforms.indicatorColorAndBlend.xyz);
-    float emitterGlowStrength = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 8.0);
+    float emitterGlowStrength = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 24.0);
+    float envMapBlend = clamp(uniforms.environmentMapParams.x, 0.0, 1.0);
+    bool envMapAvailable = uniforms.environmentMapParams.y > 0.5;
+    float envMapRotationRadians = uniforms.environmentMapParams.z;
+    float exposure = max(0.10, uniforms.postProcessParams.x);
+    float bloomThreshold = max(0.0, uniforms.postProcessParams.y);
+    float bloomKnee = max(0.001, uniforms.postProcessParams.z);
+    float bloomStrength = max(0.0, uniforms.postProcessParams.w);
+    int tonemapMode = int(round(uniforms.tonemapParams.x));
     float brushStrength = clamp(uniforms.materialSurfaceBrushParams.x, 0.0, 1.0);
     float brushDensity = max(1.0, uniforms.materialSurfaceBrushParams.y);
     float brushDensityFactor = clamp((brushDensity - 4.0) / 316.0, 0.0, 1.0);
@@ -766,7 +823,14 @@ fragment float4 fragment_main(
     float envRoughMix = clamp(uniforms.environmentBottomColorAndRoughnessMix.w, 0.0, 1.0);
 
     float3 R = reflect(-viewDir, normal);
-    float3 envColor = EvaluateEnvironmentColor(R, envBottom, envTop);
+    float3 envColor = EvaluateEnvironmentLighting(
+        environmentMap,
+        R,
+        envBottom,
+        envTop,
+        envMapBlend,
+        envMapAvailable,
+        envMapRotationRadians);
     float envSpecWeight = 0.20 + 1.15 * metallic;
     float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
     float3 specTint = mix(float3(1.0), chromeTint, metallic);
@@ -816,9 +880,23 @@ fragment float4 fragment_main(
 
         float opticalPath = lensThickness / max(0.16, NdotV);
         float3 absorptionFilter = exp(-lensAbsorption * opticalPath * (1.0 - lensTint));
-        float3 refractedEnv = EvaluateEnvironmentColor(refractedDir, envBottom, envTop);
+        float3 refractedEnv = EvaluateEnvironmentLighting(
+            environmentMap,
+            refractedDir,
+            envBottom,
+            envTop,
+            envMapBlend,
+            envMapAvailable,
+            envMapRotationRadians);
         float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
-        float3 refractedEnvWide = EvaluateEnvironmentColor(refractedDirWide, envBottom, envTop);
+        float3 refractedEnvWide = EvaluateEnvironmentLighting(
+            environmentMap,
+            refractedDirWide,
+            envBottom,
+            envTop,
+            envMapBlend,
+            envMapAvailable,
+            envMapRotationRadians);
         float3 transmittedEnv = refractedEnv * lensTint * absorptionFilter;
         float3 transmittedEnvWide = refractedEnvWide * lensTint * absorptionFilter;
         float3 transmittedBody = accum * lensTint * absorptionFilter * (0.10 + 0.30 * NdotV);
@@ -846,7 +924,17 @@ fragment float4 fragment_main(
     }
 
     accum = max(float3(0.0), accum);
-    accum = AcesFitted(accum);
+    accum *= exposure;
+
+    float luminance = dot(accum, float3(0.2126, 0.7152, 0.0722));
+    float kneeStart = max(0.0, bloomThreshold - bloomKnee);
+    float highlightMask = smoothstep(kneeStart, bloomThreshold + bloomKnee, luminance);
+    float highlightExcess = max(0.0, luminance - bloomThreshold);
+    float bloomEnergy = (highlightExcess + (highlightMask * bloomKnee)) * bloomStrength;
+    float3 bloomColor = normalize(max(accum, float3(1e-4))) * bloomEnergy;
+    accum += bloomColor;
+
+    accum = ApplyTonemap(tonemapMode, accum);
     return float4(accum, outputAlpha);
 }";
 }

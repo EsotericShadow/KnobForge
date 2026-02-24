@@ -219,6 +219,7 @@ namespace KnobForge.App.Controls
         private IntPtr _msaaColorTexture;
         private IntPtr _msaaDepthTexture;
         private IntPtr _spiralNormalTexture;
+        private IntPtr _environmentMapTexture;
         private IntPtr _paintMaskTexture;
         private IntPtr _paintColorTexture;
         private IntPtr _paintStampLibrary;
@@ -260,6 +261,8 @@ namespace KnobForge.App.Controls
         private PushButtonAssemblyShapeKey _pushButtonAssemblyShapeKey;
         private IndicatorAssemblyShapeKey _indicatorAssemblyShapeKey;
         private SpiralNormalMapKey _spiralNormalMapKey;
+        private string _environmentMapTexturePath = string.Empty;
+        private long _environmentMapTextureWriteTicks;
         private MetalMeshGpuResources? _meshResources;
         private MetalMeshGpuResources? _collarResources;
         private MetalMeshGpuResources? _sliderBackplateResources;
@@ -358,6 +361,7 @@ namespace KnobForge.App.Controls
                 _pushButtonAssemblyShapeKey = default;
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
+                ReleaseEnvironmentMapTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
                 ReleasePaintStampResources();
@@ -562,6 +566,7 @@ namespace KnobForge.App.Controls
 
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
+                ReleaseEnvironmentMapTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
                 ReleasePaintStampResources();
@@ -764,7 +769,9 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorReflector ? _indicatorReflectorResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorEmitters ? _indicatorEmitterResources : null);
 
+                EnsureEnvironmentMapTexture(_project);
                 GpuUniforms knobUniforms = BuildUniforms(_project, modelNode, sceneReferenceRadius, Bounds.Size);
+                knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
@@ -856,6 +863,14 @@ namespace KnobForge.App.Controls
                     primaryEmitterColor.Red / 255f,
                     primaryEmitterColor.Green / 255f,
                     primaryEmitterColor.Blue / 255f);
+                float primaryEmitterIntensity = MathF.Max(0f, primaryEmitter?.Intensity ?? 0f);
+                float indicatorLightEnabledFactor = _project?.DynamicLightRig.Enabled == true ? 1f : 0f;
+                float indicatorMasterBrightness = _project != null
+                    ? MathF.Max(0f, _project.DynamicLightRig.MasterIntensity)
+                    : 1f;
+                float indicatorGlow = _project != null
+                    ? MathF.Max(0f, _project.DynamicLightRig.EmissiveGlow)
+                    : 1f;
                 GpuUniforms indicatorBaseUniforms = drawIndicatorBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -899,7 +914,10 @@ namespace KnobForge.App.Controls
                     ? BuildIndicatorEmitterUniforms(
                         knobUniforms,
                         emissionColor: emitterColor,
-                        emissionStrength: 1.45f + (MathF.Max(0f, primaryEmitter?.Intensity ?? 1f) * 1.65f),
+                        emissionStrength:
+                            indicatorLightEnabledFactor *
+                            (0.15f + (primaryEmitterIntensity * indicatorMasterBrightness * 1.85f)) *
+                            (0.35f + (indicatorGlow * 0.65f)),
                         roughness: 0.10f)
                     : default;
                 EnsurePaintMaskTexture(_project);
@@ -937,6 +955,11 @@ namespace KnobForge.App.Controls
                             Selectors.SetFragmentTextureAtIndex,
                             _paintColorTexture,
                             2);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            _environmentMapTexture,
+                            3);
 
                         Size viewportDip = Bounds.Size;
                         float renderScale = GetRenderScale();
@@ -1188,28 +1211,6 @@ namespace KnobForge.App.Controls
                             0);
                     }
 
-                    if (drawIndicatorLens)
-                    {
-                        MetalPipelineManager.SetFrontFacingWinding(
-                            new MTLRenderCommandEncoderHandle(encoderPtr),
-                            frontFacingClockwiseAssembly);
-                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
-                            encoderPtr,
-                            Selectors.SetVertexBufferOffsetAtIndex,
-                            _indicatorLensResources!.VertexBuffer.Handle,
-                            0,
-                            0);
-                        UploadUniforms(encoderPtr, indicatorLensUniforms);
-                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
-                            encoderPtr,
-                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
-                            3, // MTLPrimitiveTypeTriangle
-                            (nuint)_indicatorLensResources.IndexCount,
-                            (nuint)_indicatorLensResources.IndexType,
-                            _indicatorLensResources.IndexBuffer.Handle,
-                            0);
-                    }
-
                     if (drawIndicatorEmitters)
                     {
                         MetalPipelineManager.SetFrontFacingWinding(
@@ -1230,6 +1231,31 @@ namespace KnobForge.App.Controls
                             (nuint)_indicatorEmitterResources.IndexType,
                             _indicatorEmitterResources.IndexBuffer.Handle,
                             0);
+                    }
+
+                    if (drawIndicatorLens)
+                    {
+                        // Draw translucent lens last with depth-read only so interior parts remain visible.
+                        pipelineManager.UseDepthReadOnlyState(new MTLRenderCommandEncoderHandle(encoderPtr));
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _indicatorLensResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, indicatorLensUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_indicatorLensResources.IndexCount,
+                            (nuint)_indicatorLensResources.IndexType,
+                            _indicatorLensResources.IndexBuffer.Handle,
+                            0);
+                        pipelineManager.UseDepthWriteState(new MTLRenderCommandEncoderHandle(encoderPtr));
                     }
 
                     if (drawCollar)
