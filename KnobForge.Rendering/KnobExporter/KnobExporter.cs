@@ -39,19 +39,22 @@ namespace KnobForge.Rendering
         private readonly OrientationDebug _orientation;
         private readonly ViewportCameraState? _cameraState;
         private readonly Func<int, int, ViewportCameraState, SKBitmap?> _gpuFrameProvider;
+        private readonly Action<int, int>? _frameStateApplier;
         private readonly PreviewRenderer _renderer;
 
         public KnobExporter(
             KnobProject project,
             OrientationDebug orientation,
             ViewportCameraState? cameraState = null,
-            Func<int, int, ViewportCameraState, SKBitmap?>? gpuFrameProvider = null)
+            Func<int, int, ViewportCameraState, SKBitmap?>? gpuFrameProvider = null,
+            Action<int, int>? frameStateApplier = null)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _orientation = orientation ?? throw new ArgumentNullException(nameof(orientation));
             _cameraState = cameraState;
             _gpuFrameProvider = gpuFrameProvider
                 ?? throw new ArgumentNullException(nameof(gpuFrameProvider), "GPU-only export requires an offscreen GPU frame provider.");
+            _frameStateApplier = frameStateApplier;
             _renderer = new PreviewRenderer(_project);
             _renderer.Orientation.InvertX = _orientation.InvertX;
             _renderer.Orientation.InvertY = _orientation.InvertY;
@@ -151,7 +154,7 @@ namespace KnobForge.Rendering
                 using var frameBitmap = new SKBitmap(new SKImageInfo(
                     resolution,
                     resolution,
-                    SKColorType.Rgba8888,
+                    SKColorType.Bgra8888,
                     SKAlphaType.Premul));
                 using var frameCanvas = new SKCanvas(frameBitmap);
                 SKSamplingOptions downsampleSampling = new(new SKCubicResampler(1f / 3f, 1f / 3f));
@@ -177,6 +180,7 @@ namespace KnobForge.Rendering
                     SKPaint? spritesheetPaint = null;
                     try
                     {
+                        bool anyOpaqueFrame = false;
                         if (exportSpritesheet)
                         {
                             spritesheetPlan = ResolveSpritesheetPlan(
@@ -189,7 +193,7 @@ namespace KnobForge.Rendering
                             spritesheetBitmap = new SKBitmap(new SKImageInfo(
                                 spritesheetPlan.Value.Width,
                                 spritesheetPlan.Value.Height,
-                                SKColorType.Rgba8888,
+                                SKColorType.Bgra8888,
                                 SKAlphaType.Premul));
                             spritesheetCanvas = new SKCanvas(spritesheetBitmap);
                             spritesheetCanvas.Clear(new SKColor(0, 0, 0, 0));
@@ -215,15 +219,22 @@ namespace KnobForge.Rendering
                                 totalFrames,
                                 $"Rendering {viewVariant.Name} {i + 1}/{frameCount}"));
 
-                            ApplyFrameState(
-                                i,
-                                frameCount,
-                                angleStep,
-                                originalRotations,
-                                originalToggleStateIndex,
-                                originalToggleStateBlendPosition,
-                                originalSliderThumbPositionNormalized,
-                                originalPushButtonPressAmountNormalized);
+                            if (_frameStateApplier != null)
+                            {
+                                _frameStateApplier(i, frameCount);
+                            }
+                            else
+                            {
+                                ApplyFrameState(
+                                    i,
+                                    frameCount,
+                                    angleStep,
+                                    originalRotations,
+                                    originalToggleStateIndex,
+                                    originalToggleStateBlendPosition,
+                                    originalSliderThumbPositionNormalized,
+                                    originalPushButtonPressAmountNormalized);
+                            }
 
                             frameCanvas.Clear(new SKColor(0, 0, 0, 0));
 
@@ -251,6 +262,7 @@ namespace KnobForge.Rendering
                                     directSampling,
                                     downsamplePaint);
                             }
+                            anyOpaqueFrame |= HasOpaquePixels(frameBitmap, 2);
 
                             if (exportFrames)
                             {
@@ -269,6 +281,12 @@ namespace KnobForge.Rendering
                             }
 
                             completedFrames++;
+                        }
+
+                        if (!anyOpaqueFrame)
+                        {
+                            throw new InvalidOperationException(
+                                $"Rendered viewpoint '{viewVariant.Name}' produced empty frames. Adjust camera/viewpoint framing and retry.");
                         }
 
                         if (exportSpritesheet && spritesheetBitmap != null)
@@ -325,6 +343,22 @@ namespace KnobForge.Rendering
                 _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;
                 _project.PushButtonPressAmountNormalized = originalPushButtonPressAmountNormalized;
             }
+        }
+
+        private static bool HasOpaquePixels(SKBitmap bitmap, byte alphaThreshold)
+        {
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    if (bitmap.GetPixel(x, y).Alpha > alphaThreshold)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void ApplyFrameState(

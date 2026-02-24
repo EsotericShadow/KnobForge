@@ -172,8 +172,90 @@ namespace KnobForge.App.Views
                     OrbitYawDeg = baseYawDeg,
                     OrbitPitchDeg = basePitchDeg
                 };
+                Action<int, int>? frameStateApplier = null;
 
-                var exporter = new KnobExporter(_project, _orientation, exportCameraState, gpuFrameProvider);
+                // For non-rotary interactors, match export framing to the interactive preview fit pass.
+                // This avoids blank sheets when manual camera pan/zoom no longer encloses the assembly.
+                if (_project.ProjectType != InteractorProjectType.RotaryKnob)
+                {
+                    var stateSnapshot = await Dispatcher.UIThread.InvokeAsync(
+                        () => (
+                            ModelRotations: CaptureModelRotations(),
+                            ToggleStateIndex: _project.ToggleStateIndex,
+                            ToggleStateBlendPosition: _project.ToggleStateBlendPosition,
+                            SliderThumbPositionNormalized: _project.SliderThumbPositionNormalized,
+                            PushButtonPressAmountNormalized: _project.PushButtonPressAmountNormalized),
+                        DispatcherPriority.Background);
+
+                    var fitRequest = new PreviewRenderRequest(
+                        FrameCount: settings.FrameCount,
+                        Resolution: settings.Resolution,
+                        SupersampleScale: settings.SupersampleScale,
+                        RenderResolution: checked(settings.Resolution * settings.SupersampleScale),
+                        Padding: settings.Padding,
+                        CameraState: exportCameraState);
+
+                    int fittingSamples = Math.Clamp(Math.Min(settings.FrameCount, 12), 4, 12);
+                    ExportViewpoint[] resolvedViewpoints = ExportViewpointResolver.ResolveViewpoints(settings);
+                    var fittedViewpoints = new System.Collections.Generic.List<ExportViewpoint>(resolvedViewpoints.Length);
+                    for (int viewpointIndex = 0; viewpointIndex < resolvedViewpoints.Length; viewpointIndex++)
+                    {
+                        _exportCts.Token.ThrowIfCancellationRequested();
+                        ExportViewpoint sourceViewpoint = resolvedViewpoints[viewpointIndex];
+                        ViewportCameraState viewpointCameraState = ExportViewpointResolver.ApplyViewpoint(exportCameraState, sourceViewpoint);
+                        ViewportCameraState fittedViewpointCameraState = await FitRotaryPreviewCameraAsync(
+                            fitRequest,
+                            viewpointCameraState,
+                            stateSnapshot.ModelRotations,
+                            stateSnapshot.ToggleStateIndex,
+                            stateSnapshot.ToggleStateBlendPosition,
+                            stateSnapshot.SliderThumbPositionNormalized,
+                            stateSnapshot.PushButtonPressAmountNormalized,
+                            fittingSamples,
+                            _exportCts.Token);
+
+                        fittedViewpoints.Add(new ExportViewpoint
+                        {
+                            Name = sourceViewpoint.Name,
+                            FileTag = sourceViewpoint.FileTag,
+                            Enabled = sourceViewpoint.Enabled,
+                            Order = sourceViewpoint.Order,
+                            UseAbsoluteCamera = true,
+                            OrbitYawDeg = fittedViewpointCameraState.OrbitYawDeg,
+                            OrbitPitchDeg = fittedViewpointCameraState.OrbitPitchDeg,
+                            YawOffsetDeg = 0f,
+                            PitchOffsetDeg = 0f,
+                            OverrideZoom = true,
+                            Zoom = fittedViewpointCameraState.Zoom,
+                            OverridePan = true,
+                            PanXPx = fittedViewpointCameraState.PanPx.X,
+                            PanYPx = fittedViewpointCameraState.PanPx.Y
+                        });
+                    }
+
+                    settings.ExportViewpoints = fittedViewpoints;
+
+                    frameStateApplier = (frameIndex, frameCount) =>
+                    {
+                        float angleStep = (2f * MathF.PI) / Math.Max(1, frameCount);
+                        Dispatcher.UIThread
+                            .InvokeAsync(
+                                () => ApplyPreviewFrameState(
+                                    frameIndex,
+                                    frameCount,
+                                    angleStep,
+                                    stateSnapshot.ModelRotations,
+                                    stateSnapshot.ToggleStateIndex,
+                                    stateSnapshot.ToggleStateBlendPosition,
+                                    stateSnapshot.SliderThumbPositionNormalized,
+                                    stateSnapshot.PushButtonPressAmountNormalized),
+                                DispatcherPriority.Render)
+                            .GetAwaiter()
+                            .GetResult();
+                    };
+                }
+
+                var exporter = new KnobExporter(_project, _orientation, exportCameraState, gpuFrameProvider, frameStateApplier);
                 var progress = new Progress<KnobExportProgress>(UpdateProgress);
                 KnobExportResult result = await exporter.ExportAsync(
                     settings,
