@@ -733,7 +733,11 @@ namespace KnobForge.App.Controls
                         assemblyMaterialPalette.BaseColor,
                         assemblyMaterialPalette.BaseMetallic,
                         assemblyMaterialPalette.BaseRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        assemblyMaterialPalette.Pearlescence,
+                        surfaceBrushStrength: 0.72f,
+                        surfaceBrushDensity: 82f,
+                        surfaceCharacter: 0.58f,
+                        anisotropyAngleRadians: 0f)
                     : default;
                 GpuUniforms toggleLeverUniforms = drawToggleLever
                     ? BuildSliderPartUniforms(

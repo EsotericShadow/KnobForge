@@ -301,6 +301,46 @@ namespace KnobForge.App.Views
                 _toggleUpperBushingHeightRatioValueText.Text = $"{_toggleUpperBushingHeightRatioSlider.Value:0.00}x";
             }
 
+            if (_toggleUpperBushingKnurlAmountSlider != null && _toggleUpperBushingKnurlAmountValueText != null)
+            {
+                _toggleUpperBushingKnurlAmountValueText.Text = $"{_toggleUpperBushingKnurlAmountSlider.Value:0.00}";
+            }
+
+            if (_toggleUpperBushingKnurlDensitySlider != null && _toggleUpperBushingKnurlDensityValueText != null)
+            {
+                _toggleUpperBushingKnurlDensityValueText.Text = $"{Math.Round(_toggleUpperBushingKnurlDensitySlider.Value):0}";
+            }
+
+            if (_toggleUpperBushingKnurlDepthSlider != null && _toggleUpperBushingKnurlDepthValueText != null)
+            {
+                _toggleUpperBushingKnurlDepthValueText.Text = $"{_toggleUpperBushingKnurlDepthSlider.Value:0.00}";
+            }
+
+            if (_togglePivotHousingRadiusSlider != null && _togglePivotHousingRadiusValueText != null)
+            {
+                _togglePivotHousingRadiusValueText.Text = FormatSliderDimensionValue(_togglePivotHousingRadiusSlider.Value);
+            }
+
+            if (_togglePivotHousingDepthSlider != null && _togglePivotHousingDepthValueText != null)
+            {
+                _togglePivotHousingDepthValueText.Text = FormatSliderDimensionValue(_togglePivotHousingDepthSlider.Value);
+            }
+
+            if (_togglePivotHousingBevelSlider != null && _togglePivotHousingBevelValueText != null)
+            {
+                _togglePivotHousingBevelValueText.Text = FormatSliderDimensionValue(_togglePivotHousingBevelSlider.Value);
+            }
+
+            if (_togglePivotBallRadiusSlider != null && _togglePivotBallRadiusValueText != null)
+            {
+                _togglePivotBallRadiusValueText.Text = FormatSliderDimensionValue(_togglePivotBallRadiusSlider.Value);
+            }
+
+            if (_togglePivotClearanceSlider != null && _togglePivotClearanceValueText != null)
+            {
+                _togglePivotClearanceValueText.Text = $"{_togglePivotClearanceSlider.Value:0.00}px";
+            }
+
             if (_toggleLeverLengthSlider != null && _toggleLeverLengthValueText != null)
             {
                 _toggleLeverLengthValueText.Text = FormatSliderDimensionValue(_toggleLeverLengthSlider.Value);

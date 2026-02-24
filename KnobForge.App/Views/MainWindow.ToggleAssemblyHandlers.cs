@@ -30,6 +30,14 @@ namespace KnobForge.App.Views
                 _toggleLowerBushingHeightRatioSlider == null ||
                 _toggleUpperBushingRadiusScaleSlider == null ||
                 _toggleUpperBushingHeightRatioSlider == null ||
+                _toggleUpperBushingKnurlAmountSlider == null ||
+                _toggleUpperBushingKnurlDensitySlider == null ||
+                _toggleUpperBushingKnurlDepthSlider == null ||
+                _togglePivotHousingRadiusSlider == null ||
+                _togglePivotHousingDepthSlider == null ||
+                _togglePivotHousingBevelSlider == null ||
+                _togglePivotBallRadiusSlider == null ||
+                _togglePivotClearanceSlider == null ||
                 _toggleInvertBaseWindingCheckBox == null ||
                 _toggleInvertLeverWindingCheckBox == null ||
                 _toggleLeverLengthSlider == null ||
@@ -145,6 +153,14 @@ namespace KnobForge.App.Views
                 _toggleLowerBushingHeightRatioSlider == null ||
                 _toggleUpperBushingRadiusScaleSlider == null ||
                 _toggleUpperBushingHeightRatioSlider == null ||
+                _toggleUpperBushingKnurlAmountSlider == null ||
+                _toggleUpperBushingKnurlDensitySlider == null ||
+                _toggleUpperBushingKnurlDepthSlider == null ||
+                _togglePivotHousingRadiusSlider == null ||
+                _togglePivotHousingDepthSlider == null ||
+                _togglePivotHousingBevelSlider == null ||
+                _togglePivotBallRadiusSlider == null ||
+                _togglePivotClearanceSlider == null ||
                 _toggleInvertBaseWindingCheckBox == null ||
                 _toggleInvertLeverWindingCheckBox == null ||
                 _toggleLeverLengthSlider == null ||
@@ -215,6 +231,16 @@ namespace KnobForge.App.Views
             _project.ToggleLowerBushingHeightRatio = (float)_toggleLowerBushingHeightRatioSlider.Value;
             _project.ToggleUpperBushingRadiusScale = (float)_toggleUpperBushingRadiusScaleSlider.Value;
             _project.ToggleUpperBushingHeightRatio = (float)_toggleUpperBushingHeightRatioSlider.Value;
+            _project.ToggleUpperBushingKnurlAmount = (float)_toggleUpperBushingKnurlAmountSlider.Value;
+            int upperBushingKnurlDensity = Math.Clamp((int)Math.Round(_toggleUpperBushingKnurlDensitySlider.Value), 3, 96);
+            _toggleUpperBushingKnurlDensitySlider.Value = upperBushingKnurlDensity;
+            _project.ToggleUpperBushingKnurlDensity = upperBushingKnurlDensity;
+            _project.ToggleUpperBushingKnurlDepth = (float)_toggleUpperBushingKnurlDepthSlider.Value;
+            _project.TogglePivotHousingRadius = (float)_togglePivotHousingRadiusSlider.Value;
+            _project.TogglePivotHousingDepth = (float)_togglePivotHousingDepthSlider.Value;
+            _project.TogglePivotHousingBevel = (float)_togglePivotHousingBevelSlider.Value;
+            _project.TogglePivotBallRadius = (float)_togglePivotBallRadiusSlider.Value;
+            _project.TogglePivotClearance = (float)_togglePivotClearanceSlider.Value;
             _project.ToggleInvertBaseFrontFaceWinding = _toggleInvertBaseWindingCheckBox.IsChecked == true;
             _project.ToggleInvertLeverFrontFaceWinding = _toggleInvertLeverWindingCheckBox.IsChecked == true;
             _project.ToggleLeverLength = (float)_toggleLeverLengthSlider.Value;

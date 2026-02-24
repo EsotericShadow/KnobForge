@@ -100,6 +100,14 @@ namespace KnobForge.App.Views
             _project.ToggleLowerBushingHeightRatio = snapshot.ToggleLowerBushingHeightRatio;
             _project.ToggleUpperBushingRadiusScale = snapshot.ToggleUpperBushingRadiusScale;
             _project.ToggleUpperBushingHeightRatio = snapshot.ToggleUpperBushingHeightRatio;
+            _project.ToggleUpperBushingKnurlAmount = snapshot.ToggleUpperBushingKnurlAmount;
+            _project.ToggleUpperBushingKnurlDensity = snapshot.ToggleUpperBushingKnurlDensity;
+            _project.ToggleUpperBushingKnurlDepth = snapshot.ToggleUpperBushingKnurlDepth;
+            _project.TogglePivotHousingRadius = snapshot.TogglePivotHousingRadius;
+            _project.TogglePivotHousingDepth = snapshot.TogglePivotHousingDepth;
+            _project.TogglePivotHousingBevel = snapshot.TogglePivotHousingBevel;
+            _project.TogglePivotBallRadius = snapshot.TogglePivotBallRadius;
+            _project.TogglePivotClearance = snapshot.TogglePivotClearance;
             _project.ToggleInvertBaseFrontFaceWinding = snapshot.ToggleInvertBaseFrontFaceWinding;
             _project.ToggleInvertLeverFrontFaceWinding = snapshot.ToggleInvertLeverFrontFaceWinding;
             _project.ToggleLeverLength = snapshot.ToggleLeverLength;

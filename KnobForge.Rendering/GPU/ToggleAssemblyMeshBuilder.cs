@@ -33,6 +33,14 @@ public readonly record struct ToggleAssemblyConfig(
     float LowerBushingHeightRatio,
     float UpperBushingRadiusScale,
     float UpperBushingHeightRatio,
+    float UpperBushingKnurlAmount,
+    int UpperBushingKnurlDensity,
+    float UpperBushingKnurlDepth,
+    float PivotHousingRadius,
+    float PivotHousingDepth,
+    float PivotHousingBevel,
+    float PivotBallRadius,
+    float PivotClearance,
     float LeverLength,
     float LeverBottomRadius,
     float LeverTopRadius,
@@ -113,11 +121,27 @@ public static class ToggleAssemblyMeshBuilder
         float lowerBushingHeightRatio = Math.Clamp(project.ToggleLowerBushingHeightRatio, 0.05f, 2f);
         float upperBushingRadiusScale = Math.Clamp(project.ToggleUpperBushingRadiusScale, 0.25f, 4f);
         float upperBushingHeightRatio = Math.Clamp(project.ToggleUpperBushingHeightRatio, 0.05f, 2f);
+        float upperBushingKnurlAmount = Math.Clamp(project.ToggleUpperBushingKnurlAmount, 0f, 1f);
+        int upperBushingKnurlDensity = Math.Clamp(project.ToggleUpperBushingKnurlDensity, 3, 96);
+        float upperBushingKnurlDepth = Math.Clamp(project.ToggleUpperBushingKnurlDepth, 0f, 1f);
         float leverLength = ResolveDimensionOverride(project.ToggleLeverLength, knobRadius * 0.90f);
         float leverBottomRadius = ResolveDimensionOverride(project.ToggleLeverRadius, knobRadius * 0.065f);
         float leverTopRadius = ResolveDimensionOverride(project.ToggleLeverTopRadius, leverBottomRadius * 0.52f);
         int leverSides = Math.Clamp(project.ToggleLeverSides, 6, 64);
         float leverPivotOffset = project.ToggleLeverPivotOffset;
+        float pivotBallRadius = ResolveDimensionOverride(
+            project.TogglePivotBallRadius,
+            MathF.Max(0.5f, leverBottomRadius * 1.28f));
+        float pivotClearance = Math.Clamp(project.TogglePivotClearance, 0f, 128f);
+        float pivotHousingRadius = ResolveDimensionOverride(
+            project.TogglePivotHousingRadius,
+            MathF.Max(0.75f, pivotBallRadius + pivotClearance));
+        float pivotHousingDepth = ResolveDimensionOverride(
+            project.TogglePivotHousingDepth,
+            MathF.Max(1f, bushingHeight * 0.42f));
+        float pivotHousingBevel = ResolveDimensionOverride(
+            project.TogglePivotHousingBevel,
+            MathF.Max(0f, pivotHousingDepth * 0.22f));
         float tipRadius = ResolveDimensionOverride(project.ToggleTipRadius, knobRadius * 0.11f);
         int tipLatitudeSegments = Math.Clamp(project.ToggleTipLatitudeSegments, 4, 64);
         int tipLongitudeSegments = Math.Clamp(project.ToggleTipLongitudeSegments, 6, 128);
@@ -161,6 +185,14 @@ public static class ToggleAssemblyMeshBuilder
             LowerBushingHeightRatio: lowerBushingHeightRatio,
             UpperBushingRadiusScale: upperBushingRadiusScale,
             UpperBushingHeightRatio: upperBushingHeightRatio,
+            UpperBushingKnurlAmount: upperBushingKnurlAmount,
+            UpperBushingKnurlDensity: upperBushingKnurlDensity,
+            UpperBushingKnurlDepth: upperBushingKnurlDepth,
+            PivotHousingRadius: pivotHousingRadius,
+            PivotHousingDepth: pivotHousingDepth,
+            PivotHousingBevel: pivotHousingBevel,
+            PivotBallRadius: pivotBallRadius,
+            PivotClearance: pivotClearance,
             LeverLength: leverLength,
             LeverBottomRadius: leverBottomRadius,
             LeverTopRadius: leverTopRadius,
@@ -228,7 +260,8 @@ public static class ToggleAssemblyMeshBuilder
             lowerBushingCenter,
             lowerBushingRadius,
             lowerBushingHeight,
-            lowerBushingSides);
+            lowerBushingSides,
+            topDiscCircularTangents: false);
 
         Vector3 upperBushingCenter = new(
             plateCenter.X,
@@ -240,7 +273,62 @@ public static class ToggleAssemblyMeshBuilder
             upperBushingCenter,
             upperBushingRadius,
             upperBushingHeight,
-            upperBushingSides);
+            upperBushingSides,
+            topDiscCircularTangents: true,
+            sideKnurlAmount: config.UpperBushingKnurlAmount,
+            sideKnurlDensity: config.UpperBushingKnurlDensity,
+            sideKnurlDepth: config.UpperBushingKnurlDepth);
+
+        float pivotZ = plateTop + lowerBushingHeight + upperBushingHeight + config.LeverPivotOffset;
+        float housingOuterRadius = MathF.Max(0.75f, upperBushingRadius * 0.95f);
+        float requestedInnerRadius = MathF.Max(config.PivotHousingRadius, config.PivotBallRadius + config.PivotClearance);
+        float housingInnerRadius = Math.Clamp(requestedInnerRadius, 0.2f, housingOuterRadius - 0.05f);
+        float housingDepth = Math.Clamp(config.PivotHousingDepth, 0.2f, upperBushingHeight * 1.8f);
+        float housingBevel = Math.Clamp(
+            config.PivotHousingBevel,
+            0f,
+            MathF.Min(housingDepth * 0.95f, (housingOuterRadius - housingInnerRadius) * 0.95f));
+        int housingSides = Math.Clamp(Math.Max(upperBushingSides, 24), 12, 128);
+
+        Vector3 housingBottom = new(plateCenter.X, plateCenter.Y, pivotZ - housingDepth);
+        Vector3 housingTop = new(plateCenter.X, plateCenter.Y, pivotZ);
+        Vector3 straightTop = housingTop - new Vector3(0f, 0f, housingBevel);
+        if (housingBevel > 0.05f)
+        {
+            if (straightTop.Z > housingBottom.Z + 0.05f)
+            {
+                AddHollowCylinder(
+                    vertices,
+                    indices,
+                    housingBottom,
+                    straightTop,
+                    housingInnerRadius,
+                    housingOuterRadius,
+                    housingSides);
+            }
+
+            AddHollowFrustum(
+                vertices,
+                indices,
+                straightTop,
+                housingTop,
+                housingInnerRadius + housingBevel,
+                housingOuterRadius,
+                housingInnerRadius,
+                housingOuterRadius,
+                housingSides);
+        }
+        else
+        {
+            AddHollowCylinder(
+                vertices,
+                indices,
+                housingBottom,
+                housingTop,
+                housingInnerRadius,
+                housingOuterRadius,
+                housingSides);
+        }
 
         return BuildPartMesh(vertices, indices);
     }
@@ -288,6 +376,13 @@ public static class ToggleAssemblyMeshBuilder
             config.LeverTopRadius,
             MathF.Max(0.25f, config.TipRadius * 0.96f));
         Vector3 endpoint = pivot + (direction * config.LeverLength);
+        AddSphere(
+            vertices,
+            indices,
+            pivot,
+            MathF.Max(0.5f, config.PivotBallRadius),
+            Math.Clamp(Math.Max(config.TipLatitudeSegments, 10), 8, 64),
+            Math.Clamp(Math.Max(config.TipLongitudeSegments, 14), 10, 96));
         AddRoundedTaperedCylinder(
             vertices,
             indices,
@@ -369,6 +464,25 @@ public static class ToggleAssemblyMeshBuilder
             config.TipSleevePatternCount,
             config.TipSleevePatternDepth,
             config.TipSleeveTipAmount);
+
+        if (config.TipSleeveTipStyle == ToggleTipSleeveTipStyle.Rounded)
+        {
+            float capRadius = MathF.Max(
+                sleeveOuterRadius * 0.86f,
+                sleeveInnerRadius + 0.12f);
+            int capLatitudeSegments = Math.Clamp(Math.Max(config.TipLatitudeSegments, 10), 8, 64);
+            int capLongitudeSegments = Math.Clamp(Math.Max(config.TipLongitudeSegments, 14), 10, 96);
+
+            // Attach a spherical cap to the sleeve end to form a true rounded sleeve tip.
+            Vector3 capCenter = sleeveEnd + (direction * (capRadius * 0.22f));
+            AddSphere(
+                vertices,
+                indices,
+                capCenter,
+                capRadius,
+                capLatitudeSegments,
+                capLongitudeSegments);
+        }
 
         return BuildPartMesh(vertices, indices);
     }
@@ -497,23 +611,46 @@ public static class ToggleAssemblyMeshBuilder
         Vector3 center,
         float radius,
         float height,
-        int sides)
+        int sides,
+        bool topDiscCircularTangents = false,
+        float sideKnurlAmount = 0f,
+        int sideKnurlDensity = 20,
+        float sideKnurlDepth = 0f)
     {
-        int sideCount = Math.Clamp(sides, 3, 32);
+        int sideCount = Math.Clamp(sides, 3, 96);
         float hz = MathF.Max(0.5f, height * 0.5f);
         float r = MathF.Max(0.5f, radius);
-        float step = MathF.PI * 2f / sideCount;
+        bool knurlEnabled = sideKnurlAmount > 1e-4f &&
+            sideKnurlDepth > 1e-4f;
+        int tessellatedSides = knurlEnabled
+            ? Math.Clamp(Math.Max(sideCount, Math.Max(12, sideKnurlDensity * 4)), 12, 192)
+            : sideCount;
+        float step = MathF.PI * 2f / tessellatedSides;
 
-        for (int i = 0; i < sideCount; i++)
+        for (int i = 0; i < tessellatedSides; i++)
         {
             float a0 = i * step;
-            float a1 = (i + 1) * step;
+            float a1 = (i + 1 == tessellatedSides ? 0f : (i + 1) * step);
             Vector3 radial0 = new(MathF.Cos(a0), MathF.Sin(a0), 0f);
             Vector3 radial1 = new(MathF.Cos(a1), MathF.Sin(a1), 0f);
-            Vector3 p0 = center + (radial0 * r) + new Vector3(0f, 0f, -hz);
-            Vector3 p1 = center + (radial1 * r) + new Vector3(0f, 0f, -hz);
-            Vector3 p2 = center + (radial1 * r) + new Vector3(0f, 0f, hz);
-            Vector3 p3 = center + (radial0 * r) + new Vector3(0f, 0f, hz);
+            float radius0 = ResolveKnurledPrismRadius(
+                r,
+                a0,
+                knurlEnabled,
+                sideKnurlAmount,
+                sideKnurlDensity,
+                sideKnurlDepth);
+            float radius1 = ResolveKnurledPrismRadius(
+                r,
+                a1,
+                knurlEnabled,
+                sideKnurlAmount,
+                sideKnurlDensity,
+                sideKnurlDepth);
+            Vector3 p0 = center + (radial0 * radius0) + new Vector3(0f, 0f, -hz);
+            Vector3 p1 = center + (radial1 * radius1) + new Vector3(0f, 0f, -hz);
+            Vector3 p2 = center + (radial1 * radius1) + new Vector3(0f, 0f, hz);
+            Vector3 p3 = center + (radial0 * radius0) + new Vector3(0f, 0f, hz);
             Vector3 normal = SafeNormalize(radial0 + radial1, radial0);
             AddFace(vertices, indices, p0, p3, p2, p1, normal, Vector3.UnitZ);
         }
@@ -524,19 +661,21 @@ public static class ToggleAssemblyMeshBuilder
             indices,
             center + new Vector3(0f, 0f, hz),
             r,
-            sideCount,
+            tessellatedSides,
             Vector3.UnitZ,
             Vector3.UnitX,
-            Vector3.UnitY);
+            Vector3.UnitY,
+            topDiscCircularTangents ? DiscTangentMode.Circular : DiscTangentMode.Radial);
         AddDisc(
             vertices,
             indices,
             center + new Vector3(0f, 0f, -hz),
             r,
-            sideCount,
+            tessellatedSides,
             -Vector3.UnitZ,
             Vector3.UnitX,
-            Vector3.UnitY);
+            Vector3.UnitY,
+            DiscTangentMode.Radial);
     }
 
     private static void AddCylinder(
@@ -577,8 +716,8 @@ public static class ToggleAssemblyMeshBuilder
             AddFace(vertices, indices, p0, p3, p2, p1, normal, forward);
         }
 
-        AddDisc(vertices, indices, start, r, sideCount, -forward, tangentA, tangentB);
-        AddDisc(vertices, indices, end, r, sideCount, forward, tangentA, tangentB);
+        AddDisc(vertices, indices, start, r, sideCount, -forward, tangentA, tangentB, DiscTangentMode.Radial);
+        AddDisc(vertices, indices, end, r, sideCount, forward, tangentA, tangentB, DiscTangentMode.Radial);
     }
 
     private static void AddHollowCylinder(
@@ -746,6 +885,71 @@ public static class ToggleAssemblyMeshBuilder
         }
     }
 
+    private static void AddHollowFrustum(
+        List<MetalVertex> vertices,
+        List<uint> indices,
+        Vector3 start,
+        Vector3 end,
+        float innerStartRadius,
+        float outerStartRadius,
+        float innerEndRadius,
+        float outerEndRadius,
+        int sides)
+    {
+        Vector3 axis = end - start;
+        float axisLength = axis.Length();
+        if (axisLength <= 1e-5f)
+        {
+            return;
+        }
+
+        float outerStart = MathF.Max(0.25f, outerStartRadius);
+        float outerEnd = MathF.Max(0.25f, outerEndRadius);
+        float innerStart = Math.Clamp(innerStartRadius, 0.1f, outerStart - 0.05f);
+        float innerEnd = Math.Clamp(innerEndRadius, 0.1f, outerEnd - 0.05f);
+        if (innerStart >= outerStart - 0.05f || innerEnd >= outerEnd - 0.05f)
+        {
+            return;
+        }
+
+        int sideCount = Math.Clamp(sides, 6, 128);
+        float step = MathF.PI * 2f / sideCount;
+        Vector3 forward = axis / axisLength;
+        Vector3 tangentA = MathF.Abs(forward.Z) < 0.999f
+            ? Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitZ))
+            : Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitX));
+        Vector3 tangentB = SafeNormalize(Vector3.Cross(forward, tangentA), Vector3.UnitY);
+
+        float outerSlope = outerStart - outerEnd;
+        float innerSlope = innerStart - innerEnd;
+        for (int i = 0; i < sideCount; i++)
+        {
+            float a0 = i * step;
+            float a1 = (i + 1) * step;
+            Vector3 radial0 = (MathF.Cos(a0) * tangentA) + (MathF.Sin(a0) * tangentB);
+            Vector3 radial1 = (MathF.Cos(a1) * tangentA) + (MathF.Sin(a1) * tangentB);
+            Vector3 avgRadial = SafeNormalize(radial0 + radial1, radial0);
+
+            Vector3 so0 = start + (radial0 * outerStart);
+            Vector3 so1 = start + (radial1 * outerStart);
+            Vector3 eo0 = end + (radial0 * outerEnd);
+            Vector3 eo1 = end + (radial1 * outerEnd);
+
+            Vector3 si0 = start + (radial0 * innerStart);
+            Vector3 si1 = start + (radial1 * innerStart);
+            Vector3 ei0 = end + (radial0 * innerEnd);
+            Vector3 ei1 = end + (radial1 * innerEnd);
+
+            Vector3 outerNormal = SafeNormalize((avgRadial * axisLength) + (forward * outerSlope), avgRadial);
+            Vector3 innerNormal = SafeNormalize((-avgRadial * axisLength) - (forward * innerSlope), -avgRadial);
+
+            AddFace(vertices, indices, so0, eo0, eo1, so1, outerNormal, forward);
+            AddFace(vertices, indices, si1, ei1, ei0, si0, innerNormal, forward);
+            AddFace(vertices, indices, eo0, ei0, ei1, eo1, forward, radial0);
+            AddFace(vertices, indices, so1, si1, si0, so0, -forward, radial0);
+        }
+    }
+
     private static float ResolveSleeveOuterRadius(
         float baseOuterRadius,
         ToggleTipSleeveStyle sleeveStyle,
@@ -891,8 +1095,8 @@ public static class ToggleAssemblyMeshBuilder
             }
         }
 
-        AddDisc(vertices, indices, start, r0, sideCount, -forward, tangentA, tangentB);
-        AddDisc(vertices, indices, end, r1, sideCount, forward, tangentA, tangentB);
+        AddDisc(vertices, indices, start, r0, sideCount, -forward, tangentA, tangentB, DiscTangentMode.Radial);
+        AddDisc(vertices, indices, end, r1, sideCount, forward, tangentA, tangentB, DiscTangentMode.Radial);
     }
 
     private static void AddSphere(
@@ -963,7 +1167,14 @@ public static class ToggleAssemblyMeshBuilder
             ? Vector3.Normalize(Vector3.Cross(normal, Vector3.UnitZ))
             : Vector3.Normalize(Vector3.Cross(normal, Vector3.UnitX));
         Vector3 tangentB = SafeNormalize(Vector3.Cross(normal, tangentA), Vector3.UnitY);
-        AddDisc(vertices, indices, center, radius, sides, normal, tangentA, tangentB);
+        AddDisc(vertices, indices, center, radius, sides, normal, tangentA, tangentB, DiscTangentMode.Radial);
+    }
+
+    private enum DiscTangentMode
+    {
+        Radial = 0,
+        Circular = 1,
+        Fixed = 2
     }
 
     private static void AddDisc(
@@ -974,11 +1185,88 @@ public static class ToggleAssemblyMeshBuilder
         int sides,
         Vector3 normal,
         Vector3 tangentA,
-        Vector3 tangentB)
+        Vector3 tangentB,
+        DiscTangentMode tangentMode)
     {
-        int sideCount = Math.Clamp(sides, 3, 64);
+        int sideCount = Math.Clamp(sides, 3, 256);
         float r = MathF.Max(0.25f, radius);
         float step = MathF.PI * 2f / sideCount;
+
+        if (tangentMode == DiscTangentMode.Circular)
+        {
+            for (int i = 0; i < sideCount; i++)
+            {
+                float angleCurrent = i * step;
+                float angleNext = (i + 1) * step;
+                float angleMid = (angleCurrent + angleNext) * 0.5f;
+
+                Vector3 radialCurrent = (MathF.Cos(angleCurrent) * tangentA) + (MathF.Sin(angleCurrent) * tangentB);
+                Vector3 radialNext = (MathF.Cos(angleNext) * tangentA) + (MathF.Sin(angleNext) * tangentB);
+                Vector3 currentPosition = center + (radialCurrent * r);
+                Vector3 nextPosition = center + (radialNext * r);
+
+                Vector3 centerTangent = SafeNormalize(
+                    (-MathF.Sin(angleMid) * tangentA) + (MathF.Cos(angleMid) * tangentB),
+                    tangentA);
+                Vector3 currentTangent = SafeNormalize(
+                    (-MathF.Sin(angleCurrent) * tangentA) + (MathF.Cos(angleCurrent) * tangentB),
+                    tangentA);
+                Vector3 nextTangent = SafeNormalize(
+                    (-MathF.Sin(angleNext) * tangentA) + (MathF.Cos(angleNext) * tangentB),
+                    tangentA);
+
+                uint triStart = (uint)vertices.Count;
+                if (normal.Z >= 0f)
+                {
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = center,
+                        Normal = normal,
+                        Tangent = new Vector4(centerTangent, 1f)
+                    });
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = nextPosition,
+                        Normal = normal,
+                        Tangent = new Vector4(nextTangent, 1f)
+                    });
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = currentPosition,
+                        Normal = normal,
+                        Tangent = new Vector4(currentTangent, 1f)
+                    });
+                }
+                else
+                {
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = center,
+                        Normal = normal,
+                        Tangent = new Vector4(centerTangent, 1f)
+                    });
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = currentPosition,
+                        Normal = normal,
+                        Tangent = new Vector4(currentTangent, 1f)
+                    });
+                    vertices.Add(new MetalVertex
+                    {
+                        Position = nextPosition,
+                        Normal = normal,
+                        Tangent = new Vector4(nextTangent, 1f)
+                    });
+                }
+
+                indices.Add(triStart + 0);
+                indices.Add(triStart + 1);
+                indices.Add(triStart + 2);
+            }
+
+            return;
+        }
+
         uint centerIndex = (uint)vertices.Count;
         vertices.Add(new MetalVertex
         {
@@ -993,11 +1281,19 @@ public static class ToggleAssemblyMeshBuilder
             float angle = i * step;
             Vector3 radial = (MathF.Cos(angle) * tangentA) + (MathF.Sin(angle) * tangentB);
             Vector3 position = center + (radial * r);
+            Vector3 tangentDirection = tangentMode switch
+            {
+                DiscTangentMode.Circular => SafeNormalize(
+                    (-MathF.Sin(angle) * tangentA) + (MathF.Cos(angle) * tangentB),
+                    tangentA),
+                DiscTangentMode.Fixed => SafeNormalize(tangentA, BuildTangentFromNormal(normal)),
+                _ => SafeNormalize(radial, BuildTangentFromNormal(normal))
+            };
             vertices.Add(new MetalVertex
             {
                 Position = position,
                 Normal = normal,
-                Tangent = new Vector4(SafeNormalize(radial, BuildTangentFromNormal(normal)), 1f)
+                Tangent = new Vector4(tangentDirection, 1f)
             });
         }
 
@@ -1018,6 +1314,31 @@ public static class ToggleAssemblyMeshBuilder
                 indices.Add(next);
             }
         }
+    }
+
+    private static float ResolveKnurledPrismRadius(
+        float baseRadius,
+        float angle,
+        bool knurlEnabled,
+        float knurlAmount,
+        int knurlDensity,
+        float knurlDepth)
+    {
+        if (!knurlEnabled)
+        {
+            return baseRadius;
+        }
+
+        float density = MathF.Max(1f, knurlDensity);
+        float wrapped = (angle / (MathF.PI * 2f)) * density;
+        float frac = wrapped - MathF.Floor(wrapped);
+        float triangle = 1f - MathF.Abs((frac * 2f) - 1f);
+        float ridge = (triangle * 2f) - 1f;
+        float amplitude = Math.Clamp(knurlAmount, 0f, 1f) *
+            Math.Clamp(knurlDepth, 0f, 1f) *
+            0.16f;
+        float radius = baseRadius * (1f + (ridge * amplitude));
+        return MathF.Max(baseRadius * 0.65f, radius);
     }
 
     private static void AddFace(

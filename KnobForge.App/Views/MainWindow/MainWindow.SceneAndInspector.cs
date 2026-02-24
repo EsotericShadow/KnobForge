@@ -575,6 +575,46 @@ namespace KnobForge.App.Views
                         _toggleUpperBushingHeightRatioSlider.Value = project.ToggleUpperBushingHeightRatio;
                     }
 
+                    if (_toggleUpperBushingKnurlAmountSlider != null)
+                    {
+                        _toggleUpperBushingKnurlAmountSlider.Value = project.ToggleUpperBushingKnurlAmount;
+                    }
+
+                    if (_toggleUpperBushingKnurlDensitySlider != null)
+                    {
+                        _toggleUpperBushingKnurlDensitySlider.Value = project.ToggleUpperBushingKnurlDensity;
+                    }
+
+                    if (_toggleUpperBushingKnurlDepthSlider != null)
+                    {
+                        _toggleUpperBushingKnurlDepthSlider.Value = project.ToggleUpperBushingKnurlDepth;
+                    }
+
+                    if (_togglePivotHousingRadiusSlider != null)
+                    {
+                        _togglePivotHousingRadiusSlider.Value = project.TogglePivotHousingRadius;
+                    }
+
+                    if (_togglePivotHousingDepthSlider != null)
+                    {
+                        _togglePivotHousingDepthSlider.Value = project.TogglePivotHousingDepth;
+                    }
+
+                    if (_togglePivotHousingBevelSlider != null)
+                    {
+                        _togglePivotHousingBevelSlider.Value = project.TogglePivotHousingBevel;
+                    }
+
+                    if (_togglePivotBallRadiusSlider != null)
+                    {
+                        _togglePivotBallRadiusSlider.Value = project.TogglePivotBallRadius;
+                    }
+
+                    if (_togglePivotClearanceSlider != null)
+                    {
+                        _togglePivotClearanceSlider.Value = project.TogglePivotClearance;
+                    }
+
                     if (_toggleInvertBaseWindingCheckBox != null)
                     {
                         _toggleInvertBaseWindingCheckBox.IsChecked = project.ToggleInvertBaseFrontFaceWinding;
@@ -1022,6 +1062,46 @@ namespace KnobForge.App.Views
                 if (_toggleUpperBushingHeightRatioSlider != null)
                 {
                     _toggleUpperBushingHeightRatioSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingKnurlAmountSlider != null)
+                {
+                    _toggleUpperBushingKnurlAmountSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingKnurlDensitySlider != null)
+                {
+                    _toggleUpperBushingKnurlDensitySlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingKnurlDepthSlider != null)
+                {
+                    _toggleUpperBushingKnurlDepthSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePivotHousingRadiusSlider != null)
+                {
+                    _togglePivotHousingRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePivotHousingDepthSlider != null)
+                {
+                    _togglePivotHousingDepthSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePivotHousingBevelSlider != null)
+                {
+                    _togglePivotHousingBevelSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePivotBallRadiusSlider != null)
+                {
+                    _togglePivotBallRadiusSlider.IsEnabled = hasModel;
+                }
+
+                if (_togglePivotClearanceSlider != null)
+                {
+                    _togglePivotClearanceSlider.IsEnabled = hasModel;
                 }
 
                 if (_toggleLeverLengthSlider != null)

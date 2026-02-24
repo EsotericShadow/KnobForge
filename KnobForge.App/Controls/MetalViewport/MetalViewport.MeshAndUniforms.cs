@@ -426,6 +426,14 @@ namespace KnobForge.App.Controls
                 LowerBushingHeightRatio: MathF.Round(config.LowerBushingHeightRatio, 3),
                 UpperBushingRadiusScale: MathF.Round(config.UpperBushingRadiusScale, 3),
                 UpperBushingHeightRatio: MathF.Round(config.UpperBushingHeightRatio, 3),
+                UpperBushingKnurlAmount: MathF.Round(config.UpperBushingKnurlAmount, 4),
+                UpperBushingKnurlDensity: config.UpperBushingKnurlDensity,
+                UpperBushingKnurlDepth: MathF.Round(config.UpperBushingKnurlDepth, 4),
+                PivotHousingRadius: MathF.Round(config.PivotHousingRadius, 3),
+                PivotHousingDepth: MathF.Round(config.PivotHousingDepth, 3),
+                PivotHousingBevel: MathF.Round(config.PivotHousingBevel, 3),
+                PivotBallRadius: MathF.Round(config.PivotBallRadius, 3),
+                PivotClearance: MathF.Round(config.PivotClearance, 3),
                 LeverLength: MathF.Round(config.LeverLength, 3),
                 LeverBottomRadius: MathF.Round(config.LeverBottomRadius, 3),
                 LeverTopRadius: MathF.Round(config.LeverTopRadius, 3),
@@ -709,7 +717,11 @@ namespace KnobForge.App.Controls
             float specularStrength = 1f,
             float rustAmount = 0f,
             float wearAmount = 0f,
-            float gunkAmount = 0f)
+            float gunkAmount = 0f,
+            float surfaceBrushStrength = 0f,
+            float surfaceBrushDensity = 56f,
+            float surfaceCharacter = 0f,
+            float anisotropyAngleRadians = 0f)
         {
             GpuUniforms uniforms = baseUniforms;
             Vector4 material = new(baseColor, Math.Clamp(metallic, 0f, 1f));
@@ -722,12 +734,21 @@ namespace KnobForge.App.Controls
             uniforms.MaterialPartBevelColorAndMetallic = material;
             uniforms.MaterialPartSideColorAndMetallic = material;
             uniforms.MaterialPartRoughnessAndEnable = new Vector4(clampedRoughness, clampedRoughness, clampedRoughness, 0f);
-            uniforms.MaterialSurfaceBrushParams = new Vector4(0f, 56f, 0f, 1f);
+            uniforms.MaterialSurfaceBrushParams = new Vector4(
+                Math.Clamp(surfaceBrushStrength, 0f, 1f),
+                MathF.Max(1f, surfaceBrushDensity),
+                Math.Clamp(surfaceCharacter, 0f, 1f),
+                1f);
             uniforms.WeatherParams = new Vector4(
                 Math.Clamp(rustAmount, 0f, 1f),
                 Math.Clamp(wearAmount, 0f, 1f),
                 Math.Clamp(gunkAmount, 0f, 1f),
                 baseUniforms.WeatherParams.W);
+            uniforms.AdvancedMaterialParams = new Vector4(
+                uniforms.AdvancedMaterialParams.X,
+                uniforms.AdvancedMaterialParams.Y,
+                uniforms.AdvancedMaterialParams.Z,
+                anisotropyAngleRadians);
             uniforms.IndicatorParams0 = Vector4.Zero;
             uniforms.IndicatorParams1 = new Vector4(0f, 0f, 0f, Math.Clamp(pearlescence, 0f, 1f));
             uniforms.IndicatorColorAndBlend = Vector4.Zero;

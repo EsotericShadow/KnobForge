@@ -42,6 +42,14 @@ namespace KnobForge.App.Views
             WireHeavyGeometryFlushOnRelease(_toggleLowerBushingHeightRatioSlider);
             WireHeavyGeometryFlushOnRelease(_toggleUpperBushingRadiusScaleSlider);
             WireHeavyGeometryFlushOnRelease(_toggleUpperBushingHeightRatioSlider);
+            WireHeavyGeometryFlushOnRelease(_toggleUpperBushingKnurlAmountSlider);
+            WireHeavyGeometryFlushOnRelease(_toggleUpperBushingKnurlDensitySlider);
+            WireHeavyGeometryFlushOnRelease(_toggleUpperBushingKnurlDepthSlider);
+            WireHeavyGeometryFlushOnRelease(_togglePivotHousingRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_togglePivotHousingDepthSlider);
+            WireHeavyGeometryFlushOnRelease(_togglePivotHousingBevelSlider);
+            WireHeavyGeometryFlushOnRelease(_togglePivotBallRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_togglePivotClearanceSlider);
             WireHeavyGeometryFlushOnRelease(_toggleLeverLengthSlider);
             WireHeavyGeometryFlushOnRelease(_toggleLeverRadiusSlider);
             WireHeavyGeometryFlushOnRelease(_toggleLeverTopRadiusSlider);

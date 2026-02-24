@@ -433,6 +433,38 @@ namespace KnobForge.App.Views
             {
                 _toggleUpperBushingHeightRatioSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
+            if (_toggleUpperBushingKnurlAmountSlider != null)
+            {
+                _toggleUpperBushingKnurlAmountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingKnurlDensitySlider != null)
+            {
+                _toggleUpperBushingKnurlDensitySlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingKnurlDepthSlider != null)
+            {
+                _toggleUpperBushingKnurlDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePivotHousingRadiusSlider != null)
+            {
+                _togglePivotHousingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePivotHousingDepthSlider != null)
+            {
+                _togglePivotHousingDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePivotHousingBevelSlider != null)
+            {
+                _togglePivotHousingBevelSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePivotBallRadiusSlider != null)
+            {
+                _togglePivotBallRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_togglePivotClearanceSlider != null)
+            {
+                _togglePivotClearanceSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
             if (_toggleInvertBaseWindingCheckBox != null)
             {
                 _toggleInvertBaseWindingCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;

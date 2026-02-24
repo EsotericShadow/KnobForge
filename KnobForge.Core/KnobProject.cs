@@ -191,6 +191,14 @@ namespace KnobForge.Core
         private float _toggleLowerBushingHeightRatio = 0.45f;
         private float _toggleUpperBushingRadiusScale = 1.00f;
         private float _toggleUpperBushingHeightRatio = 0.75f;
+        private float _toggleUpperBushingKnurlAmount;
+        private int _toggleUpperBushingKnurlDensity = 20;
+        private float _toggleUpperBushingKnurlDepth = 0.22f;
+        private float _togglePivotHousingRadius;
+        private float _togglePivotHousingDepth;
+        private float _togglePivotHousingBevel;
+        private float _togglePivotBallRadius;
+        private float _togglePivotClearance = 1.2f;
         private bool _toggleInvertBaseFrontFaceWinding;
         private bool _toggleInvertLeverFrontFaceWinding;
         private float _toggleLeverLength;
@@ -571,6 +579,46 @@ namespace KnobForge.Core
             get => _toggleUpperBushingHeightRatio;
             set => _toggleUpperBushingHeightRatio = ClampToggleRatio(value, 0.75f, 0.05f, 2f);
         }
+        public float ToggleUpperBushingKnurlAmount
+        {
+            get => _toggleUpperBushingKnurlAmount;
+            set => _toggleUpperBushingKnurlAmount = ClampToggleRatio(value, 0f, 0f, 1f);
+        }
+        public int ToggleUpperBushingKnurlDensity
+        {
+            get => _toggleUpperBushingKnurlDensity;
+            set => _toggleUpperBushingKnurlDensity = ClampToggleSegments(value, 20, 3, 96);
+        }
+        public float ToggleUpperBushingKnurlDepth
+        {
+            get => _toggleUpperBushingKnurlDepth;
+            set => _toggleUpperBushingKnurlDepth = ClampToggleRatio(value, 0.22f, 0f, 1f);
+        }
+        public float TogglePivotHousingRadius
+        {
+            get => _togglePivotHousingRadius;
+            set => _togglePivotHousingRadius = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePivotHousingDepth
+        {
+            get => _togglePivotHousingDepth;
+            set => _togglePivotHousingDepth = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePivotHousingBevel
+        {
+            get => _togglePivotHousingBevel;
+            set => _togglePivotHousingBevel = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePivotBallRadius
+        {
+            get => _togglePivotBallRadius;
+            set => _togglePivotBallRadius = ClampSliderDimensionOverride(value);
+        }
+        public float TogglePivotClearance
+        {
+            get => _togglePivotClearance;
+            set => _togglePivotClearance = Math.Clamp(value, 0f, 128f);
+        }
         public bool ToggleInvertBaseFrontFaceWinding
         {
             get => _toggleInvertBaseFrontFaceWinding;
@@ -814,6 +862,14 @@ namespace KnobForge.Core
                     ToggleMode = ToggleAssemblyMode.Enabled;
                     ToggleLowerBushingShape = ToggleBushingShape.Hex;
                     ToggleUpperBushingShape = ToggleBushingShape.Hex;
+                    ToggleUpperBushingKnurlAmount = 0f;
+                    ToggleUpperBushingKnurlDensity = 20;
+                    ToggleUpperBushingKnurlDepth = 0.22f;
+                    TogglePivotHousingRadius = 0f;
+                    TogglePivotHousingDepth = 0f;
+                    TogglePivotHousingBevel = 0f;
+                    TogglePivotBallRadius = 0f;
+                    TogglePivotClearance = 1.2f;
                     ToggleInvertBaseFrontFaceWinding = true;
                     ToggleInvertLeverFrontFaceWinding = true;
                     ToggleTipSleeveEnabled = true;

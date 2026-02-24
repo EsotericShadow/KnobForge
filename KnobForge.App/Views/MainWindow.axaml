@@ -679,6 +679,38 @@
                                         <controls:SpriteKnobSlider x:Name="ToggleUpperBushingHeightRatioSlider" Minimum="0.05" Maximum="2"/>
                                         <TextBlock x:Name="ToggleUpperBushingHeightRatioValueText"/>
 
+                                        <TextBlock Text="Upper Bushing Knurl Amount"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlAmountSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleUpperBushingKnurlAmountValueText"/>
+
+                                        <TextBlock Text="Upper Bushing Knurl Density"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDensitySlider" Minimum="3" Maximum="96"/>
+                                        <TextBlock x:Name="ToggleUpperBushingKnurlDensityValueText"/>
+
+                                        <TextBlock Text="Upper Bushing Knurl Depth"/>
+                                        <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDepthSlider" Minimum="0" Maximum="1"/>
+                                        <TextBlock x:Name="ToggleUpperBushingKnurlDepthValueText"/>
+
+                                        <TextBlock Text="Pivot Housing Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="TogglePivotHousingRadiusValueText"/>
+
+                                        <TextBlock Text="Pivot Housing Depth (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingDepthSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="TogglePivotHousingDepthValueText"/>
+
+                                        <TextBlock Text="Pivot Housing Bevel (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePivotHousingBevelSlider" Minimum="0" Maximum="250"/>
+                                        <TextBlock x:Name="TogglePivotHousingBevelValueText"/>
+
+                                        <TextBlock Text="Pivot Ball Radius (0 = Auto)"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePivotBallRadiusSlider" Minimum="0" Maximum="500"/>
+                                        <TextBlock x:Name="TogglePivotBallRadiusValueText"/>
+
+                                        <TextBlock Text="Pivot Clearance"/>
+                                        <controls:SpriteKnobSlider x:Name="TogglePivotClearanceSlider" Minimum="0" Maximum="128"/>
+                                        <TextBlock x:Name="TogglePivotClearanceValueText"/>
+
                                         <CheckBox x:Name="ToggleInvertBaseWindingCheckBox"
                                                   Content="Invert Base/Bushing Winding"/>
                                         <CheckBox x:Name="ToggleInvertLeverWindingCheckBox"
