@@ -38,7 +38,7 @@ namespace KnobForge.Rendering
         private readonly KnobProject _project;
         private readonly OrientationDebug _orientation;
         private readonly ViewportCameraState? _cameraState;
-        private readonly Func<int, int, ViewportCameraState, SKBitmap?> _gpuFrameProvider;
+        private readonly Func<int, int, ViewportCameraState, double?, SKBitmap?> _gpuFrameProvider;
         private readonly Action<int, int>? _frameStateApplier;
         private readonly PreviewRenderer _renderer;
 
@@ -46,7 +46,7 @@ namespace KnobForge.Rendering
             KnobProject project,
             OrientationDebug orientation,
             ViewportCameraState? cameraState = null,
-            Func<int, int, ViewportCameraState, SKBitmap?>? gpuFrameProvider = null,
+            Func<int, int, ViewportCameraState, double?, SKBitmap?>? gpuFrameProvider = null,
             Action<int, int>? frameStateApplier = null)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
@@ -110,6 +110,11 @@ namespace KnobForge.Rendering
             int supersampleScale = Math.Clamp(settings.SupersampleScale, 1, MaxSupersampleScale);
             int renderResolution = checked(resolution * supersampleScale);
             int paddingPx = Math.Max(0, (int)MathF.Round(settings.Padding));
+
+            if (_project.ProjectType == InteractorProjectType.IndicatorLight && frameCount < 2)
+            {
+                throw new InvalidOperationException("Indicator Light export requires at least 2 frames (recommended: 24).");
+            }
 
             int frameDigits = GetFrameNumberDigits(frameCount);
             ExportPathPlan paths = ResolveExportPaths(
@@ -180,7 +185,7 @@ namespace KnobForge.Rendering
                     SKPaint? spritesheetPaint = null;
                     try
                     {
-                        bool anyOpaqueFrame = false;
+                        var frameLumaSamples = new List<float>(frameCount);
                         if (exportSpritesheet)
                         {
                             spritesheetPlan = ResolveSpritesheetPlan(
@@ -238,7 +243,14 @@ namespace KnobForge.Rendering
 
                             frameCanvas.Clear(new SKColor(0, 0, 0, 0));
 
-                            using SKBitmap? gpuFrame = _gpuFrameProvider(renderResolution, renderResolution, exportViewportCamera);
+                            double animationTimeSeconds = _project.ProjectType == InteractorProjectType.IndicatorLight
+                                ? InteractorFrameTimeline.ResolveLoopAnimationTimeSeconds(i, frameCount)
+                                : InteractorFrameTimeline.ResolveAnimationTimeSeconds(i, frameCount);
+                            using SKBitmap? gpuFrame = _gpuFrameProvider(
+                                renderResolution,
+                                renderResolution,
+                                exportViewportCamera,
+                                animationTimeSeconds);
                             if (gpuFrame == null)
                             {
                                 throw new InvalidOperationException("GPU frame provider returned null frame.");
@@ -262,7 +274,14 @@ namespace KnobForge.Rendering
                                     directSampling,
                                     downsamplePaint);
                             }
-                            anyOpaqueFrame |= HasOpaquePixels(frameBitmap, 2);
+                            FrameAlphaMetrics frameMetrics = ComputeFrameAlphaMetrics(frameBitmap, 2);
+                            if (!frameMetrics.HasOpaque)
+                            {
+                                throw new InvalidOperationException(
+                                    $"Rendered viewpoint '{viewVariant.Name}' frame {i + 1}/{frameCount} was empty. Adjust camera/viewpoint framing and retry.");
+                            }
+
+                            frameLumaSamples.Add(frameMetrics.NormalizedLuma);
 
                             if (exportFrames)
                             {
@@ -283,10 +302,9 @@ namespace KnobForge.Rendering
                             completedFrames++;
                         }
 
-                        if (!anyOpaqueFrame)
+                        if (_project.ProjectType == InteractorProjectType.IndicatorLight)
                         {
-                            throw new InvalidOperationException(
-                                $"Rendered viewpoint '{viewVariant.Name}' produced empty frames. Adjust camera/viewpoint framing and retry.");
+                            ValidateLoopEndpointContinuity(viewVariant.Name, frameLumaSamples);
                         }
 
                         if (exportSpritesheet && spritesheetBitmap != null)
@@ -345,20 +363,56 @@ namespace KnobForge.Rendering
             }
         }
 
-        private static bool HasOpaquePixels(SKBitmap bitmap, byte alphaThreshold)
+        private static FrameAlphaMetrics ComputeFrameAlphaMetrics(SKBitmap bitmap, byte alphaThreshold)
         {
+            bool hasOpaque = false;
+            double weightedLuma = 0d;
+            int pixelCount = bitmap.Width * bitmap.Height;
+
             for (int y = 0; y < bitmap.Height; y++)
             {
                 for (int x = 0; x < bitmap.Width; x++)
                 {
-                    if (bitmap.GetPixel(x, y).Alpha > alphaThreshold)
+                    SKColor pixel = bitmap.GetPixel(x, y);
+                    if (pixel.Alpha <= alphaThreshold)
                     {
-                        return true;
+                        continue;
                     }
+
+                    hasOpaque = true;
+                    double alpha = pixel.Alpha / 255d;
+                    double luma = (0.2126d * pixel.Red + 0.7152d * pixel.Green + 0.0722d * pixel.Blue) / 255d;
+                    weightedLuma += luma * alpha;
                 }
             }
 
-            return false;
+            float normalizedLuma = pixelCount > 0
+                ? (float)(weightedLuma / pixelCount)
+                : 0f;
+            return new FrameAlphaMetrics(hasOpaque, normalizedLuma);
+        }
+
+        private static void ValidateLoopEndpointContinuity(string viewpointName, IReadOnlyList<float> frameLumaSamples)
+        {
+            if (frameLumaSamples.Count < 3)
+            {
+                return;
+            }
+
+            float loopDelta = MathF.Abs(frameLumaSamples[0] - frameLumaSamples[frameLumaSamples.Count - 1]);
+            float runningNeighborDelta = 0f;
+            for (int i = 1; i < frameLumaSamples.Count; i++)
+            {
+                runningNeighborDelta += MathF.Abs(frameLumaSamples[i] - frameLumaSamples[i - 1]);
+            }
+
+            float averageNeighborDelta = runningNeighborDelta / MathF.Max(1, frameLumaSamples.Count - 1);
+            float allowedDelta = MathF.Max(0.035f, (averageNeighborDelta * 3.25f) + 0.01f);
+            if (loopDelta > allowedDelta)
+            {
+                throw new InvalidOperationException(
+                    $"Rendered viewpoint '{viewpointName}' produced an unstable loop endpoint (first/last delta {loopDelta:0.###}, allowed {allowedDelta:0.###}). Increase frame count or reduce dynamic flicker/speed.");
+            }
         }
 
         private void ApplyFrameState(
@@ -453,6 +507,8 @@ namespace KnobForge.Rendering
                 }
             }
         }
+
+        private readonly record struct FrameAlphaMetrics(bool HasOpaque, float NormalizedLuma);
 
     }
 }

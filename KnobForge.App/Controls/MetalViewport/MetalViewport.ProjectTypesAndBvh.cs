@@ -127,6 +127,8 @@ namespace KnobForge.App.Controls
             public Vector4 ShadowParams;
             public Vector4 ShadowColorAndOpacity;
             public Vector4 DebugBasisParams;
+            public Vector4 LensMaterialParams0;
+            public Vector4 LensMaterialTintAndAbsorption;
             public GpuLight Light0;
             public GpuLight Light1;
             public GpuLight Light2;
@@ -135,6 +137,15 @@ namespace KnobForge.App.Controls
             public GpuLight Light5;
             public GpuLight Light6;
             public GpuLight Light7;
+            public Vector4 DynamicLightParams;
+            public GpuLight DynamicLight0;
+            public GpuLight DynamicLight1;
+            public GpuLight DynamicLight2;
+            public GpuLight DynamicLight3;
+            public GpuLight DynamicLight4;
+            public GpuLight DynamicLight5;
+            public GpuLight DynamicLight6;
+            public GpuLight DynamicLight7;
         }
 
         private readonly record struct MeshShapeKey(
@@ -285,6 +296,26 @@ namespace KnobForge.App.Controls
             float CapRadius,
             float CapHeight,
             float PressDepth);
+
+        private readonly record struct IndicatorAssemblyShapeKey(
+            int Enabled,
+            float BaseWidth,
+            float BaseHeight,
+            float BaseThickness,
+            float HousingRadius,
+            float HousingHeight,
+            float LensRadius,
+            float LensHeight,
+            float ReflectorBaseRadius,
+            float ReflectorTopRadius,
+            float ReflectorDepth,
+            float EmitterRadius,
+            float EmitterSpread,
+            float EmitterDepth,
+            int EmitterCount,
+            int RadialSegments,
+            int LensLatitudeSegments,
+            int LensLongitudeSegments);
 
         private readonly record struct SpiralNormalMapKey(
             float ReferenceRadius,

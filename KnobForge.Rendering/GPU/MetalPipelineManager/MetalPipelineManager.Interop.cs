@@ -55,6 +55,7 @@ public sealed partial class MetalPipelineManager
         public static readonly IntPtr SetVertexFunction = ObjC.sel_registerName("setVertexFunction:");
         public static readonly IntPtr SetFragmentFunction = ObjC.sel_registerName("setFragmentFunction:");
         public static readonly IntPtr SetDepthAttachmentPixelFormat = ObjC.sel_registerName("setDepthAttachmentPixelFormat:");
+        public static readonly IntPtr SetRasterSampleCount = ObjC.sel_registerName("setRasterSampleCount:");
         public static readonly IntPtr ColorAttachments = ObjC.sel_registerName("colorAttachments");
         public static readonly IntPtr ObjectAtIndexedSubscript = ObjC.sel_registerName("objectAtIndexedSubscript:");
         public static readonly IntPtr SetPixelFormat = ObjC.sel_registerName("setPixelFormat:");

@@ -17,6 +17,45 @@ namespace KnobForge.Core
             return Math.Clamp(t, 0f, 1f);
         }
 
+        public static double ResolveAnimationTimeSeconds(
+            int frameIndex,
+            int frameCount,
+            double loopDurationSeconds = 1d)
+        {
+            if (loopDurationSeconds <= 0d)
+            {
+                return 0d;
+            }
+
+            float progress = ResolveNormalizedProgress(frameIndex, frameCount);
+            return progress * loopDurationSeconds;
+        }
+
+        public static float ResolveLoopNormalizedProgress(int frameIndex, int frameCount)
+        {
+            if (frameCount <= 1)
+            {
+                return 0f;
+            }
+
+            float t = frameIndex / MathF.Max(1f, frameCount);
+            return Math.Clamp(t, 0f, 1f);
+        }
+
+        public static double ResolveLoopAnimationTimeSeconds(
+            int frameIndex,
+            int frameCount,
+            double loopDurationSeconds = 1d)
+        {
+            if (loopDurationSeconds <= 0d)
+            {
+                return 0d;
+            }
+
+            float progress = ResolveLoopNormalizedProgress(frameIndex, frameCount);
+            return progress * loopDurationSeconds;
+        }
+
         public static int ResolveToggleStateIndex(
             int frameIndex,
             int frameCount,

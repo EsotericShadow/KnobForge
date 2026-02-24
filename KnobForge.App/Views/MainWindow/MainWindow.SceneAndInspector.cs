@@ -389,6 +389,11 @@ namespace KnobForge.App.Views
             {
                 var project = _project;
                 project.EnsureSelection();
+                if (project.ProjectType == InteractorProjectType.IndicatorLight)
+                {
+                    project.EnsureIndicatorAssemblyDefaults(forceReset: false);
+                    SyncIndicatorDynamicLightSourcesToAssembly(recenterSources: false);
+                }
                 ApplyProjectTypeInspectorVisibility();
                 var model = GetModelNode();
                 var material = model?.Children.OfType<MaterialNode>().FirstOrDefault();
@@ -863,27 +868,358 @@ namespace KnobForge.App.Views
                     _indicatorColorRSlider.Value = model.IndicatorColor.X;
                     _indicatorColorGSlider.Value = model.IndicatorColor.Y;
                     _indicatorColorBSlider.Value = model.IndicatorColor.Z;
+                    if (_indicatorAssemblyEnabledCheckBox != null)
+                    {
+                        _indicatorAssemblyEnabledCheckBox.IsChecked = project.IndicatorAssemblyEnabled;
+                    }
+                    if (_indicatorBaseWidthSlider != null)
+                    {
+                        _indicatorBaseWidthSlider.Value = project.IndicatorBaseWidth;
+                    }
+                    if (_indicatorBaseHeightSlider != null)
+                    {
+                        _indicatorBaseHeightSlider.Value = project.IndicatorBaseHeight;
+                    }
+                    if (_indicatorBaseThicknessSlider != null)
+                    {
+                        _indicatorBaseThicknessSlider.Value = project.IndicatorBaseThickness;
+                    }
+                    if (_indicatorHousingRadiusSlider != null)
+                    {
+                        _indicatorHousingRadiusSlider.Value = project.IndicatorHousingRadius;
+                    }
+                    if (_indicatorHousingHeightSlider != null)
+                    {
+                        _indicatorHousingHeightSlider.Value = project.IndicatorHousingHeight;
+                    }
+                    if (_indicatorLensRadiusSlider != null)
+                    {
+                        _indicatorLensRadiusSlider.Value = project.IndicatorLensRadius;
+                    }
+                    if (_indicatorLensHeightSlider != null)
+                    {
+                        _indicatorLensHeightSlider.Value = project.IndicatorLensHeight;
+                    }
+                    if (_indicatorLensTransmissionSlider != null)
+                    {
+                        _indicatorLensTransmissionSlider.Value = project.IndicatorLensTransmission;
+                    }
+                    if (_indicatorLensIorSlider != null)
+                    {
+                        _indicatorLensIorSlider.Value = project.IndicatorLensIor;
+                    }
+                    if (_indicatorLensThicknessSlider != null)
+                    {
+                        _indicatorLensThicknessSlider.Value = project.IndicatorLensThickness;
+                    }
+                    if (_indicatorLensAbsorptionSlider != null)
+                    {
+                        _indicatorLensAbsorptionSlider.Value = project.IndicatorLensAbsorption;
+                    }
+                    if (_indicatorLensSurfaceRoughnessSlider != null)
+                    {
+                        _indicatorLensSurfaceRoughnessSlider.Value = project.IndicatorLensSurfaceRoughness;
+                    }
+                    if (_indicatorLensSurfaceSpecularSlider != null)
+                    {
+                        _indicatorLensSurfaceSpecularSlider.Value = project.IndicatorLensSurfaceSpecularStrength;
+                    }
+                    if (_indicatorLensTintRSlider != null)
+                    {
+                        _indicatorLensTintRSlider.Value = project.IndicatorLensTint.X;
+                    }
+                    if (_indicatorLensTintGSlider != null)
+                    {
+                        _indicatorLensTintGSlider.Value = project.IndicatorLensTint.Y;
+                    }
+                    if (_indicatorLensTintBSlider != null)
+                    {
+                        _indicatorLensTintBSlider.Value = project.IndicatorLensTint.Z;
+                    }
+                    if (_indicatorReflectorBaseRadiusSlider != null)
+                    {
+                        _indicatorReflectorBaseRadiusSlider.Value = project.IndicatorReflectorBaseRadius;
+                    }
+                    if (_indicatorReflectorTopRadiusSlider != null)
+                    {
+                        _indicatorReflectorTopRadiusSlider.Value = project.IndicatorReflectorTopRadius;
+                    }
+                    if (_indicatorReflectorDepthSlider != null)
+                    {
+                        _indicatorReflectorDepthSlider.Value = project.IndicatorReflectorDepth;
+                    }
+                    if (_indicatorEmitterRadiusSlider != null)
+                    {
+                        _indicatorEmitterRadiusSlider.Value = project.IndicatorEmitterRadius;
+                    }
+                    if (_indicatorEmitterSpreadSlider != null)
+                    {
+                        _indicatorEmitterSpreadSlider.Value = project.IndicatorEmitterSpread;
+                    }
+                    if (_indicatorEmitterDepthSlider != null)
+                    {
+                        _indicatorEmitterDepthSlider.Value = project.IndicatorEmitterDepth;
+                    }
+                    if (_indicatorEmitterCountSlider != null)
+                    {
+                        _indicatorEmitterCountSlider.Value = project.IndicatorEmitterCount;
+                    }
+                    if (_indicatorRadialSegmentsSlider != null)
+                    {
+                        _indicatorRadialSegmentsSlider.Value = project.IndicatorRadialSegments;
+                    }
+                    if (_indicatorLensLatitudeSegmentsSlider != null)
+                    {
+                        _indicatorLensLatitudeSegmentsSlider.Value = project.IndicatorLensLatitudeSegments;
+                    }
+                    if (_indicatorLensLongitudeSegmentsSlider != null)
+                    {
+                        _indicatorLensLongitudeSegmentsSlider.Value = project.IndicatorLensLongitudeSegments;
+                    }
+                    if (_indicatorDynamicLightsEnabledCheckBox != null)
+                    {
+                        _indicatorDynamicLightsEnabledCheckBox.IsChecked = project.DynamicLightRig.Enabled;
+                    }
+                    if (_indicatorLightAnimationModeCombo != null)
+                    {
+                        _indicatorLightAnimationModeCombo.SelectedItem = project.DynamicLightRig.AnimationMode;
+                    }
+                    if (_indicatorLightAnimationSpeedSlider != null)
+                    {
+                        _indicatorLightAnimationSpeedSlider.Value = project.DynamicLightRig.AnimationSpeed;
+                    }
+                    if (_indicatorLightFlickerAmountSlider != null)
+                    {
+                        _indicatorLightFlickerAmountSlider.Value = project.DynamicLightRig.FlickerAmount;
+                    }
+                    if (_indicatorLightFlickerDropoutSlider != null)
+                    {
+                        _indicatorLightFlickerDropoutSlider.Value = project.DynamicLightRig.FlickerDropoutChance;
+                    }
+                    if (_indicatorLightFlickerSmoothingSlider != null)
+                    {
+                        _indicatorLightFlickerSmoothingSlider.Value = project.DynamicLightRig.FlickerSmoothing;
+                    }
+                    if (_indicatorLightFlickerSeedSlider != null)
+                    {
+                        _indicatorLightFlickerSeedSlider.Value = project.DynamicLightRig.FlickerSeed;
+                    }
+                    RefreshIndicatorEmitterSourceControlsFromProject();
                 }
 
                 bool hasModel = model != null;
+                bool indicatorProject = project.ProjectType == InteractorProjectType.IndicatorLight;
+                UpdateIndicatorPanelVisibility();
                 UpdateCollarControlEnablement(hasModel, collar?.Preset ?? CollarPreset.None);
-                _indicatorEnabledCheckBox.IsEnabled = hasModel;
+                _indicatorEnabledCheckBox.IsEnabled = hasModel && !indicatorProject;
                 if (_indicatorCadWallsCheckBox != null)
                 {
-                    _indicatorCadWallsCheckBox.IsEnabled = hasModel;
+                    _indicatorCadWallsCheckBox.IsEnabled = hasModel && !indicatorProject;
                 }
-                _indicatorShapeCombo.IsEnabled = hasModel;
-                _indicatorReliefCombo.IsEnabled = hasModel;
-                _indicatorProfileCombo.IsEnabled = hasModel;
-                _indicatorWidthSlider.IsEnabled = hasModel;
-                _indicatorLengthSlider.IsEnabled = hasModel;
-                _indicatorPositionSlider.IsEnabled = hasModel;
-                _indicatorThicknessSlider.IsEnabled = hasModel;
-                _indicatorRoundnessSlider.IsEnabled = hasModel;
-                _indicatorColorBlendSlider.IsEnabled = hasModel;
-                _indicatorColorRSlider.IsEnabled = hasModel;
-                _indicatorColorGSlider.IsEnabled = hasModel;
-                _indicatorColorBSlider.IsEnabled = hasModel;
+                _indicatorShapeCombo.IsEnabled = hasModel && !indicatorProject;
+                _indicatorReliefCombo.IsEnabled = hasModel && !indicatorProject;
+                _indicatorProfileCombo.IsEnabled = hasModel && !indicatorProject;
+                _indicatorWidthSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorLengthSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorPositionSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorThicknessSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorRoundnessSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorBlendSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorRSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorGSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorBSlider.IsEnabled = hasModel && !indicatorProject;
+                if (_indicatorAssemblyEnabledCheckBox != null)
+                {
+                    _indicatorAssemblyEnabledCheckBox.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorBaseWidthSlider != null)
+                {
+                    _indicatorBaseWidthSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorBaseHeightSlider != null)
+                {
+                    _indicatorBaseHeightSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorBaseThicknessSlider != null)
+                {
+                    _indicatorBaseThicknessSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorHousingRadiusSlider != null)
+                {
+                    _indicatorHousingRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorHousingHeightSlider != null)
+                {
+                    _indicatorHousingHeightSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLensRadiusSlider != null)
+                {
+                    _indicatorLensRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLensHeightSlider != null)
+                {
+                    _indicatorLensHeightSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorReflectorBaseRadiusSlider != null)
+                {
+                    _indicatorReflectorBaseRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorReflectorTopRadiusSlider != null)
+                {
+                    _indicatorReflectorTopRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorReflectorDepthSlider != null)
+                {
+                    _indicatorReflectorDepthSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorEmitterRadiusSlider != null)
+                {
+                    _indicatorEmitterRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorEmitterSpreadSlider != null)
+                {
+                    _indicatorEmitterSpreadSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorEmitterDepthSlider != null)
+                {
+                    _indicatorEmitterDepthSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorEmitterCountSlider != null)
+                {
+                    _indicatorEmitterCountSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorRadialSegmentsSlider != null)
+                {
+                    _indicatorRadialSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLensLatitudeSegmentsSlider != null)
+                {
+                    _indicatorLensLatitudeSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLensLongitudeSegmentsSlider != null)
+                {
+                    _indicatorLensLongitudeSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorAssemblyResetDefaultsButton != null)
+                {
+                    _indicatorAssemblyResetDefaultsButton.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorDynamicLightsEnabledCheckBox != null)
+                {
+                    _indicatorDynamicLightsEnabledCheckBox.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightAnimationModeCombo != null)
+                {
+                    _indicatorLightAnimationModeCombo.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightAnimationSpeedSlider != null)
+                {
+                    _indicatorLightAnimationSpeedSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightFlickerAmountSlider != null)
+                {
+                    _indicatorLightFlickerAmountSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightFlickerDropoutSlider != null)
+                {
+                    _indicatorLightFlickerDropoutSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightFlickerSmoothingSlider != null)
+                {
+                    _indicatorLightFlickerSmoothingSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightFlickerSeedSlider != null)
+                {
+                    _indicatorLightFlickerSeedSlider.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightPresetNeutralButton != null)
+                {
+                    _indicatorLightPresetNeutralButton.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightPresetPulseButton != null)
+                {
+                    _indicatorLightPresetPulseButton.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorLightPresetFlickerButton != null)
+                {
+                    _indicatorLightPresetFlickerButton.IsEnabled = hasModel && indicatorProject;
+                }
+                bool hasEmitterSources = indicatorProject && project.DynamicLightRig.Sources.Count > 0;
+                int emitterSourceCount = project.DynamicLightRig.Sources.Count;
+                int emitterSelectedIndex = _indicatorEmitterSourceCombo?.SelectedIndex ?? -1;
+                if (_indicatorEmitterSourceCombo != null)
+                {
+                    _indicatorEmitterSourceCombo.IsEnabled = hasModel && indicatorProject;
+                }
+                if (_indicatorEmitterSourceMoveUpButton != null)
+                {
+                    _indicatorEmitterSourceMoveUpButton.IsEnabled =
+                        hasModel &&
+                        hasEmitterSources &&
+                        emitterSourceCount > 1 &&
+                        emitterSelectedIndex > 0;
+                }
+                if (_indicatorEmitterSourceMoveDownButton != null)
+                {
+                    _indicatorEmitterSourceMoveDownButton.IsEnabled =
+                        hasModel &&
+                        hasEmitterSources &&
+                        emitterSourceCount > 1 &&
+                        emitterSelectedIndex >= 0 &&
+                        emitterSelectedIndex < emitterSourceCount - 1;
+                }
+                if (_indicatorEmitterSourceAutoPhaseButton != null)
+                {
+                    _indicatorEmitterSourceAutoPhaseButton.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceEnabledCheckBox != null)
+                {
+                    _indicatorEmitterSourceEnabledCheckBox.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceNameTextBox != null)
+                {
+                    _indicatorEmitterSourceNameTextBox.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+                {
+                    _indicatorEmitterSourcePhaseOffsetSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceXSlider != null)
+                {
+                    _indicatorEmitterSourceXSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceYSlider != null)
+                {
+                    _indicatorEmitterSourceYSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceZSlider != null)
+                {
+                    _indicatorEmitterSourceZSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceIntensitySlider != null)
+                {
+                    _indicatorEmitterSourceIntensitySlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceRadiusSlider != null)
+                {
+                    _indicatorEmitterSourceRadiusSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceFalloffSlider != null)
+                {
+                    _indicatorEmitterSourceFalloffSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceRSlider != null)
+                {
+                    _indicatorEmitterSourceRSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceGSlider != null)
+                {
+                    _indicatorEmitterSourceGSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
+                if (_indicatorEmitterSourceBSlider != null)
+                {
+                    _indicatorEmitterSourceBSlider.IsEnabled = hasModel && hasEmitterSources;
+                }
 
                 bool hasMaterial = material != null;
                 _materialBaseRSlider.IsEnabled = hasMaterial;

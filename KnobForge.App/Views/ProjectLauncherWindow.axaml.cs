@@ -226,6 +226,12 @@ namespace KnobForge.App.Views
                 "Button workflow scaffold (geometry to be expanded).",
                 InteractorProjectType.PushButton,
                 value => selectedType = value));
+            content.Children.Add(CreateProjectTypeButton(
+                dialog,
+                "Indicator Light",
+                "Indicator workflow with bezel + dome + emitter rig.",
+                InteractorProjectType.IndicatorLight,
+                value => selectedType = value));
 
             var actions = new StackPanel
             {

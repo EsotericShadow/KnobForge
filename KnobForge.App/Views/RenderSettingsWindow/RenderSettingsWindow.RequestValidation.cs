@@ -341,18 +341,27 @@ namespace KnobForge.App.Views
         private bool TryValidateProjectTypeFrameCount(int frameCount, out string error)
         {
             error = string.Empty;
-            if (_project.ProjectType != InteractorProjectType.FlipSwitch)
+            switch (_project.ProjectType)
             {
-                return true;
-            }
+                case InteractorProjectType.FlipSwitch:
+                    if (frameCount >= MinFlipSwitchFrameCount && frameCount <= MaxFlipSwitchFrameCount)
+                    {
+                        return true;
+                    }
 
-            if (frameCount >= MinFlipSwitchFrameCount && frameCount <= MaxFlipSwitchFrameCount)
-            {
-                return true;
-            }
+                    error = $"Flip Switch exports require {MinFlipSwitchFrameCount}-{MaxFlipSwitchFrameCount} frames for snapped motion (recommended: {DefaultFlipSwitchFrameCount}).";
+                    return false;
+                case InteractorProjectType.IndicatorLight:
+                    if (frameCount >= 2)
+                    {
+                        return true;
+                    }
 
-            error = $"Flip Switch exports require {MinFlipSwitchFrameCount}-{MaxFlipSwitchFrameCount} frames for snapped motion (recommended: {DefaultFlipSwitchFrameCount}).";
-            return false;
+                    error = "Indicator Light exports require at least 2 frames to form a valid animation loop (recommended: 24).";
+                    return false;
+                default:
+                    return true;
+            }
         }
 
         private static ExportViewpoint[] BuildLegacyUiViewpoints(

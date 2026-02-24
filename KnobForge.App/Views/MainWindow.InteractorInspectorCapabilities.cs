@@ -94,6 +94,9 @@ namespace KnobForge.App.Views
                 case InteractorProjectType.PushButton:
                     sections.Add(InspectorSectionId.Indicator);
                     break;
+                case InteractorProjectType.IndicatorLight:
+                    sections.Add(InspectorSectionId.Indicator);
+                    break;
                 default:
                     sections.Add(InspectorSectionId.ReferenceProfiles);
                     sections.Add(InspectorSectionId.BodyShape);

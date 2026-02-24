@@ -44,6 +44,7 @@ namespace KnobForge.App.Controls
             public static readonly IntPtr NewFunctionWithName = ObjC.sel_registerName("newFunctionWithName:");
             public static readonly IntPtr ObjectAtIndexedSubscript = ObjC.sel_registerName("objectAtIndexedSubscript:");
             public static readonly IntPtr SetTexture = ObjC.sel_registerName("setTexture:");
+            public static readonly IntPtr SetResolveTexture = ObjC.sel_registerName("setResolveTexture:");
             public static readonly IntPtr SetLoadAction = ObjC.sel_registerName("setLoadAction:");
             public static readonly IntPtr SetStoreAction = ObjC.sel_registerName("setStoreAction:");
             public static readonly IntPtr SetClearColor = ObjC.sel_registerName("setClearColor:");
@@ -51,6 +52,8 @@ namespace KnobForge.App.Controls
             public static readonly IntPtr Texture2DDescriptorWithPixelFormatWidthHeightMipmapped =
                 ObjC.sel_registerName("texture2DDescriptorWithPixelFormat:width:height:mipmapped:");
             public static readonly IntPtr SetUsage = ObjC.sel_registerName("setUsage:");
+            public static readonly IntPtr SetTextureType = ObjC.sel_registerName("setTextureType:");
+            public static readonly IntPtr SetSampleCount = ObjC.sel_registerName("setSampleCount:");
             public static readonly IntPtr SetStorageMode = ObjC.sel_registerName("setStorageMode:");
             public static readonly IntPtr NewTextureWithDescriptor = ObjC.sel_registerName("newTextureWithDescriptor:");
             public static readonly IntPtr RenderCommandEncoderWithDescriptor = ObjC.sel_registerName("renderCommandEncoderWithDescriptor:");

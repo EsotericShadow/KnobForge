@@ -1,6 +1,7 @@
 using KnobForge.App.ProjectFiles;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
+using System.Numerics;
 using System.Text.Json;
 
 internal static class Program
@@ -18,13 +19,22 @@ internal static class Program
             RunTest("Load rejects missing snapshot", failures, () => LoadRejectsMissingSnapshot(root));
             RunTest("Loaded snapshot exposes required sections", failures, () => LoadedSnapshotExposesRequiredSections(root));
             RunTest("Project type resolver honors explicit type", failures, ProjectTypeResolverHonorsExplicitType);
+            RunTest("Project type resolver honors explicit indicator type", failures, ProjectTypeResolverHonorsExplicitIndicatorType);
             RunTest("Project type resolver infers slider legacy snapshots", failures, ProjectTypeResolverInfersSliderLegacySnapshots);
             RunTest("Project type resolver infers toggle legacy snapshots", failures, ProjectTypeResolverInfersToggleLegacySnapshots);
             RunTest("Project type resolver defaults to rotary when ambiguous", failures, ProjectTypeResolverDefaultsToRotaryWhenAmbiguous);
+            RunTest("Loop timeline uses exclusive endpoint progression", failures, LoopTimelineUsesExclusiveEndpointProgression);
+            RunTest("Legacy normalized timeline keeps inclusive endpoint progression", failures, LegacyTimelineKeepsInclusiveEndpointProgression);
             RunTest("Hybrid modules prune collar on slider defaults", failures, HybridModulesPruneCollarOnSliderDefaults);
             RunTest("Hybrid modules reattach collar for rotary defaults", failures, HybridModulesReattachCollarForRotaryDefaults);
             RunTest("Hybrid modules keep collar when prune disabled", failures, HybridModulesKeepCollarWhenPruneDisabled);
             RunTest("Removing collar reselects model node", failures, RemovingCollarReselectsModelNode);
+            RunTest("Indicator defaults seed dynamic emitters with valid identity", failures, IndicatorDefaultsSeedDynamicEmittersWithValidIdentity);
+            RunTest("Dynamic light source JSON round-trip preserves emitter identity", failures, DynamicLightSourceJsonRoundTripPreservesEmitterIdentity);
+            RunTest("Dynamic light source identity normalization fills blanks", failures, DynamicLightSourceIdentityNormalizationFillsBlanks);
+            RunTest("Indicator lens material snapshot round-trip via envelope", failures, () => IndicatorLensMaterialSnapshotRoundTripViaEnvelope(root));
+            RunTest("Indicator lens preset definitions stay in supported ranges", failures, IndicatorLensPresetDefinitionsStayWithinSupportedRanges);
+            RunTest("Indicator lens clear preset matches project defaults", failures, IndicatorLensClearPresetMatchesProjectDefaults);
             RunTest("Project-type switch matrix keeps expected defaults + valid selection", failures, ProjectTypeSwitchMatrixMaintainsExpectedDefaultsAndSelection);
             RunTest("Project-type switch undo/redo replay restores exact state", failures, ProjectTypeSwitchUndoRedoReplayRestoresExactState);
             RunTest("Project-type switch transition states round-trip via envelope", failures, () => ProjectTypeSwitchTransitionStatesRoundTripViaEnvelope(root));
@@ -203,6 +213,7 @@ internal static class Program
             ToggleBushingHeight: 0f,
             ToggleLeverLength: 0f,
             ToggleLeverRadius: 0f,
+            ToggleLeverTopRadius: 0f,
             ToggleTipRadius: 0f,
             ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
             ToggleMaxAngleDeg: 24f);
@@ -238,6 +249,7 @@ internal static class Program
             ToggleBushingHeight: 0f,
             ToggleLeverLength: 0f,
             ToggleLeverRadius: 0f,
+            ToggleLeverTopRadius: 0f,
             ToggleTipRadius: 0f,
             ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
             ToggleMaxAngleDeg: 24f);
@@ -246,6 +258,42 @@ internal static class Program
         if (resolved != InteractorProjectType.ThumbSlider)
         {
             throw new InvalidOperationException($"expected ThumbSlider, got {resolved}.");
+        }
+    }
+
+    private static void ProjectTypeResolverHonorsExplicitIndicatorType()
+    {
+        var hint = new ProjectTypeSnapshotHint(
+            HasProjectType: true,
+            ProjectType: InteractorProjectType.IndicatorLight,
+            SliderMode: SliderAssemblyMode.Disabled,
+            ToggleMode: ToggleAssemblyMode.Disabled,
+            SliderBackplateImportedMeshPath: string.Empty,
+            SliderThumbImportedMeshPath: string.Empty,
+            SliderBackplateWidth: 0f,
+            SliderBackplateHeight: 0f,
+            SliderBackplateThickness: 0f,
+            SliderThumbWidth: 0f,
+            SliderThumbHeight: 0f,
+            SliderThumbDepth: 0f,
+            ToggleBaseImportedMeshPath: string.Empty,
+            ToggleLeverImportedMeshPath: string.Empty,
+            TogglePlateWidth: 0f,
+            TogglePlateHeight: 0f,
+            TogglePlateThickness: 0f,
+            ToggleBushingRadius: 0f,
+            ToggleBushingHeight: 0f,
+            ToggleLeverLength: 0f,
+            ToggleLeverRadius: 0f,
+            ToggleLeverTopRadius: 0f,
+            ToggleTipRadius: 0f,
+            ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
+            ToggleMaxAngleDeg: 24f);
+
+        InteractorProjectType resolved = InteractorProjectTypeResolver.ResolveFromSnapshotHint(hint);
+        if (resolved != InteractorProjectType.IndicatorLight)
+        {
+            throw new InvalidOperationException($"expected IndicatorLight, got {resolved}.");
         }
     }
 
@@ -273,6 +321,7 @@ internal static class Program
             ToggleBushingHeight: 0f,
             ToggleLeverLength: 0f,
             ToggleLeverRadius: 0f,
+            ToggleLeverTopRadius: 0f,
             ToggleTipRadius: 0f,
             ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
             ToggleMaxAngleDeg: 24f);
@@ -308,6 +357,7 @@ internal static class Program
             ToggleBushingHeight: 0f,
             ToggleLeverLength: 0f,
             ToggleLeverRadius: 0f,
+            ToggleLeverTopRadius: 0f,
             ToggleTipRadius: 0f,
             ToggleStateCount: ToggleAssemblyStateCount.TwoPosition,
             ToggleMaxAngleDeg: 24f);
@@ -316,6 +366,51 @@ internal static class Program
         if (resolved != InteractorProjectType.RotaryKnob)
         {
             throw new InvalidOperationException($"expected RotaryKnob, got {resolved}.");
+        }
+    }
+
+    private static void LoopTimelineUsesExclusiveEndpointProgression()
+    {
+        const int frameCount = 24;
+        float start = InteractorFrameTimeline.ResolveLoopNormalizedProgress(0, frameCount);
+        float end = InteractorFrameTimeline.ResolveLoopNormalizedProgress(frameCount - 1, frameCount);
+        double endSeconds = InteractorFrameTimeline.ResolveLoopAnimationTimeSeconds(frameCount - 1, frameCount);
+
+        if (MathF.Abs(start) > 1e-6f)
+        {
+            throw new InvalidOperationException($"expected loop timeline start at 0, got {start:0.######}.");
+        }
+
+        float expectedEnd = (frameCount - 1) / (float)frameCount;
+        if (MathF.Abs(end - expectedEnd) > 1e-6f)
+        {
+            throw new InvalidOperationException($"expected loop timeline end {expectedEnd:0.######}, got {end:0.######}.");
+        }
+
+        if (end >= 1f)
+        {
+            throw new InvalidOperationException($"expected loop timeline end < 1.0, got {end:0.######}.");
+        }
+
+        if (Math.Abs(endSeconds - expectedEnd) > 1e-6)
+        {
+            throw new InvalidOperationException($"expected loop time seconds {expectedEnd:0.######}, got {endSeconds:0.######}.");
+        }
+    }
+
+    private static void LegacyTimelineKeepsInclusiveEndpointProgression()
+    {
+        const int frameCount = 24;
+        float end = InteractorFrameTimeline.ResolveNormalizedProgress(frameCount - 1, frameCount);
+        double endSeconds = InteractorFrameTimeline.ResolveAnimationTimeSeconds(frameCount - 1, frameCount);
+        if (MathF.Abs(end - 1f) > 1e-6f)
+        {
+            throw new InvalidOperationException($"expected legacy normalized progress end at 1, got {end:0.######}.");
+        }
+
+        if (Math.Abs(endSeconds - 1d) > 1e-6)
+        {
+            throw new InvalidOperationException($"expected legacy animation time end at 1s, got {endSeconds:0.######}.");
         }
     }
 
@@ -383,12 +478,185 @@ internal static class Program
         }
     }
 
+    private static void IndicatorDefaultsSeedDynamicEmittersWithValidIdentity()
+    {
+        var project = new KnobProject();
+        project.ApplyInteractorProjectTypeDefaults(InteractorProjectType.IndicatorLight);
+
+        DynamicLightRig rig = project.DynamicLightRig;
+        if (!rig.Enabled)
+        {
+            throw new InvalidOperationException("expected dynamic light rig to be enabled for indicator defaults.");
+        }
+
+        if (rig.Sources.Count < 3)
+        {
+            throw new InvalidOperationException($"expected at least 3 indicator emitters, got {rig.Sources.Count}.");
+        }
+
+        for (int i = 0; i < rig.Sources.Count; i++)
+        {
+            DynamicLightSource source = rig.Sources[i];
+            if (string.IsNullOrWhiteSpace(source.Name))
+            {
+                throw new InvalidOperationException($"emitter {i} name should not be blank.");
+            }
+
+            if (!float.IsFinite(source.AnimationPhaseOffsetDegrees))
+            {
+                throw new InvalidOperationException($"emitter {i} phase offset should be finite.");
+            }
+
+            if (source.AnimationPhaseOffsetDegrees < -360f || source.AnimationPhaseOffsetDegrees > 360f)
+            {
+                throw new InvalidOperationException($"emitter {i} phase offset should stay within [-360, 360].");
+            }
+        }
+    }
+
+    private static void DynamicLightSourceJsonRoundTripPreservesEmitterIdentity()
+    {
+        var source = new DynamicLightSource
+        {
+            Name = "CoreAmber",
+            AnimationPhaseOffsetDegrees = 57.25f,
+            Enabled = true,
+            X = -12f,
+            Y = 6f,
+            Z = -24f,
+            Intensity = 1.4f,
+            Radius = 330f,
+            Falloff = 1.2f
+        };
+
+        string json = JsonSerializer.Serialize(source);
+        DynamicLightSource? roundTripped = JsonSerializer.Deserialize<DynamicLightSource>(json);
+        if (roundTripped == null)
+        {
+            throw new InvalidOperationException("dynamic light source JSON round-trip returned null.");
+        }
+
+        if (!string.Equals(source.Name, roundTripped.Name, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("emitter name did not survive JSON round-trip.");
+        }
+
+        if (MathF.Abs(source.AnimationPhaseOffsetDegrees - roundTripped.AnimationPhaseOffsetDegrees) > 1e-4f)
+        {
+            throw new InvalidOperationException("emitter phase offset did not survive JSON round-trip.");
+        }
+    }
+
+    private static void DynamicLightSourceIdentityNormalizationFillsBlanks()
+    {
+        var source = new DynamicLightSource
+        {
+            Name = "   ",
+            AnimationPhaseOffsetDegrees = float.NaN
+        };
+
+        DynamicLightRig.NormalizeSourceIdentity(source, index: 2, sourceCount: 5);
+
+        if (!string.Equals(source.Name, "Emitter 3", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"expected normalized emitter name 'Emitter 3', got '{source.Name}'.");
+        }
+
+        if (!float.IsFinite(source.AnimationPhaseOffsetDegrees))
+        {
+            throw new InvalidOperationException("expected normalized emitter phase offset to be finite.");
+        }
+    }
+
+    private static void IndicatorLensMaterialSnapshotRoundTripViaEnvelope(string root)
+    {
+        string path = Path.Combine(root, "indicator-lens-roundtrip.knob");
+        var expected = new IndicatorLensMaterialSnapshot(
+            Transmission: 0.67f,
+            Ior: 1.58f,
+            Thickness: 2.35f,
+            TintX: 0.71f,
+            TintY: 0.88f,
+            TintZ: 0.79f,
+            Absorption: 1.93f,
+            SurfaceRoughness: 0.21f,
+            SurfaceSpecularStrength: 1.44f);
+
+        var envelope = new KnobProjectFileEnvelope
+        {
+            DisplayName = "Indicator Lens RoundTrip",
+            SnapshotJson = JsonSerializer.Serialize(expected)
+        };
+
+        if (!KnobProjectFileStore.TrySaveEnvelope(path, envelope, out string saveError))
+        {
+            throw new InvalidOperationException($"save failed: {saveError}");
+        }
+
+        if (!KnobProjectFileStore.TryLoadEnvelope(path, out KnobProjectFileEnvelope? loaded, out string loadError) || loaded is null)
+        {
+            throw new InvalidOperationException($"load failed: {loadError}");
+        }
+
+        IndicatorLensMaterialSnapshot? actual = JsonSerializer.Deserialize<IndicatorLensMaterialSnapshot>(loaded.SnapshotJson);
+        if (actual is null)
+        {
+            throw new InvalidOperationException("indicator lens material snapshot deserialized as null.");
+        }
+
+        AssertNearlyEqual(expected.Transmission, actual.Transmission, 1e-5f, "lens transmission");
+        AssertNearlyEqual(expected.Ior, actual.Ior, 1e-5f, "lens ior");
+        AssertNearlyEqual(expected.Thickness, actual.Thickness, 1e-5f, "lens thickness");
+        AssertNearlyEqual(expected.TintX, actual.TintX, 1e-5f, "lens tint X");
+        AssertNearlyEqual(expected.TintY, actual.TintY, 1e-5f, "lens tint Y");
+        AssertNearlyEqual(expected.TintZ, actual.TintZ, 1e-5f, "lens tint Z");
+        AssertNearlyEqual(expected.Absorption, actual.Absorption, 1e-5f, "lens absorption");
+        AssertNearlyEqual(expected.SurfaceRoughness, actual.SurfaceRoughness, 1e-5f, "lens surface roughness");
+        AssertNearlyEqual(expected.SurfaceSpecularStrength, actual.SurfaceSpecularStrength, 1e-5f, "lens specular strength");
+    }
+
+    private static void IndicatorLensPresetDefinitionsStayWithinSupportedRanges()
+    {
+        var presets = new[]
+        {
+            IndicatorLensMaterialPresets.Clear,
+            IndicatorLensMaterialPresets.Frosted,
+            IndicatorLensMaterialPresets.SaturatedLed
+        };
+
+        foreach (IndicatorLensMaterialPresetDefinition preset in presets)
+        {
+            if (!IndicatorLensMaterialPresets.IsWithinSupportedRange(preset))
+            {
+                throw new InvalidOperationException($"indicator lens preset is out of supported range: {preset}.");
+            }
+        }
+    }
+
+    private static void IndicatorLensClearPresetMatchesProjectDefaults()
+    {
+        var project = new KnobProject();
+        project.ApplyInteractorProjectTypeDefaults(InteractorProjectType.IndicatorLight);
+        IndicatorLensMaterialPresetDefinition clear = IndicatorLensMaterialPresets.Clear;
+
+        AssertNearlyEqual(clear.Transmission, project.IndicatorLensTransmission, 1e-5f, "clear lens transmission");
+        AssertNearlyEqual(clear.Ior, project.IndicatorLensIor, 1e-5f, "clear lens ior");
+        AssertNearlyEqual(clear.Thickness, project.IndicatorLensThickness, 1e-5f, "clear lens thickness");
+        AssertNearlyEqual(clear.Tint.X, project.IndicatorLensTint.X, 1e-5f, "clear lens tint X");
+        AssertNearlyEqual(clear.Tint.Y, project.IndicatorLensTint.Y, 1e-5f, "clear lens tint Y");
+        AssertNearlyEqual(clear.Tint.Z, project.IndicatorLensTint.Z, 1e-5f, "clear lens tint Z");
+        AssertNearlyEqual(clear.Absorption, project.IndicatorLensAbsorption, 1e-5f, "clear lens absorption");
+        AssertNearlyEqual(clear.SurfaceRoughness, project.IndicatorLensSurfaceRoughness, 1e-5f, "clear lens roughness");
+        AssertNearlyEqual(clear.SurfaceSpecularStrength, project.IndicatorLensSurfaceSpecularStrength, 1e-5f, "clear lens specular");
+    }
+
     private static readonly InteractorProjectType[] ProjectTypeMatrix =
     {
         InteractorProjectType.RotaryKnob,
         InteractorProjectType.ThumbSlider,
         InteractorProjectType.FlipSwitch,
-        InteractorProjectType.PushButton
+        InteractorProjectType.PushButton,
+        InteractorProjectType.IndicatorLight
     };
 
     private static void ProjectTypeSwitchMatrixMaintainsExpectedDefaultsAndSelection()
@@ -499,6 +767,7 @@ internal static class Program
 
                 var project = new KnobProject();
                 project.ApplyInteractorProjectTypeDefaults(fromType);
+                ApplyLensStressState(project, fromType, toType);
                 SelectStressNodeForProjectType(project, fromType);
                 ProjectTypeStateSnapshot before = CaptureProjectTypeState(project);
 
@@ -525,6 +794,24 @@ internal static class Program
         }
 
         return samples;
+    }
+
+    private static void ApplyLensStressState(KnobProject project, InteractorProjectType fromType, InteractorProjectType toType)
+    {
+        float fromSeed = (int)fromType + 1;
+        float toSeed = (int)toType + 1;
+        float combined = fromSeed + (toSeed * 0.5f);
+
+        project.IndicatorLensTransmission = Math.Clamp(0.38f + (combined * 0.045f), 0f, 1f);
+        project.IndicatorLensIor = Math.Clamp(1.28f + (fromSeed * 0.09f) + (toSeed * 0.03f), 1f, 2.5f);
+        project.IndicatorLensThickness = Math.Clamp(0.45f + (combined * 0.2f), 0f, 10f);
+        project.IndicatorLensTint = new Vector3(
+            Math.Clamp(0.55f + (fromSeed * 0.035f), 0f, 1f),
+            Math.Clamp(0.58f + (toSeed * 0.04f), 0f, 1f),
+            Math.Clamp(0.52f + (combined * 0.025f), 0f, 1f));
+        project.IndicatorLensAbsorption = Math.Clamp(0.35f + (combined * 0.3f), 0f, 8f);
+        project.IndicatorLensSurfaceRoughness = Math.Clamp(0.08f + (fromSeed * 0.04f), 0.04f, 1f);
+        project.IndicatorLensSurfaceSpecularStrength = Math.Clamp(0.75f + (toSeed * 0.18f), 0f, 2.5f);
     }
 
     private static void SelectStressNodeForProjectType(KnobProject project, InteractorProjectType projectType)
@@ -554,7 +841,16 @@ internal static class Program
             hasMaterialNode,
             hasCollarNode,
             ClassifySelectedNode(project.SelectedNode),
-            project.SelectedLightIndex);
+            project.SelectedLightIndex,
+            project.IndicatorLensTransmission,
+            project.IndicatorLensIor,
+            project.IndicatorLensThickness,
+            project.IndicatorLensTint.X,
+            project.IndicatorLensTint.Y,
+            project.IndicatorLensTint.Z,
+            project.IndicatorLensAbsorption,
+            project.IndicatorLensSurfaceRoughness,
+            project.IndicatorLensSurfaceSpecularStrength);
     }
 
     private static void ApplyProjectTypeState(KnobProject project, ProjectTypeStateSnapshot snapshot)
@@ -562,6 +858,16 @@ internal static class Program
         project.ApplyInteractorProjectTypeDefaults(snapshot.ProjectType);
         project.SliderMode = snapshot.SliderMode;
         project.ToggleMode = snapshot.ToggleMode;
+        project.IndicatorLensTransmission = snapshot.IndicatorLensTransmission;
+        project.IndicatorLensIor = snapshot.IndicatorLensIor;
+        project.IndicatorLensThickness = snapshot.IndicatorLensThickness;
+        project.IndicatorLensTint = new Vector3(
+            snapshot.IndicatorLensTintX,
+            snapshot.IndicatorLensTintY,
+            snapshot.IndicatorLensTintZ);
+        project.IndicatorLensAbsorption = snapshot.IndicatorLensAbsorption;
+        project.IndicatorLensSurfaceRoughness = snapshot.IndicatorLensSurfaceRoughness;
+        project.IndicatorLensSurfaceSpecularStrength = snapshot.IndicatorLensSurfaceSpecularStrength;
 
         ModelNode model = project.EnsureModelNode();
         if (snapshot.HasMaterialNode)
@@ -706,6 +1012,7 @@ internal static class Program
             InteractorProjectType.ThumbSlider => (SliderAssemblyMode.Enabled, ToggleAssemblyMode.Disabled, false),
             InteractorProjectType.FlipSwitch => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Enabled, false),
             InteractorProjectType.PushButton => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Disabled, false),
+            InteractorProjectType.IndicatorLight => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Disabled, false),
             _ => (SliderAssemblyMode.Disabled, ToggleAssemblyMode.Disabled, true)
         };
     }
@@ -728,7 +1035,16 @@ internal static class Program
         bool HasMaterialNode,
         bool HasCollarNode,
         SelectedNodeKind SelectedNodeKind,
-        int SelectedLightIndex);
+        int SelectedLightIndex,
+        float IndicatorLensTransmission,
+        float IndicatorLensIor,
+        float IndicatorLensThickness,
+        float IndicatorLensTintX,
+        float IndicatorLensTintY,
+        float IndicatorLensTintZ,
+        float IndicatorLensAbsorption,
+        float IndicatorLensSurfaceRoughness,
+        float IndicatorLensSurfaceSpecularStrength);
 
     private sealed record ProjectTypeTransitionSample(
         InteractorProjectType FromType,
@@ -737,6 +1053,17 @@ internal static class Program
         ProjectTypeStateSnapshot After,
         ProjectTypeStateSnapshot Undo,
         ProjectTypeStateSnapshot Redo);
+
+    private sealed record IndicatorLensMaterialSnapshot(
+        float Transmission,
+        float Ior,
+        float Thickness,
+        float TintX,
+        float TintY,
+        float TintZ,
+        float Absorption,
+        float SurfaceRoughness,
+        float SurfaceSpecularStrength);
 
     private static string BuildSnapshotJson()
     {
@@ -774,6 +1101,15 @@ internal static class Program
         };
 
         return JsonSerializer.Serialize(snapshot);
+    }
+
+    private static void AssertNearlyEqual(float expected, float actual, float tolerance, string fieldName)
+    {
+        if (MathF.Abs(expected - actual) > tolerance)
+        {
+            throw new InvalidOperationException(
+                $"{fieldName} mismatch. expected {expected:0.######}, got {actual:0.######}.");
+        }
     }
 
     private static void AssertHasProperty(JsonElement element, string name)

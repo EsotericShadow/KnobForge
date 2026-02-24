@@ -302,6 +302,11 @@ namespace KnobForge.App.Controls
             sceneRadius = IncludeReferenceRadius(sceneRadius, _toggleSleeveResources);
             sceneRadius = IncludeReferenceRadius(sceneRadius, _pushButtonBaseResources);
             sceneRadius = IncludeReferenceRadius(sceneRadius, _pushButtonCapResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _indicatorBaseResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _indicatorHousingResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _indicatorLensResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _indicatorReflectorResources);
+            sceneRadius = IncludeReferenceRadius(sceneRadius, _indicatorEmitterResources);
             float distNorm = light.Type == LightType.Point
                 ? MathF.Max(0.2f, new Vector3(light.X, light.Y, light.Z).Length() / MathF.Max(1f, sceneRadius * 2f))
                 : 1f;

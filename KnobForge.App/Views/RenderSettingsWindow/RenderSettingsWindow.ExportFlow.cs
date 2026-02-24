@@ -84,6 +84,15 @@ namespace KnobForge.App.Views
                 switchFrameAdjusted = true;
             }
 
+            bool indicatorFrameAdjusted = false;
+            if (_project.ProjectType == InteractorProjectType.IndicatorLight &&
+                frameCount != DefaultIndicatorLightFrameCount)
+            {
+                frameCount = DefaultIndicatorLightFrameCount;
+                _frameCountTextBox.Text = frameCount.ToString(CultureInfo.InvariantCulture);
+                indicatorFrameAdjusted = true;
+            }
+
             int supersample = Math.Clamp(GetMinimumSupersampleScaleForResolution(resolution), MinSupersample, MaxSupersample);
             int maxSupersampleForDimension = Math.Max(1, MaxResolution / Math.Max(1, resolution));
             supersample = Math.Min(supersample, Math.Clamp(maxSupersampleForDimension, MinSupersample, MaxSupersample));
@@ -113,7 +122,10 @@ namespace KnobForge.App.Views
             string switchFrameNote = switchFrameAdjusted
                 ? $", switch frame count set to {DefaultFlipSwitchFrameCount}"
                 : string.Empty;
-            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout{switchFrameNote}.";
+            string indicatorFrameNote = indicatorFrameAdjusted
+                ? $", indicator frame count set to {DefaultIndicatorLightFrameCount}"
+                : string.Empty;
+            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout{switchFrameNote}{indicatorFrameNote}.";
         }
 
         private async void OnStartRenderButtonClick(object? sender, RoutedEventArgs e)
@@ -145,13 +157,18 @@ namespace KnobForge.App.Views
 
             try
             {
-                Func<int, int, ViewportCameraState, SKBitmap?> gpuFrameProvider = (width, height, cameraState) =>
+                Func<int, int, ViewportCameraState, double?, SKBitmap?> gpuFrameProvider = (width, height, cameraState, dynamicLightAnimationTimeSeconds) =>
                     Dispatcher.UIThread
                         .InvokeAsync(
                             () =>
                             {
                                 if (_gpuViewport != null &&
-                                    _gpuViewport.TryRenderFrameToBitmap(width, height, cameraState, out SKBitmap? frame))
+                                    _gpuViewport.TryRenderFrameToBitmap(
+                                        width,
+                                        height,
+                                        cameraState,
+                                        out SKBitmap? frame,
+                                        dynamicLightAnimationTimeSeconds))
                                 {
                                     return frame;
                                 }
@@ -234,6 +251,79 @@ namespace KnobForge.App.Views
                     }
 
                     settings.ExportViewpoints = fittedViewpoints;
+
+                    if (_project.ProjectType == InteractorProjectType.IndicatorLight)
+                    {
+                        // Preflight indicator framing with the exact fitted export cameras so we fail fast
+                        // with a clear message instead of producing a blank spritesheet after a full pass.
+                        float probeAngleStep = (2f * MathF.PI) / Math.Max(1, settings.FrameCount);
+                        try
+                        {
+                            await Dispatcher.UIThread.InvokeAsync(
+                                () => ApplyPreviewFrameState(
+                                    0,
+                                    settings.FrameCount,
+                                    probeAngleStep,
+                                    stateSnapshot.ModelRotations,
+                                    stateSnapshot.ToggleStateIndex,
+                                    stateSnapshot.ToggleStateBlendPosition,
+                                    stateSnapshot.SliderThumbPositionNormalized,
+                                    stateSnapshot.PushButtonPressAmountNormalized),
+                                DispatcherPriority.Render);
+
+                            double probeAnimationTimeSeconds = InteractorFrameTimeline.ResolveLoopAnimationTimeSeconds(0, settings.FrameCount);
+                            foreach (ExportViewpoint fittedViewpoint in fittedViewpoints)
+                            {
+                                _exportCts.Token.ThrowIfCancellationRequested();
+                                ViewportCameraState probeCamera = ExportViewpointResolver.ApplyViewpoint(exportCameraState, fittedViewpoint);
+                                SKBitmap? probeFrame = await Dispatcher.UIThread.InvokeAsync(
+                                    () =>
+                                    {
+                                        if (_gpuViewport != null &&
+                                            _gpuViewport.TryRenderFrameToBitmap(
+                                            settings.Resolution,
+                                            settings.Resolution,
+                                            probeCamera,
+                                            out SKBitmap? frame,
+                                            probeAnimationTimeSeconds))
+                                        {
+                                            return frame;
+                                        }
+
+                                        return null;
+                                    },
+                                    DispatcherPriority.Render);
+
+                                if (probeFrame == null)
+                                {
+                                    throw new InvalidOperationException(
+                                        $"Unable to capture indicator export probe for viewpoint '{fittedViewpoint.Name}'.");
+                                }
+
+                                using (probeFrame)
+                                {
+                                    if (!TryGetOpaqueBounds(probeFrame, 2, out _))
+                                    {
+                                        throw new InvalidOperationException(
+                                            $"Rendered viewpoint '{fittedViewpoint.Name}' produced empty frames during indicator export preflight. Adjust camera/viewpoint framing and retry.");
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            await Dispatcher.UIThread.InvokeAsync(
+                                () =>
+                                {
+                                    RestoreModelRotations(stateSnapshot.ModelRotations);
+                                    _project.ToggleStateIndex = stateSnapshot.ToggleStateIndex;
+                                    _project.ToggleStateBlendPosition = stateSnapshot.ToggleStateBlendPosition;
+                                    _project.SliderThumbPositionNormalized = stateSnapshot.SliderThumbPositionNormalized;
+                                    _project.PushButtonPressAmountNormalized = stateSnapshot.PushButtonPressAmountNormalized;
+                                },
+                                DispatcherPriority.Render);
+                        }
+                    }
 
                     frameStateApplier = (frameIndex, frameCount) =>
                     {

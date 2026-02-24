@@ -12,12 +12,14 @@ public sealed partial class MetalPipelineManager
     private const string VertexFunctionName = "vertex_main";
     private const string FragmentFunctionName = "fragment_main";
     private const nuint DepthPixelFormat = 252; // MTLPixelFormatDepth32Float
+    private const nuint MsaaSampleCount = 4;
 
     private readonly MetalRendererContext _context;
     private readonly IMTLLibrary _library;
     private readonly IMTLFunction _vertexFunction;
     private readonly IMTLFunction _fragmentFunction;
     private readonly IMTLRenderPipelineState _defaultPipeline;
+    private readonly IMTLRenderPipelineState? _msaaPipeline;
     private readonly IntPtr _defaultDepthStencilState;
     private readonly IntPtr _shadowDepthStencilState;
 
@@ -80,6 +82,21 @@ public sealed partial class MetalPipelineManager
 
         _defaultPipeline = new MTLRenderPipelineStateHandle(pipelineStatePtr);
 
+        IntPtr msaaPipelineStatePtr = CreateRenderPipelineState(
+            device,
+            _vertexFunction.Handle,
+            _fragmentFunction.Handle,
+            MsaaSampleCount);
+        if (msaaPipelineStatePtr != IntPtr.Zero)
+        {
+            _msaaPipeline = new MTLRenderPipelineStateHandle(msaaPipelineStatePtr);
+        }
+        else
+        {
+            LogError("MSAA pipeline creation failed. Falling back to non-MSAA rendering.");
+            _msaaPipeline = null;
+        }
+
         _defaultDepthStencilState = CreateDepthStencilState(device, depthWriteEnabled: true);
         if (_defaultDepthStencilState == IntPtr.Zero)
         {
@@ -98,19 +115,38 @@ public sealed partial class MetalPipelineManager
         return _defaultPipeline;
     }
 
-    public void UsePipeline(IMTLRenderCommandEncoder encoder)
+    public nuint ResolveSupportedSampleCount(nuint requestedSampleCount)
+    {
+        bool hasMsaaPipeline = _msaaPipeline != null && _msaaPipeline.Handle != IntPtr.Zero;
+        if (requestedSampleCount > 1 &&
+            requestedSampleCount == MsaaSampleCount &&
+            hasMsaaPipeline)
+        {
+            return MsaaSampleCount;
+        }
+
+        return 1;
+    }
+
+    public void UsePipeline(IMTLRenderCommandEncoder encoder, nuint sampleCount = 1)
     {
         if (encoder is null)
         {
             throw new ArgumentNullException(nameof(encoder));
         }
 
-        if (encoder.Handle == IntPtr.Zero || _defaultPipeline.Handle == IntPtr.Zero)
+        nuint resolvedSampleCount = ResolveSupportedSampleCount(sampleCount);
+        bool hasMsaaPipeline = _msaaPipeline != null && _msaaPipeline.Handle != IntPtr.Zero;
+        IMTLRenderPipelineState pipeline = resolvedSampleCount > 1 && hasMsaaPipeline
+            ? _msaaPipeline!
+            : _defaultPipeline;
+
+        if (encoder.Handle == IntPtr.Zero || pipeline.Handle == IntPtr.Zero)
         {
             return;
         }
 
-        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _defaultPipeline.Handle);
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, pipeline.Handle);
         UseDepthWriteState(encoder);
 
         SetBackfaceCulling(encoder, true);

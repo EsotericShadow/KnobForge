@@ -141,6 +141,38 @@ namespace KnobForge.App.Views
             _project.ToggleTipSleeveRustAmount = snapshot.ToggleTipSleeveRustAmount;
             _project.ToggleTipSleeveWearAmount = snapshot.ToggleTipSleeveWearAmount;
             _project.ToggleTipSleeveGunkAmount = snapshot.ToggleTipSleeveGunkAmount;
+            _project.IndicatorAssemblyEnabled = snapshot.IndicatorAssemblyEnabled;
+            _project.IndicatorBaseWidth = snapshot.IndicatorBaseWidth;
+            _project.IndicatorBaseHeight = snapshot.IndicatorBaseHeight;
+            _project.IndicatorBaseThickness = snapshot.IndicatorBaseThickness;
+            _project.IndicatorHousingRadius = snapshot.IndicatorHousingRadius;
+            _project.IndicatorHousingHeight = snapshot.IndicatorHousingHeight;
+            _project.IndicatorLensRadius = snapshot.IndicatorLensRadius;
+            _project.IndicatorLensHeight = snapshot.IndicatorLensHeight;
+            _project.IndicatorLensTransmission = snapshot.IndicatorLensTransmission;
+            _project.IndicatorLensIor = snapshot.IndicatorLensIor;
+            _project.IndicatorLensThickness = snapshot.IndicatorLensThickness;
+            _project.IndicatorLensTint = new(
+                snapshot.IndicatorLensTintX,
+                snapshot.IndicatorLensTintY,
+                snapshot.IndicatorLensTintZ);
+            _project.IndicatorLensAbsorption = snapshot.IndicatorLensAbsorption;
+            _project.IndicatorLensSurfaceRoughness = snapshot.IndicatorLensSurfaceRoughness;
+            _project.IndicatorLensSurfaceSpecularStrength = snapshot.IndicatorLensSurfaceSpecularStrength;
+            _project.IndicatorReflectorBaseRadius = snapshot.IndicatorReflectorBaseRadius;
+            _project.IndicatorReflectorTopRadius = snapshot.IndicatorReflectorTopRadius;
+            _project.IndicatorReflectorDepth = snapshot.IndicatorReflectorDepth;
+            _project.IndicatorEmitterRadius = snapshot.IndicatorEmitterRadius;
+            _project.IndicatorEmitterSpread = snapshot.IndicatorEmitterSpread;
+            _project.IndicatorEmitterDepth = snapshot.IndicatorEmitterDepth;
+            _project.IndicatorEmitterCount = snapshot.IndicatorEmitterCount;
+            _project.IndicatorRadialSegments = snapshot.IndicatorRadialSegments;
+            _project.IndicatorLensLatitudeSegments = snapshot.IndicatorLensLatitudeSegments;
+            _project.IndicatorLensLongitudeSegments = snapshot.IndicatorLensLongitudeSegments;
+            if (_project.ProjectType == InteractorProjectType.IndicatorLight)
+            {
+                _project.EnsureIndicatorAssemblyDefaults(forceReset: false);
+            }
             _project.EnsureInteractorModulesForProjectType(_project.ProjectType, pruneUnsupportedModules: true);
 
             if (_metalViewport != null)
@@ -152,6 +184,8 @@ namespace KnobForge.App.Views
             }
 
             ApplyLightStates(snapshot.Lights, snapshot.SelectedLightIndex);
+            ApplyDynamicLightRigSnapshot(snapshot.DynamicLightRig);
+            SyncIndicatorDynamicLightSourcesToAssembly(recenterSources: false);
 
             ModelNode model = _project.EnsureModelNode();
             MaterialNode material = _project.EnsureMaterialNode();
@@ -275,6 +309,77 @@ namespace KnobForge.App.Views
 
             int clampedIndex = Math.Clamp(selectedLightIndex, 0, _project.Lights.Count - 1);
             _project.SetSelectedLightIndex(clampedIndex);
+        }
+
+        private static DynamicLightRigSnapshot CaptureDynamicLightRigSnapshot(DynamicLightRig rig)
+        {
+            return new DynamicLightRigSnapshot
+            {
+                Enabled = rig.Enabled,
+                MaxActiveLights = rig.MaxActiveLights,
+                AnimationMode = rig.AnimationMode,
+                AnimationSpeed = rig.AnimationSpeed,
+                FlickerAmount = rig.FlickerAmount,
+                FlickerDropoutChance = rig.FlickerDropoutChance,
+                FlickerSmoothing = rig.FlickerSmoothing,
+                FlickerSeed = rig.FlickerSeed,
+                Sources = rig.Sources.Select(source => new DynamicLightSourceSnapshot
+                {
+                    Name = source.Name,
+                    Enabled = source.Enabled,
+                    AnimationPhaseOffsetDegrees = source.AnimationPhaseOffsetDegrees,
+                    X = source.X,
+                    Y = source.Y,
+                    Z = source.Z,
+                    ColorR = source.Color.Red,
+                    ColorG = source.Color.Green,
+                    ColorB = source.Color.Blue,
+                    ColorA = source.Color.Alpha,
+                    Intensity = source.Intensity,
+                    Radius = source.Radius,
+                    Falloff = source.Falloff
+                }).ToList()
+            };
+        }
+
+        private void ApplyDynamicLightRigSnapshot(DynamicLightRigSnapshot snapshot)
+        {
+            DynamicLightRig rig = _project.DynamicLightRig;
+            rig.Enabled = snapshot.Enabled;
+            rig.MaxActiveLights = snapshot.MaxActiveLights;
+            rig.AnimationMode = snapshot.AnimationMode;
+            rig.AnimationSpeed = snapshot.AnimationSpeed;
+            rig.FlickerAmount = snapshot.FlickerAmount;
+            rig.FlickerDropoutChance = snapshot.FlickerDropoutChance;
+            rig.FlickerSmoothing = snapshot.FlickerSmoothing;
+            rig.FlickerSeed = snapshot.FlickerSeed;
+
+            rig.Sources.Clear();
+            foreach (DynamicLightSourceSnapshot source in snapshot.Sources)
+            {
+                rig.Sources.Add(new DynamicLightSource
+                {
+                    Name = source.Name,
+                    Enabled = source.Enabled,
+                    AnimationPhaseOffsetDegrees = source.AnimationPhaseOffsetDegrees,
+                    X = source.X,
+                    Y = source.Y,
+                    Z = source.Z,
+                    Color = new SKColor(source.ColorR, source.ColorG, source.ColorB, source.ColorA),
+                    Intensity = source.Intensity,
+                    Radius = source.Radius,
+                    Falloff = source.Falloff
+                });
+            }
+
+            if (_project.ProjectType == InteractorProjectType.IndicatorLight)
+            {
+                rig.EnsureIndicatorDefaults();
+                if (snapshot.Sources.Count == 0)
+                {
+                    rig.Enabled = true;
+                }
+            }
         }
 
         private static CollarStateSnapshot CaptureCollarStateSnapshot(CollarNode collar)

@@ -51,7 +51,11 @@ struct GpuUniforms
     float4 shadowParams;
     float4 shadowColorAndOpacity;
     float4 debugBasisParams;
+    float4 lensMaterialParams0;
+    float4 lensMaterialTintAndAbsorption;
     GpuLight lights[MAX_LIGHTS];
+    float4 dynamicLightParams;
+    GpuLight dynamicLights[MAX_LIGHTS];
 };
 
 struct VertexOut
@@ -70,6 +74,39 @@ static inline float3 Hadamard(float3 a, float3 b)
 static inline float3 Clamp01(float3 value)
 {
     return clamp(value, 0.0, 1.0);
+}
+
+static inline float3 EvaluateEnvironmentColor(float3 direction, float3 envBottom, float3 envTop)
+{
+    float hemi = clamp(direction.y * 0.5 + 0.5, 0.0, 1.0);
+    float3 envBase = mix(envBottom, envTop, hemi);
+    float horizonBand = exp(-abs(direction.y) * 12.0);
+    float skyHotspot = pow(clamp(direction.z * 0.5 + 0.5, 0.0, 1.0), 24.0) * hemi;
+    float3 horizonColor = mix(envTop, float3(1.0), 0.35);
+    return envBase + horizonColor * (0.40 * horizonBand) + float3(1.0) * (0.25 * skyHotspot);
+}
+
+static inline float3 RrtAndOdtFit(float3 v)
+{
+    float3 a = v * (v + 0.0245786) - 0.000090537;
+    float3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+    return a / max(b, float3(1e-6));
+}
+
+static inline float3 AcesFitted(float3 color)
+{
+    const float3x3 ACESInputMat = float3x3(
+        float3(0.59719, 0.35458, 0.04823),
+        float3(0.07600, 0.90834, 0.01566),
+        float3(0.02840, 0.13383, 0.83777));
+    const float3x3 ACESOutputMat = float3x3(
+        float3(1.60475, -0.53108, -0.07367),
+        float3(-0.10208, 1.10813, -0.00605),
+        float3(-0.00327, -0.07276, 1.07602));
+
+    float3 aces = ACESInputMat * color;
+    aces = RrtAndOdtFit(aces);
+    return clamp(ACESOutputMat * aces, 0.0, 1.0);
 }
 
 static inline float Hash21(float2 p)
@@ -323,7 +360,17 @@ fragment float4 fragment_main(
     float roughness = clamp(uniforms.materialRoughnessDiffuseSpecMode.x, 0.04, 1.0);
     float diffuseStrength = uniforms.materialRoughnessDiffuseSpecMode.y;
     float specularStrength = uniforms.materialRoughnessDiffuseSpecMode.z;
+    float lensShadingEnabled = clamp(uniforms.lensMaterialParams0.x, 0.0, 1.0);
+    float lensTransmission = clamp(uniforms.lensMaterialParams0.y, 0.0, 1.0);
+    float lensIor = clamp(uniforms.lensMaterialParams0.z, 1.0, 2.5);
+    float lensThickness = max(0.0, uniforms.lensMaterialParams0.w);
+    float3 lensTint = Clamp01(uniforms.lensMaterialTintAndAbsorption.xyz);
+    float lensAbsorption = max(0.0, uniforms.lensMaterialTintAndAbsorption.w);
+    bool lensMode = lensShadingEnabled > 0.5;
     int lightingMode = int(round(uniforms.materialRoughnessDiffuseSpecMode.w));
+    bool emitterGlowMode = lightingMode == 4;
+    float3 emitterGlowColor = Clamp01(uniforms.indicatorColorAndBlend.xyz);
+    float emitterGlowStrength = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 8.0);
     float brushStrength = clamp(uniforms.materialSurfaceBrushParams.x, 0.0, 1.0);
     float brushDensity = max(1.0, uniforms.materialSurfaceBrushParams.y);
     float brushDensityFactor = clamp((brushDensity - 4.0) / 316.0, 0.0, 1.0);
@@ -421,8 +468,12 @@ fragment float4 fragment_main(
     float2 localXY = float2(
         inVertex.worldPos.x * cosA + inVertex.worldPos.y * sinA,
         -inVertex.worldPos.x * sinA + inVertex.worldPos.y * cosA);
-    float indicatorMask = ComputeIndicatorMask(localXY, topRadius, uniforms.indicatorParams0, uniforms.indicatorParams1, uniforms.indicatorParams2);
-    indicatorMask *= smoothstep(0.55, 0.95, abs(normal.z));
+    float indicatorMask = 0.0;
+    if (!lensMode)
+    {
+        indicatorMask = ComputeIndicatorMask(localXY, topRadius, uniforms.indicatorParams0, uniforms.indicatorParams1, uniforms.indicatorParams2);
+        indicatorMask *= smoothstep(0.55, 0.95, abs(normal.z));
+    }
 
     float3 topBitangent = normalize(cross(normal, topTangent));
     float2 uv = inVertex.worldPos.xy / (topRadius * 2.0) + 0.5;
@@ -430,7 +481,14 @@ fragment float4 fragment_main(
     bool uvInside = all(uv >= float2(0.0)) && all(uv <= float2(1.0));
     float topMask = smoothstep(0.55, 0.95, abs(normal.z));
     topMask = pow(topMask, mix(1.6, 0.8, surfaceCharacter));
-    topMask *= 1.0 - clamp(indicatorMask, 0.0, 1.0);
+    if (lensMode)
+    {
+        topMask = 0.0;
+    }
+    else
+    {
+        topMask *= 1.0 - clamp(indicatorMask, 0.0, 1.0);
+    }
 
     float2 duvDx = dfdx(uv);
     float2 duvDy = dfdy(uv);
@@ -458,74 +516,77 @@ fragment float4 fragment_main(
     float roughnessLodBoost = (1.0 - microDetailVisibility) * roughnessLodBoostFactor * (0.35 + (0.65 * surfaceCharacter)) * microInfluence;
     roughness = clamp(roughness + roughnessLodBoost, 0.04, 1.0);
 
-    float indicatorBlend = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 1.0) * indicatorMask;
-    float3 indicatorColor = Clamp01(uniforms.indicatorColorAndBlend.xyz);
-    baseColor = mix(baseColor, indicatorColor, clamp(indicatorBlend, 0.0, 1.0));
-
-    // Literal paint-mask weathering (R=rust, G=wear, B=gunk, A=scratch) in local object space.
-    float2 paintUv = localXY / max(referenceRadius * 2.0, 1e-4) + 0.5;
-    float4 paintSample = float4(0.0);
-    float4 colorPaintSample = float4(0.0);
-    if (all(paintUv >= float2(0.0)) && all(paintUv <= float2(1.0)))
+    if (!lensMode && !emitterGlowMode)
     {
-        paintSample = paintMask.sample(paintSampler, clamp(paintUv, float2(0.0), float2(1.0)));
-        colorPaintSample = paintColor.sample(paintSampler, clamp(paintUv, float2(0.0), float2(1.0)));
+        float indicatorBlend = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 1.0) * indicatorMask;
+        float3 indicatorColor = Clamp01(uniforms.indicatorColorAndBlend.xyz);
+        baseColor = mix(baseColor, indicatorColor, clamp(indicatorBlend, 0.0, 1.0));
+
+        // Literal paint-mask weathering (R=rust, G=wear, B=gunk, A=scratch) in local object space.
+        float2 paintUv = localXY / max(referenceRadius * 2.0, 1e-4) + 0.5;
+        float4 paintSample = float4(0.0);
+        float4 colorPaintSample = float4(0.0);
+        if (all(paintUv >= float2(0.0)) && all(paintUv <= float2(1.0)))
+        {
+            paintSample = paintMask.sample(paintSampler, clamp(paintUv, float2(0.0), float2(1.0)));
+            colorPaintSample = paintColor.sample(paintSampler, clamp(paintUv, float2(0.0), float2(1.0)));
+        }
+
+        float colorPaintMask = clamp(colorPaintSample.w, 0.0, 1.0);
+        float3 colorPaintBase = float3(0.0);
+        if (colorPaintMask > 1e-5)
+        {
+            // Color paint texture is stored premultiplied; recover straight RGB before shading.
+            colorPaintBase = Clamp01(colorPaintSample.xyz / colorPaintMask);
+        }
+        baseColor = mix(baseColor, colorPaintBase, colorPaintMask);
+        // Make painted color read as a coating layer rather than bare metal.
+        float paintCoatBlend = smoothstep(0.0, 0.85, colorPaintMask);
+        roughness = mix(roughness, paintCoatRoughness, paintCoatBlend);
+        metallic = mix(metallic, paintCoatMetallic, paintCoatBlend);
+
+        float darknessGain = mix(0.45, 1.45, brushDarkness);
+        float rustRaw = clamp(paintSample.x, 0.0, 1.0);
+        float wearRaw = clamp(paintSample.y, 0.0, 1.0);
+        float gunkRaw = clamp(paintSample.z, 0.0, 1.0);
+        float scratchRaw = clamp(paintSample.w, 0.0, 1.0);
+
+        float rustNoiseA = ValueNoise2(paintUv * float2(192.0, 217.0) + float2(11.3, 6.7));
+        float rustNoiseB = ValueNoise2(paintUv * float2(67.0, 59.0) + float2(41.1, 13.5));
+        float rustSplotch = smoothstep(0.32, 0.90, rustNoiseA * 0.72 + rustNoiseB * 0.58);
+        float rustStrength = mix(0.30, 1.00, rustAmount);
+        float wearStrength = mix(0.15, 0.70, wearAmount);
+        float gunkStrength = mix(0.35, 1.20, gunkAmount);
+        float scratchStrength = mix(0.30, 1.00, wearAmount);
+        float rustMask = clamp(rustRaw * rustSplotch * darknessGain * rustStrength, 0.0, 1.0);
+        float wearMask = clamp(wearRaw * mix(0.30, 0.80, brushDarkness) * wearStrength, 0.0, 1.0);
+        float gunkMask = clamp(gunkRaw * mix(0.55, 1.65, brushDarkness) * gunkStrength, 0.0, 1.0);
+        float scratchMask = clamp(scratchRaw * mix(0.45, 1.00, brushDarkness) * scratchStrength, 0.0, 1.0);
+
+        float rustHue = ValueNoise2(paintUv * float2(103.0, 97.0) + float2(3.1, 17.2));
+        float3 rustDark = float3(0.23, 0.08, 0.04);
+        float3 rustMid = float3(0.46, 0.17, 0.07);
+        float3 rustOrange = float3(0.71, 0.29, 0.09);
+        float3 rustColor = mix(
+            mix(rustDark, rustMid, clamp(rustHue * 1.25, 0.0, 1.0)),
+            rustOrange,
+            clamp((rustHue - 0.35) / 0.65, 0.0, 1.0));
+        float3 gunkColor = float3(0.02, 0.02, 0.018);
+        float3 wearColor = mix(baseColor, float3(0.80, 0.79, 0.76), 0.45);
+
+        baseColor = mix(baseColor, rustColor, clamp(rustMask * 0.88, 0.0, 1.0));
+        baseColor = mix(baseColor, gunkColor, clamp(gunkMask * 0.96, 0.0, 1.0));
+        baseColor = mix(baseColor, wearColor, clamp(wearMask * 0.24, 0.0, 1.0));
+        float grimeDarken = clamp((rustMask * 0.18 + gunkMask * 0.55) * (0.25 + 0.75 * brushDarkness), 0.0, 0.85);
+        baseColor *= (1.0 - grimeDarken);
+        float scratchReveal = clamp(scratchMask, 0.0, 1.0);
+        baseColor = mix(baseColor, scratchExposeColor, scratchReveal);
+
+        roughness = clamp(roughness + rustMask * 0.34 + gunkMask * 0.62 - wearMask * 0.05, 0.04, 1.0);
+        metallic = clamp(metallic - rustMask * 0.62 - gunkMask * 0.30, 0.0, 1.0);
+        roughness = mix(roughness, scratchExposeRoughness, scratchReveal);
+        metallic = mix(metallic, scratchExposeMetallic, scratchReveal);
     }
-
-    float colorPaintMask = clamp(colorPaintSample.w, 0.0, 1.0);
-    float3 colorPaintBase = float3(0.0);
-    if (colorPaintMask > 1e-5)
-    {
-        // Color paint texture is stored premultiplied; recover straight RGB before shading.
-        colorPaintBase = Clamp01(colorPaintSample.xyz / colorPaintMask);
-    }
-    baseColor = mix(baseColor, colorPaintBase, colorPaintMask);
-    // Make painted color read as a coating layer rather than bare metal.
-    float paintCoatBlend = smoothstep(0.0, 0.85, colorPaintMask);
-    roughness = mix(roughness, paintCoatRoughness, paintCoatBlend);
-    metallic = mix(metallic, paintCoatMetallic, paintCoatBlend);
-
-    float darknessGain = mix(0.45, 1.45, brushDarkness);
-    float rustRaw = clamp(paintSample.x, 0.0, 1.0);
-    float wearRaw = clamp(paintSample.y, 0.0, 1.0);
-    float gunkRaw = clamp(paintSample.z, 0.0, 1.0);
-    float scratchRaw = clamp(paintSample.w, 0.0, 1.0);
-
-    float rustNoiseA = ValueNoise2(paintUv * float2(192.0, 217.0) + float2(11.3, 6.7));
-    float rustNoiseB = ValueNoise2(paintUv * float2(67.0, 59.0) + float2(41.1, 13.5));
-    float rustSplotch = smoothstep(0.32, 0.90, rustNoiseA * 0.72 + rustNoiseB * 0.58);
-    float rustStrength = mix(0.30, 1.00, rustAmount);
-    float wearStrength = mix(0.15, 0.70, wearAmount);
-    float gunkStrength = mix(0.35, 1.20, gunkAmount);
-    float scratchStrength = mix(0.30, 1.00, wearAmount);
-    float rustMask = clamp(rustRaw * rustSplotch * darknessGain * rustStrength, 0.0, 1.0);
-    float wearMask = clamp(wearRaw * mix(0.30, 0.80, brushDarkness) * wearStrength, 0.0, 1.0);
-    float gunkMask = clamp(gunkRaw * mix(0.55, 1.65, brushDarkness) * gunkStrength, 0.0, 1.0);
-    float scratchMask = clamp(scratchRaw * mix(0.45, 1.00, brushDarkness) * scratchStrength, 0.0, 1.0);
-
-    float rustHue = ValueNoise2(paintUv * float2(103.0, 97.0) + float2(3.1, 17.2));
-    float3 rustDark = float3(0.23, 0.08, 0.04);
-    float3 rustMid = float3(0.46, 0.17, 0.07);
-    float3 rustOrange = float3(0.71, 0.29, 0.09);
-    float3 rustColor = mix(
-        mix(rustDark, rustMid, clamp(rustHue * 1.25, 0.0, 1.0)),
-        rustOrange,
-        clamp((rustHue - 0.35) / 0.65, 0.0, 1.0));
-    float3 gunkColor = float3(0.02, 0.02, 0.018);
-    float3 wearColor = mix(baseColor, float3(0.80, 0.79, 0.76), 0.45);
-
-    baseColor = mix(baseColor, rustColor, clamp(rustMask * 0.88, 0.0, 1.0));
-    baseColor = mix(baseColor, gunkColor, clamp(gunkMask * 0.96, 0.0, 1.0));
-    baseColor = mix(baseColor, wearColor, clamp(wearMask * 0.24, 0.0, 1.0));
-    float grimeDarken = clamp((rustMask * 0.18 + gunkMask * 0.55) * (0.25 + 0.75 * brushDarkness), 0.0, 0.85);
-    baseColor *= (1.0 - grimeDarken);
-    float scratchReveal = clamp(scratchMask, 0.0, 1.0);
-    baseColor = mix(baseColor, scratchExposeColor, scratchReveal);
-
-    roughness = clamp(roughness + rustMask * 0.34 + gunkMask * 0.62 - wearMask * 0.05, 0.04, 1.0);
-    metallic = clamp(metallic - rustMask * 0.62 - gunkMask * 0.30, 0.0, 1.0);
-    roughness = mix(roughness, scratchExposeRoughness, scratchReveal);
-    metallic = mix(metallic, scratchExposeMetallic, scratchReveal);
 
     float shininess = 4.0 + ((128.0 - 4.0) * (1.0 - roughness));
 
@@ -613,10 +674,14 @@ fragment float4 fragment_main(
     float clearCoatAlpha = max(0.02, clearCoatRoughness * clearCoatRoughness);
     float clearCoatAlphaSq = clearCoatAlpha * clearCoatAlpha;
 
-    int lightCount = min(MAX_LIGHTS, int(round(uniforms.projectionOffsetsAndLightCount.z)));
-    for (int i = 0; i < lightCount; i++)
+    int sceneLightCount = min(MAX_LIGHTS, int(round(uniforms.projectionOffsetsAndLightCount.z)));
+    int dynamicLightCount = min(MAX_LIGHTS, int(round(uniforms.dynamicLightParams.x)));
+    int totalLightCount = sceneLightCount + dynamicLightCount;
+    for (int i = 0; i < totalLightCount; i++)
     {
-        GpuLight light = uniforms.lights[i];
+        bool dynamicLight = i >= sceneLightCount;
+        int lightIndex = dynamicLight ? (i - sceneLightCount) : i;
+        GpuLight light = dynamicLight ? uniforms.dynamicLights[lightIndex] : uniforms.lights[lightIndex];
         float3 lightColor = Clamp01(light.colorIntensity.xyz);
         float intensity = max(0.0, light.colorIntensity.w);
 
@@ -701,12 +766,7 @@ fragment float4 fragment_main(
     float envRoughMix = clamp(uniforms.environmentBottomColorAndRoughnessMix.w, 0.0, 1.0);
 
     float3 R = reflect(-viewDir, normal);
-    float hemi = clamp(R.y * 0.5 + 0.5, 0.0, 1.0);
-    float3 envBase = mix(envBottom, envTop, hemi);
-    float horizonBand = exp(-abs(R.y) * 12.0);
-    float skyHotspot = pow(clamp(R.z * 0.5 + 0.5, 0.0, 1.0), 24.0) * hemi;
-    float3 horizonColor = mix(envTop, float3(1.0), 0.35);
-    float3 envColor = envBase + horizonColor * (0.40 * horizonBand) + float3(1.0) * (0.25 * skyHotspot);
+    float3 envColor = EvaluateEnvironmentColor(R, envBottom, envTop);
     float envSpecWeight = 0.20 + 1.15 * metallic;
     float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
     float3 specTint = mix(float3(1.0), chromeTint, metallic);
@@ -735,8 +795,58 @@ fragment float4 fragment_main(
         accum += pearlTint * pearlStrength * (0.20 + 0.80 * envIntensity);
     }
 
-    accum = accum / (float3(1.0) + accum);
-    accum = Clamp01(accum);
-    return float4(accum, 1.0);
+    float outputAlpha = 1.0;
+    if (lensMode && lensTransmission > 1e-4)
+    {
+        float eta = max(1.0001, lensIor);
+        float etaMinus = eta - 1.0;
+        float etaPlus = eta + 1.0;
+        float f0 = (etaMinus * etaMinus) / max(1e-6, etaPlus * etaPlus);
+        float fresnel = f0 + (1.0 - f0) * pow(1.0 - NdotV, 5.0);
+        float grazingBoost = pow(1.0 - NdotV, 2.8);
+        float3 refractedDir = refract(-viewDir, normal, 1.0 / eta);
+        if (dot(refractedDir, refractedDir) <= 1e-8)
+        {
+            refractedDir = -viewDir;
+        }
+        else
+        {
+            refractedDir = normalize(refractedDir);
+        }
+
+        float opticalPath = lensThickness / max(0.16, NdotV);
+        float3 absorptionFilter = exp(-lensAbsorption * opticalPath * (1.0 - lensTint));
+        float3 refractedEnv = EvaluateEnvironmentColor(refractedDir, envBottom, envTop);
+        float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
+        float3 refractedEnvWide = EvaluateEnvironmentColor(refractedDirWide, envBottom, envTop);
+        float3 transmittedEnv = refractedEnv * lensTint * absorptionFilter;
+        float3 transmittedEnvWide = refractedEnvWide * lensTint * absorptionFilter;
+        float3 transmittedBody = accum * lensTint * absorptionFilter * (0.10 + 0.30 * NdotV);
+        float3 internalGlow = lensTint * (0.20 + 0.80 * lensTransmission) * (0.45 + 0.55 * envIntensity);
+        float3 transmitted = (transmittedEnv * 0.72 + transmittedEnvWide * 0.28) * (0.95 + 0.25 * envIntensity)
+            + transmittedBody * 0.20
+            + internalGlow * 0.32;
+        float3 surfaceSpec = envColor * (fresnel + 0.22 * grazingBoost) * (1.05 + 0.95 * max(0.0, specularStrength));
+        float refractionWeight = clamp((1.0 - fresnel) * (0.75 + 0.25 * lensTransmission), 0.0, 1.0);
+        float3 lensColor = transmitted * refractionWeight + surfaceSpec;
+        accum = mix(accum * 0.25, lensColor, lensTransmission);
+
+        float frontalAlpha = 1.0 - (lensTransmission * (1.0 - fresnel));
+        outputAlpha = clamp(frontalAlpha, 0.08, 0.96);
+    }
+
+    if (emitterGlowMode && emitterGlowStrength > 1e-4)
+    {
+        float viewFacing = clamp(dot(normal, viewDir), 0.0, 1.0);
+        float centerGlow = pow(viewFacing, 0.30);
+        float edgeGlow = pow(1.0 - viewFacing, 2.2);
+        float glowShape = 0.60 * centerGlow + 0.40 * edgeGlow;
+        float glowEnergy = emitterGlowStrength * (0.65 + 0.35 * envIntensity);
+        accum += emitterGlowColor * glowEnergy * glowShape;
+    }
+
+    accum = max(float3(0.0), accum);
+    accum = AcesFitted(accum);
+    return float4(accum, outputAlpha);
 }";
 }

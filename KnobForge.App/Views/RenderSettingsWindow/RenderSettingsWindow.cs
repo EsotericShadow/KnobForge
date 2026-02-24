@@ -30,6 +30,7 @@ namespace KnobForge.App.Views
         private const int MinFlipSwitchFrameCount = 12;
         private const int MaxFlipSwitchFrameCount = 24;
         private const int DefaultFlipSwitchFrameCount = 18;
+        private const int DefaultIndicatorLightFrameCount = 24;
         private const int MinResolution = 1;
         private const int MaxResolution = 16384;
         private const int MinSupersample = 1;
@@ -270,6 +271,7 @@ namespace KnobForge.App.Views
             WireLiveValidationHandlers();
 
             ApplyOutputStrategy(ExportOutputStrategies.Get(ExportOutputStrategy.JuceFilmstripBestDefault));
+            ApplyProjectTypeExportDefaults();
             ResetViewpointsFromOrbit(useCurrentCameraForPrimary: false);
             UpdateSpritesheetLayoutEnabled();
             UpdateOrbitVariantControlsEnabled();
@@ -351,6 +353,14 @@ namespace KnobForge.App.Views
                 UpdateSpritesheetLayoutEnabled();
                 UpdateOrbitVariantControlsEnabled();
                 UpdateStartRenderAvailability();
+            }
+        }
+
+        private void ApplyProjectTypeExportDefaults()
+        {
+            if (_project.ProjectType == InteractorProjectType.IndicatorLight)
+            {
+                _frameCountTextBox.Text = DefaultIndicatorLightFrameCount.ToString(CultureInfo.InvariantCulture);
             }
         }
 

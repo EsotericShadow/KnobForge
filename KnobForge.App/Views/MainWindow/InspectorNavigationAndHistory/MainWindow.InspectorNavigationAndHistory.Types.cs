@@ -73,6 +73,7 @@ namespace KnobForge.App.Views
             public InteractorProjectType ProjectType { get; set; } = InteractorProjectType.RotaryKnob;
             public List<LightStateSnapshot> Lights { get; set; } = new();
             public int SelectedLightIndex { get; set; }
+            public DynamicLightRigSnapshot DynamicLightRig { get; set; } = new();
             public bool HasModelMaterialSnapshot { get; set; }
             public UserReferenceProfileSnapshot? ModelMaterialSnapshot { get; set; }
             public ReferenceKnobStyle ModelReferenceStyle { get; set; } = ReferenceKnobStyle.Custom;
@@ -147,6 +148,33 @@ namespace KnobForge.App.Views
             public float ToggleTipSleeveRustAmount { get; set; }
             public float ToggleTipSleeveWearAmount { get; set; }
             public float ToggleTipSleeveGunkAmount { get; set; }
+            public bool IndicatorAssemblyEnabled { get; set; } = true;
+            public float IndicatorBaseWidth { get; set; }
+            public float IndicatorBaseHeight { get; set; }
+            public float IndicatorBaseThickness { get; set; }
+            public float IndicatorHousingRadius { get; set; }
+            public float IndicatorHousingHeight { get; set; }
+            public float IndicatorLensRadius { get; set; }
+            public float IndicatorLensHeight { get; set; }
+            public float IndicatorLensTransmission { get; set; } = 0.88f;
+            public float IndicatorLensIor { get; set; } = 1.49f;
+            public float IndicatorLensThickness { get; set; } = 1.0f;
+            public float IndicatorLensTintX { get; set; } = 0.78f;
+            public float IndicatorLensTintY { get; set; } = 0.92f;
+            public float IndicatorLensTintZ { get; set; } = 0.84f;
+            public float IndicatorLensAbsorption { get; set; } = 1.2f;
+            public float IndicatorLensSurfaceRoughness { get; set; } = 0.14f;
+            public float IndicatorLensSurfaceSpecularStrength { get; set; } = 1.25f;
+            public float IndicatorReflectorBaseRadius { get; set; }
+            public float IndicatorReflectorTopRadius { get; set; }
+            public float IndicatorReflectorDepth { get; set; }
+            public float IndicatorEmitterRadius { get; set; }
+            public float IndicatorEmitterSpread { get; set; }
+            public float IndicatorEmitterDepth { get; set; }
+            public int IndicatorEmitterCount { get; set; } = 3;
+            public int IndicatorRadialSegments { get; set; } = 56;
+            public int IndicatorLensLatitudeSegments { get; set; } = 20;
+            public int IndicatorLensLongitudeSegments { get; set; } = 40;
             public SceneSelectionSnapshot Selection { get; set; } = new();
         }
 
@@ -167,6 +195,36 @@ namespace KnobForge.App.Views
             public float DiffuseBoost { get; set; }
             public float SpecularBoost { get; set; }
             public float SpecularPower { get; set; }
+        }
+
+        private sealed class DynamicLightRigSnapshot
+        {
+            public bool Enabled { get; set; }
+            public int MaxActiveLights { get; set; } = DynamicLightRig.DefaultMaxActiveLights;
+            public DynamicLightAnimationMode AnimationMode { get; set; } = DynamicLightAnimationMode.Steady;
+            public float AnimationSpeed { get; set; } = 1f;
+            public float FlickerAmount { get; set; }
+            public float FlickerDropoutChance { get; set; }
+            public float FlickerSmoothing { get; set; } = 0.5f;
+            public int FlickerSeed { get; set; } = 1337;
+            public List<DynamicLightSourceSnapshot> Sources { get; set; } = new();
+        }
+
+        private sealed class DynamicLightSourceSnapshot
+        {
+            public string Name { get; set; } = "Emitter";
+            public bool Enabled { get; set; } = true;
+            public float AnimationPhaseOffsetDegrees { get; set; }
+            public float X { get; set; }
+            public float Y { get; set; }
+            public float Z { get; set; }
+            public byte ColorR { get; set; } = 180;
+            public byte ColorG { get; set; } = 255;
+            public byte ColorB { get; set; } = 210;
+            public byte ColorA { get; set; } = byte.MaxValue;
+            public float Intensity { get; set; } = 1f;
+            public float Radius { get; set; } = 220f;
+            public float Falloff { get; set; } = 1f;
         }
 
         private sealed class CollarStateSnapshot

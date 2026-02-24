@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -23,6 +24,11 @@ namespace KnobForge.App.Controls
             ReplaceMeshResources(ref _toggleSleeveResources, null);
             ReplaceMeshResources(ref _pushButtonBaseResources, null);
             ReplaceMeshResources(ref _pushButtonCapResources, null);
+            ReplaceMeshResources(ref _indicatorBaseResources, null);
+            ReplaceMeshResources(ref _indicatorHousingResources, null);
+            ReplaceMeshResources(ref _indicatorLensResources, null);
+            ReplaceMeshResources(ref _indicatorReflectorResources, null);
+            ReplaceMeshResources(ref _indicatorEmitterResources, null);
             _paintPickMapDirty = true;
         }
 
@@ -47,6 +53,7 @@ namespace KnobForge.App.Controls
                 _sliderAssemblyShapeKey = default;
                 _toggleAssemblyShapeKey = default;
                 _pushButtonAssemblyShapeKey = default;
+                _indicatorAssemblyShapeKey = default;
                 return;
             }
 
@@ -180,6 +187,70 @@ namespace KnobForge.App.Controls
 
                 ReplaceMeshResources(ref _pushButtonBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _pushButtonCapResources, nextCapResources);
+            }
+
+            IndicatorAssemblyConfig indicatorConfig = IndicatorAssemblyMeshBuilder.ResolveConfig(project);
+            IndicatorAssemblyShapeKey nextIndicatorKey = BuildIndicatorAssemblyShapeKey(indicatorConfig);
+            bool indicatorEnabled = indicatorConfig.Enabled;
+            bool indicatorShapeChanged = !nextIndicatorKey.Equals(_indicatorAssemblyShapeKey);
+            if (!indicatorEnabled)
+            {
+                ReplaceMeshResources(ref _indicatorBaseResources, null);
+                ReplaceMeshResources(ref _indicatorHousingResources, null);
+                ReplaceMeshResources(ref _indicatorLensResources, null);
+                ReplaceMeshResources(ref _indicatorReflectorResources, null);
+                ReplaceMeshResources(ref _indicatorEmitterResources, null);
+                _indicatorAssemblyShapeKey = default;
+            }
+            else if (indicatorShapeChanged ||
+                _indicatorBaseResources == null ||
+                _indicatorHousingResources == null ||
+                _indicatorLensResources == null ||
+                _indicatorReflectorResources == null ||
+                _indicatorEmitterResources == null)
+            {
+                _indicatorAssemblyShapeKey = nextIndicatorKey;
+                IndicatorPartMesh baseMesh = IndicatorAssemblyMeshBuilder.BuildBaseMesh(indicatorConfig);
+                IndicatorPartMesh housingMesh = IndicatorAssemblyMeshBuilder.BuildHousingMesh(indicatorConfig);
+                IndicatorPartMesh lensMesh = IndicatorAssemblyMeshBuilder.BuildLensMesh(indicatorConfig);
+                IndicatorPartMesh reflectorMesh = IndicatorAssemblyMeshBuilder.BuildReflectorMesh(indicatorConfig);
+                IndicatorPartMesh emitterMesh = IndicatorAssemblyMeshBuilder.BuildEmitterCoreMesh(indicatorConfig);
+                MetalMeshGpuResources? nextBaseResources = null;
+                MetalMeshGpuResources? nextHousingResources = null;
+                MetalMeshGpuResources? nextLensResources = null;
+                MetalMeshGpuResources? nextReflectorResources = null;
+                MetalMeshGpuResources? nextEmitterResources = null;
+
+                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
+                {
+                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
+                }
+
+                if (housingMesh.Vertices.Length > 0 && housingMesh.Indices.Length > 0)
+                {
+                    nextHousingResources = CreateGpuResources(housingMesh.Vertices, housingMesh.Indices, housingMesh.ReferenceRadius);
+                }
+
+                if (lensMesh.Vertices.Length > 0 && lensMesh.Indices.Length > 0)
+                {
+                    nextLensResources = CreateGpuResources(lensMesh.Vertices, lensMesh.Indices, lensMesh.ReferenceRadius);
+                }
+
+                if (reflectorMesh.Vertices.Length > 0 && reflectorMesh.Indices.Length > 0)
+                {
+                    nextReflectorResources = CreateGpuResources(reflectorMesh.Vertices, reflectorMesh.Indices, reflectorMesh.ReferenceRadius);
+                }
+
+                if (emitterMesh.Vertices.Length > 0 && emitterMesh.Indices.Length > 0)
+                {
+                    nextEmitterResources = CreateGpuResources(emitterMesh.Vertices, emitterMesh.Indices, emitterMesh.ReferenceRadius);
+                }
+
+                ReplaceMeshResources(ref _indicatorBaseResources, nextBaseResources);
+                ReplaceMeshResources(ref _indicatorHousingResources, nextHousingResources);
+                ReplaceMeshResources(ref _indicatorLensResources, nextLensResources);
+                ReplaceMeshResources(ref _indicatorReflectorResources, nextReflectorResources);
+                ReplaceMeshResources(ref _indicatorEmitterResources, nextEmitterResources);
             }
 
             if (project.ProjectType != InteractorProjectType.RotaryKnob)
@@ -478,12 +549,51 @@ namespace KnobForge.App.Controls
                 PressDepth: MathF.Round(config.PressDepth, 3));
         }
 
-        private GpuUniforms BuildUniforms(KnobProject? project, ModelNode? modelNode, float referenceRadius, Size viewportDip)
+        private static IndicatorAssemblyShapeKey BuildIndicatorAssemblyShapeKey(in IndicatorAssemblyConfig config)
+        {
+            if (!config.Enabled)
+            {
+                return default;
+            }
+
+            return new IndicatorAssemblyShapeKey(
+                Enabled: 1,
+                BaseWidth: MathF.Round(config.BaseWidth, 3),
+                BaseHeight: MathF.Round(config.BaseHeight, 3),
+                BaseThickness: MathF.Round(config.BaseThickness, 3),
+                HousingRadius: MathF.Round(config.HousingRadius, 3),
+                HousingHeight: MathF.Round(config.HousingHeight, 3),
+                LensRadius: MathF.Round(config.LensRadius, 3),
+                LensHeight: MathF.Round(config.LensHeight, 3),
+                ReflectorBaseRadius: MathF.Round(config.ReflectorBaseRadius, 3),
+                ReflectorTopRadius: MathF.Round(config.ReflectorTopRadius, 3),
+                ReflectorDepth: MathF.Round(config.ReflectorDepth, 3),
+                EmitterRadius: MathF.Round(config.EmitterRadius, 3),
+                EmitterSpread: MathF.Round(config.EmitterSpread, 3),
+                EmitterDepth: MathF.Round(config.EmitterDepth, 3),
+                EmitterCount: config.EmitterCount,
+                RadialSegments: config.RadialSegments,
+                LensLatitudeSegments: config.LensLatitudeSegments,
+                LensLongitudeSegments: config.LensLongitudeSegments);
+        }
+
+        private GpuUniforms BuildUniforms(
+            KnobProject? project,
+            ModelNode? modelNode,
+            float referenceRadius,
+            Size viewportDip,
+            double? dynamicLightAnimationTimeSeconds = null)
         {
             float renderScale = GetRenderScale();
             float viewportWidthPx = MathF.Max(1f, (float)viewportDip.Width * renderScale);
             float viewportHeightPx = MathF.Max(1f, (float)viewportDip.Height * renderScale);
-            return BuildUniformsForPixels(project, modelNode, referenceRadius, viewportWidthPx, viewportHeightPx);
+            return BuildUniformsForPixels(
+                project,
+                modelNode,
+                referenceRadius,
+                viewportWidthPx,
+                viewportHeightPx,
+                dynamicLightAnimationTimeSeconds);
         }
 
         private GpuUniforms BuildUniformsForPixels(
@@ -491,7 +601,8 @@ namespace KnobForge.App.Controls
             ModelNode? modelNode,
             float referenceRadius,
             float viewportWidthPx,
-            float viewportHeightPx)
+            float viewportHeightPx,
+            double? dynamicLightAnimationTimeSeconds = null)
         {
             GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
 
@@ -575,6 +686,7 @@ namespace KnobForge.App.Controls
             uniforms.UpAndScaleY = new Vector4(up, scaleY);
             uniforms.ForwardAndScaleZ = new Vector4(forward, scaleZ);
             uniforms.ProjectionOffsetsAndLightCount = new Vector4(offsetX, offsetY, 0f, 0f);
+            uniforms.DynamicLightParams = Vector4.Zero;
             uniforms.MaterialBaseColorAndMetallic = new Vector4(baseColor, metallic);
             uniforms.MaterialRoughnessDiffuseSpecMode = new Vector4(roughness, diffuseStrength, specularStrength, (float)(project?.Mode ?? LightingMode.Both));
             uniforms.MaterialPartTopColorAndMetallic = new Vector4(topBaseColor, topMetallic);
@@ -636,6 +748,8 @@ namespace KnobForge.App.Controls
                 Math.Clamp(project?.ScratchDepth ?? 0.30f, 0f, 1f),
                 Math.Clamp(project?.PaintCoatMetallic ?? 0.02f, 0f, 1f),
                 Math.Clamp(project?.PaintCoatRoughness ?? 0.56f, 0.04f, 1f));
+            uniforms.LensMaterialParams0 = Vector4.Zero;
+            uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
 
             if (project != null)
             {
@@ -676,6 +790,9 @@ namespace KnobForge.App.Controls
 
                     SetGpuLight(ref uniforms, i, packed);
                 }
+
+                int dynamicLightCount = PackDynamicLights(ref uniforms, project, dynamicLightAnimationTimeSeconds);
+                uniforms.DynamicLightParams.X = dynamicLightCount;
             }
 
             return uniforms;
@@ -704,6 +821,68 @@ namespace KnobForge.App.Controls
             uniforms.IndicatorParams2 = Vector4.Zero;
             uniforms.MicroDetailParams.X = 0f;
             uniforms.MicroDetailParams.W = 0f;
+            uniforms.LensMaterialParams0 = Vector4.Zero;
+            uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
+            return uniforms;
+        }
+
+        private static GpuUniforms BuildIndicatorLensUniforms(
+            in GpuUniforms baseUniforms,
+            Vector3 surfaceColor,
+            float surfaceRoughness,
+            float surfaceSpecularStrength,
+            float transmission,
+            float ior,
+            float thickness,
+            Vector3 tint,
+            float absorption)
+        {
+            GpuUniforms uniforms = BuildSliderPartUniforms(
+                baseUniforms,
+                surfaceColor,
+                metallic: 0.00f,
+                roughness: surfaceRoughness,
+                pearlescence: 0.00f,
+                diffuseStrength: 0.18f,
+                specularStrength: surfaceSpecularStrength);
+            uniforms.LensMaterialParams0 = new Vector4(
+                1f,
+                Math.Clamp(transmission, 0f, 1f),
+                Math.Clamp(ior, 1f, 2.5f),
+                Math.Clamp(thickness, 0f, 10f));
+            uniforms.LensMaterialTintAndAbsorption = new Vector4(
+                Math.Clamp(tint.X, 0f, 1f),
+                Math.Clamp(tint.Y, 0f, 1f),
+                Math.Clamp(tint.Z, 0f, 1f),
+                Math.Clamp(absorption, 0f, 8f));
+            return uniforms;
+        }
+
+        private static GpuUniforms BuildIndicatorEmitterUniforms(
+            in GpuUniforms baseUniforms,
+            Vector3 emissionColor,
+            float emissionStrength,
+            float roughness = 0.12f)
+        {
+            GpuUniforms uniforms = BuildSliderPartUniforms(
+                baseUniforms,
+                baseColor: new Vector3(
+                    Math.Clamp(emissionColor.X * 0.72f, 0f, 1f),
+                    Math.Clamp(emissionColor.Y * 0.72f, 0f, 1f),
+                    Math.Clamp(emissionColor.Z * 0.72f, 0f, 1f)),
+                metallic: 0.02f,
+                roughness: Math.Clamp(roughness, 0.04f, 1f),
+                pearlescence: 0f,
+                diffuseStrength: 1.15f,
+                specularStrength: 0.40f);
+
+            // Lighting mode 4 is reserved for emissive indicator emitter cores.
+            uniforms.MaterialRoughnessDiffuseSpecMode.W = 4f;
+            uniforms.IndicatorColorAndBlend = new Vector4(
+                Math.Clamp(emissionColor.X, 0f, 1f),
+                Math.Clamp(emissionColor.Y, 0f, 1f),
+                Math.Clamp(emissionColor.Z, 0f, 1f),
+                Math.Clamp(emissionStrength, 0f, 8f));
             return uniforms;
         }
 
@@ -896,6 +1075,173 @@ namespace KnobForge.App.Controls
                     break;
                 case 7:
                     uniforms.Light7 = light;
+                    break;
+            }
+        }
+
+        private int PackDynamicLights(
+            ref GpuUniforms uniforms,
+            KnobProject project,
+            double? animationTimeSecondsOverride = null)
+        {
+            DynamicLightRig rig = project.DynamicLightRig;
+            bool rigEnabled = rig.Enabled;
+            if (!rigEnabled || rig.Sources.Count == 0)
+            {
+                return 0;
+            }
+
+            int maxActive = Math.Clamp(rig.MaxActiveLights, 1, MaxGpuLights);
+            double animationTimeSeconds = animationTimeSecondsOverride
+                ?? (Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency);
+            int packedCount = 0;
+
+            for (int sourceIndex = 0; sourceIndex < rig.Sources.Count && packedCount < maxActive; sourceIndex++)
+            {
+                DynamicLightSource source = rig.Sources[sourceIndex];
+                if (!source.Enabled)
+                {
+                    continue;
+                }
+
+                float animatedIntensity = EvaluateDynamicLightIntensity(rig, source, sourceIndex, animationTimeSeconds);
+                if (animatedIntensity <= 1e-5f)
+                {
+                    continue;
+                }
+
+                Vector3 lightPos = ApplyLightOrientation(new Vector3(source.X, source.Y, source.Z));
+                GpuLight packed = new()
+                {
+                    PositionType = new Vector4(lightPos, 0f), // point light
+                    Direction = new Vector4(Vector3.UnitZ, 0f),
+                    ColorIntensity = new Vector4(
+                        source.Color.Red / 255f,
+                        source.Color.Green / 255f,
+                        source.Color.Blue / 255f,
+                        animatedIntensity),
+                    Params0 = new Vector4(
+                        MathF.Max(0f, source.Falloff),
+                        1f, // diffuse boost
+                        1f, // specular boost
+                        64f)
+                };
+
+                SetDynamicGpuLight(ref uniforms, packedCount, packed);
+                packedCount++;
+            }
+
+            uniforms.DynamicLightParams = new Vector4(
+                packedCount,
+                (float)rig.AnimationMode,
+                MathF.Max(0f, rig.AnimationSpeed),
+                0f);
+            return packedCount;
+        }
+
+        private static float EvaluateDynamicLightIntensity(
+            DynamicLightRig rig,
+            DynamicLightSource source,
+            int sourceIndex,
+            double timeSeconds)
+        {
+            float baseIntensity = MathF.Max(0f, source.Intensity);
+            if (baseIntensity <= 1e-6f)
+            {
+                return 0f;
+            }
+
+            float speed = MathF.Max(0f, rig.AnimationSpeed);
+            double t = timeSeconds * Math.Max(0.0001, speed);
+            float modeMultiplier = 1f;
+            float phaseOffsetRadians = source.AnimationPhaseOffsetDegrees * (MathF.PI / 180f);
+
+            switch (rig.AnimationMode)
+            {
+                case DynamicLightAnimationMode.Pulse:
+                {
+                    float phase = (sourceIndex * 0.73f) + ((rig.FlickerSeed & 255) * 0.011f) + phaseOffsetRadians;
+                    float wave = 0.5f + (0.5f * MathF.Sin((float)(t * Math.PI * 2.0) + phase));
+                    modeMultiplier = 0.45f + (0.55f * wave);
+                    break;
+                }
+                case DynamicLightAnimationMode.Flicker:
+                {
+                    float amount = Math.Clamp(rig.FlickerAmount, 0f, 1f);
+                    float smoothing = Math.Clamp(rig.FlickerSmoothing, 0f, 1f);
+                    float dropoutChance = Math.Clamp(rig.FlickerDropoutChance, 0f, 1f);
+                    float cycles = (float)t;
+                    float seeded = (rig.FlickerSeed & 4095) * 0.00087f;
+                    float phaseA = phaseOffsetRadians + (sourceIndex * 0.79f) + seeded;
+                    float phaseB = (phaseOffsetRadians * 1.47f) + (sourceIndex * 1.91f) + (seeded * 3.7f);
+                    float phaseC = (phaseOffsetRadians * 0.63f) + (sourceIndex * 2.77f) + (seeded * 5.1f);
+
+                    float wave1 = 0.5f + (0.5f * MathF.Sin((cycles * MathF.Tau) + phaseA));
+                    float wave2 = 0.5f + (0.5f * MathF.Sin((cycles * MathF.Tau * 3f) + phaseB));
+                    float wave3 = 0.5f + (0.5f * MathF.Sin((cycles * MathF.Tau * 7f) + phaseC));
+                    float raw = (wave1 * 0.50f) + (wave2 * 0.30f) + (wave3 * 0.20f);
+
+                    float shaped = smoothing + ((1f - smoothing) * raw);
+                    float dropoutWave = 0.5f + (0.5f * MathF.Sin((cycles * MathF.Tau * 11f) + (phaseC * 1.3f)));
+                    if (dropoutChance > 1e-5f && dropoutWave < dropoutChance)
+                    {
+                        float keep = dropoutWave / MathF.Max(1e-6f, dropoutChance);
+                        shaped *= 0.2f + (0.8f * keep);
+                    }
+
+                    modeMultiplier = (1f - amount) + (amount * shaped);
+                    break;
+                }
+                case DynamicLightAnimationMode.Custom:
+                {
+                    float phase = (sourceIndex * 1.17f) + ((rig.FlickerSeed & 1023) * 0.0039f) + phaseOffsetRadians;
+                    float sine = 0.5f + (0.5f * MathF.Sin((float)(t * Math.PI * 2.0) + phase));
+                    float triTime = (float)t + (sourceIndex * 0.19f) + (phaseOffsetRadians / (MathF.PI * 2f));
+                    float tri = 1f - MathF.Abs((Wrap01(triTime) * 2f) - 1f);
+                    modeMultiplier = 0.35f + (0.65f * ((sine * 0.65f) + (tri * 0.35f)));
+                    break;
+                }
+                case DynamicLightAnimationMode.Steady:
+                default:
+                    modeMultiplier = 1f;
+                    break;
+            }
+
+            return baseIntensity * MathF.Max(0f, modeMultiplier);
+        }
+
+        private static float Wrap01(float value)
+        {
+            return value - MathF.Floor(value);
+        }
+
+        private static void SetDynamicGpuLight(ref GpuUniforms uniforms, int index, in GpuLight light)
+        {
+            switch (index)
+            {
+                case 0:
+                    uniforms.DynamicLight0 = light;
+                    break;
+                case 1:
+                    uniforms.DynamicLight1 = light;
+                    break;
+                case 2:
+                    uniforms.DynamicLight2 = light;
+                    break;
+                case 3:
+                    uniforms.DynamicLight3 = light;
+                    break;
+                case 4:
+                    uniforms.DynamicLight4 = light;
+                    break;
+                case 5:
+                    uniforms.DynamicLight5 = light;
+                    break;
+                case 6:
+                    uniforms.DynamicLight6 = light;
+                    break;
+                case 7:
+                    uniforms.DynamicLight7 = light;
                     break;
             }
         }

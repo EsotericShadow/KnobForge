@@ -42,9 +42,26 @@ namespace KnobForge.App.Controls
             _renderTimer = null;
         }
 
+        private void DrainGpuWork()
+        {
+            if (!OperatingSystem.IsMacOS() || _context is null)
+            {
+                return;
+            }
+
+            IntPtr commandBuffer = _context.CreateCommandBuffer().Handle;
+            if (commandBuffer == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
+            ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
+        }
+
         private void OnRenderTimerTick(object? sender, EventArgs e)
         {
-            if (!IsVisible || _metalLayer == IntPtr.Zero || !_dirty)
+            if (_isShuttingDown || !IsVisible || _metalLayer == IntPtr.Zero || !_dirty)
             {
                 return;
             }
@@ -111,6 +128,100 @@ namespace KnobForge.App.Controls
             _depthTexture = texture;
             _depthTextureWidth = width;
             _depthTextureHeight = height;
+        }
+
+        private void EnsureMsaaRenderTextures(nuint width, nuint height)
+        {
+            if (_context is null || width == 0 || height == 0)
+            {
+                return;
+            }
+
+            nuint sampleCount = ViewportMsaaSampleCount;
+            if (sampleCount <= 1)
+            {
+                ReleaseMsaaRenderTextures();
+                return;
+            }
+
+            if (_msaaColorTexture != IntPtr.Zero &&
+                _msaaDepthTexture != IntPtr.Zero &&
+                _msaaTextureWidth == width &&
+                _msaaTextureHeight == height)
+            {
+                return;
+            }
+
+            ReleaseMsaaRenderTextures();
+
+            IntPtr colorDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                (nuint)MetalRendererContext.DefaultColorFormat,
+                width,
+                height,
+                false);
+            if (colorDescriptor == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetTextureType, MTLTextureType2DMultisample);
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetSampleCount, sampleCount);
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetUsage, 4); // MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+            IntPtr msaaColorTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, colorDescriptor);
+            if (msaaColorTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr depthDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                DepthPixelFormat,
+                width,
+                height,
+                false);
+            if (depthDescriptor == IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(msaaColorTexture, Selectors.Release);
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetTextureType, MTLTextureType2DMultisample);
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetSampleCount, sampleCount);
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetUsage, 4); // MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+            IntPtr msaaDepthTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, depthDescriptor);
+            if (msaaDepthTexture == IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(msaaColorTexture, Selectors.Release);
+                return;
+            }
+
+            _msaaColorTexture = msaaColorTexture;
+            _msaaDepthTexture = msaaDepthTexture;
+            _msaaTextureWidth = width;
+            _msaaTextureHeight = height;
+        }
+
+        private void ReleaseMsaaRenderTextures()
+        {
+            if (_msaaColorTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_msaaColorTexture, Selectors.Release);
+                _msaaColorTexture = IntPtr.Zero;
+            }
+
+            if (_msaaDepthTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_msaaDepthTexture, Selectors.Release);
+                _msaaDepthTexture = IntPtr.Zero;
+            }
+
+            _msaaTextureWidth = 0;
+            _msaaTextureHeight = 0;
         }
 
         private void EnsureSpiralNormalTexture(ModelNode modelNode, float referenceRadius)
@@ -187,8 +298,14 @@ namespace KnobForge.App.Controls
                 IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
                 if (blitEncoder != IntPtr.Zero)
                 {
-                    ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
-                    ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                    try
+                    {
+                        ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
+                    }
+                    finally
+                    {
+                        ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                    }
                 }
 
                 ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
@@ -336,47 +453,52 @@ namespace KnobForge.App.Controls
             }
 
             bool stampedAny = false;
-            IntPtr activePipeline = IntPtr.Zero;
-            for (int i = 0; i < commands.Count; i++)
+            try
             {
-                PaintStampCommand command = ResolvePaintCommandForDisplay(commands[i]);
-                bool isColorChannel = command.Channel == PaintChannel.Color;
-                if (includeColorChannel)
+                IntPtr activePipeline = IntPtr.Zero;
+                for (int i = 0; i < commands.Count; i++)
                 {
-                    if (!isColorChannel && command.Channel != PaintChannel.Erase)
+                    PaintStampCommand command = ResolvePaintCommandForDisplay(commands[i]);
+                    bool isColorChannel = command.Channel == PaintChannel.Color;
+                    if (includeColorChannel)
+                    {
+                        if (!isColorChannel && command.Channel != PaintChannel.Erase)
+                        {
+                            continue;
+                        }
+                    }
+                    else if (isColorChannel)
                     {
                         continue;
                     }
-                }
-                else if (isColorChannel)
-                {
-                    continue;
-                }
 
-                IntPtr pipeline = ResolvePaintStampPipeline(command.Channel);
-                if (pipeline == IntPtr.Zero)
-                {
-                    continue;
-                }
+                    IntPtr pipeline = ResolvePaintStampPipeline(command.Channel);
+                    if (pipeline == IntPtr.Zero)
+                    {
+                        continue;
+                    }
 
-                if (activePipeline != pipeline)
-                {
-                    ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, pipeline);
-                    activePipeline = pipeline;
-                }
+                    if (activePipeline != pipeline)
+                    {
+                        ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, pipeline);
+                        activePipeline = pipeline;
+                    }
 
-                PaintStampUniform uniform = BuildPaintStampUniform(command);
-                UploadPaintStampUniform(encoderPtr, uniform);
-                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
-                    encoderPtr,
-                    Selectors.DrawPrimitivesVertexStartVertexCount,
-                    MTLPrimitiveTypeTriangle,
-                    0,
-                    3);
-                stampedAny = true;
+                    PaintStampUniform uniform = BuildPaintStampUniform(command);
+                    UploadPaintStampUniform(encoderPtr, uniform);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                        encoderPtr,
+                        Selectors.DrawPrimitivesVertexStartVertexCount,
+                        MTLPrimitiveTypeTriangle,
+                        0,
+                        3);
+                    stampedAny = true;
+                }
             }
-
-            ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
             return stampedAny;
         }
 
@@ -433,8 +555,14 @@ namespace KnobForge.App.Controls
             IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
             if (blitEncoder != IntPtr.Zero)
             {
-                ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
-                ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                try
+                {
+                    ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
+                }
+                finally
+                {
+                    ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                }
             }
         }
 
@@ -466,7 +594,13 @@ namespace KnobForge.App.Controls
             IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
             if (encoderPtr != IntPtr.Zero)
             {
-                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+                try
+                {
+                }
+                finally
+                {
+                    ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+                }
             }
         }
 
@@ -519,16 +653,22 @@ namespace KnobForge.App.Controls
                 return;
             }
 
-            ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, _lightGizmoPipeline);
-            ObjC.Void_objc_msgSend_UInt(encoderPtr, Selectors.SetCullMode, 0); // MTLNone
-            UploadLightGizmoOverlayUniform(encoderPtr, uniform);
-            ObjC.Void_objc_msgSend_UInt_UInt_UInt(
-                encoderPtr,
-                Selectors.DrawPrimitivesVertexStartVertexCount,
-                MTLPrimitiveTypeTriangle,
-                0,
-                3);
-            ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            try
+            {
+                ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, _lightGizmoPipeline);
+                ObjC.Void_objc_msgSend_UInt(encoderPtr, Selectors.SetCullMode, 0); // MTLNone
+                UploadLightGizmoOverlayUniform(encoderPtr, uniform);
+                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                    encoderPtr,
+                    Selectors.DrawPrimitivesVertexStartVertexCount,
+                    MTLPrimitiveTypeTriangle,
+                    0,
+                    3);
+            }
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
         }
 
         private LightGizmoOverlayUniform BuildLightGizmoOverlayUniform(nuint drawableWidth, nuint drawableHeight)

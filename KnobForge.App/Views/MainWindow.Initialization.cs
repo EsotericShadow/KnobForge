@@ -170,6 +170,14 @@ namespace KnobForge.App.Views
             _indicatorShapeCombo.ItemsSource = Enum.GetValues<IndicatorShape>().Cast<IndicatorShape>().ToList();
             _indicatorReliefCombo.ItemsSource = Enum.GetValues<IndicatorRelief>().Cast<IndicatorRelief>().ToList();
             _indicatorProfileCombo.ItemsSource = Enum.GetValues<IndicatorProfile>().Cast<IndicatorProfile>().ToList();
+            if (_indicatorLightAnimationModeCombo != null)
+            {
+                _indicatorLightAnimationModeCombo.ItemsSource = Enum.GetValues<DynamicLightAnimationMode>().Cast<DynamicLightAnimationMode>().ToList();
+            }
+            if (_indicatorEmitterSourceCombo != null)
+            {
+                _indicatorEmitterSourceCombo.ItemsSource = Array.Empty<string>();
+            }
             _materialRegionCombo.ItemsSource = Enum.GetValues<MaterialRegionTarget>().Cast<MaterialRegionTarget>().ToList();
             _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
             _basisDebugModeCombo.ItemsSource = Enum.GetValues<BasisDebugMode>().Cast<BasisDebugMode>().ToList();
@@ -264,6 +272,46 @@ namespace KnobForge.App.Views
             if (_refreshToggleLibraryButton != null)
             {
                 _refreshToggleLibraryButton.Click += OnRefreshToggleLibraryButtonClicked;
+            }
+            if (_indicatorAssemblyResetDefaultsButton != null)
+            {
+                _indicatorAssemblyResetDefaultsButton.Click += (_, _) => ResetIndicatorAssemblyDefaultsFromUi();
+            }
+            if (_indicatorLightPresetNeutralButton != null)
+            {
+                _indicatorLightPresetNeutralButton.Click += (_, _) => ApplyIndicatorLightPreset(IndicatorLightPreset.Neutral);
+            }
+            if (_indicatorLightPresetPulseButton != null)
+            {
+                _indicatorLightPresetPulseButton.Click += (_, _) => ApplyIndicatorLightPreset(IndicatorLightPreset.Pulse);
+            }
+            if (_indicatorLightPresetFlickerButton != null)
+            {
+                _indicatorLightPresetFlickerButton.Click += (_, _) => ApplyIndicatorLightPreset(IndicatorLightPreset.Flicker);
+            }
+            if (_indicatorLensPresetClearButton != null)
+            {
+                _indicatorLensPresetClearButton.Click += (_, _) => ApplyIndicatorLensMaterialPreset(IndicatorLensMaterialPreset.ClearLens);
+            }
+            if (_indicatorLensPresetFrostedButton != null)
+            {
+                _indicatorLensPresetFrostedButton.Click += (_, _) => ApplyIndicatorLensMaterialPreset(IndicatorLensMaterialPreset.FrostedLens);
+            }
+            if (_indicatorLensPresetSaturatedButton != null)
+            {
+                _indicatorLensPresetSaturatedButton.Click += (_, _) => ApplyIndicatorLensMaterialPreset(IndicatorLensMaterialPreset.SaturatedLedLens);
+            }
+            if (_indicatorEmitterSourceMoveUpButton != null)
+            {
+                _indicatorEmitterSourceMoveUpButton.Click += (_, _) => MoveSelectedIndicatorEmitterSource(-1);
+            }
+            if (_indicatorEmitterSourceMoveDownButton != null)
+            {
+                _indicatorEmitterSourceMoveDownButton.Click += (_, _) => MoveSelectedIndicatorEmitterSource(1);
+            }
+            if (_indicatorEmitterSourceAutoPhaseButton != null)
+            {
+                _indicatorEmitterSourceAutoPhaseButton.Click += (_, _) => AutoDistributeIndicatorEmitterPhases();
             }
             _resetViewButton.Click += (_, _) => _metalViewport?.ResetCamera();
             _clearPaintMaskButton.Click += (_, _) => OnClearPaintMask();
@@ -647,6 +695,194 @@ namespace KnobForge.App.Views
             _indicatorColorRSlider.PropertyChanged += OnIndicatorSettingsChanged;
             _indicatorColorGSlider.PropertyChanged += OnIndicatorSettingsChanged;
             _indicatorColorBSlider.PropertyChanged += OnIndicatorSettingsChanged;
+            if (_indicatorAssemblyEnabledCheckBox != null)
+            {
+                _indicatorAssemblyEnabledCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorBaseWidthSlider != null)
+            {
+                _indicatorBaseWidthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorBaseHeightSlider != null)
+            {
+                _indicatorBaseHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorBaseThicknessSlider != null)
+            {
+                _indicatorBaseThicknessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorHousingRadiusSlider != null)
+            {
+                _indicatorHousingRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorHousingHeightSlider != null)
+            {
+                _indicatorHousingHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensRadiusSlider != null)
+            {
+                _indicatorLensRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensHeightSlider != null)
+            {
+                _indicatorLensHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensTransmissionSlider != null)
+            {
+                _indicatorLensTransmissionSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensIorSlider != null)
+            {
+                _indicatorLensIorSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensThicknessSlider != null)
+            {
+                _indicatorLensThicknessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensAbsorptionSlider != null)
+            {
+                _indicatorLensAbsorptionSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensSurfaceRoughnessSlider != null)
+            {
+                _indicatorLensSurfaceRoughnessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensSurfaceSpecularSlider != null)
+            {
+                _indicatorLensSurfaceSpecularSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensTintRSlider != null)
+            {
+                _indicatorLensTintRSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensTintGSlider != null)
+            {
+                _indicatorLensTintGSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensTintBSlider != null)
+            {
+                _indicatorLensTintBSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorReflectorBaseRadiusSlider != null)
+            {
+                _indicatorReflectorBaseRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorReflectorTopRadiusSlider != null)
+            {
+                _indicatorReflectorTopRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorReflectorDepthSlider != null)
+            {
+                _indicatorReflectorDepthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorEmitterRadiusSlider != null)
+            {
+                _indicatorEmitterRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorEmitterSpreadSlider != null)
+            {
+                _indicatorEmitterSpreadSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorEmitterDepthSlider != null)
+            {
+                _indicatorEmitterDepthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorEmitterCountSlider != null)
+            {
+                _indicatorEmitterCountSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorRadialSegmentsSlider != null)
+            {
+                _indicatorRadialSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensLatitudeSegmentsSlider != null)
+            {
+                _indicatorLensLatitudeSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLensLongitudeSegmentsSlider != null)
+            {
+                _indicatorLensLongitudeSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorDynamicLightsEnabledCheckBox != null)
+            {
+                _indicatorDynamicLightsEnabledCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightAnimationModeCombo != null)
+            {
+                _indicatorLightAnimationModeCombo.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightAnimationSpeedSlider != null)
+            {
+                _indicatorLightAnimationSpeedSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightFlickerAmountSlider != null)
+            {
+                _indicatorLightFlickerAmountSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightFlickerDropoutSlider != null)
+            {
+                _indicatorLightFlickerDropoutSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightFlickerSmoothingSlider != null)
+            {
+                _indicatorLightFlickerSmoothingSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorLightFlickerSeedSlider != null)
+            {
+                _indicatorLightFlickerSeedSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+            }
+            if (_indicatorEmitterSourceCombo != null)
+            {
+                _indicatorEmitterSourceCombo.PropertyChanged += OnIndicatorLightEmitterSelectionChanged;
+            }
+            if (_indicatorEmitterSourceNameTextBox != null)
+            {
+                _indicatorEmitterSourceNameTextBox.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceEnabledCheckBox != null)
+            {
+                _indicatorEmitterSourceEnabledCheckBox.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+            {
+                _indicatorEmitterSourcePhaseOffsetSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceXSlider != null)
+            {
+                _indicatorEmitterSourceXSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceYSlider != null)
+            {
+                _indicatorEmitterSourceYSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceZSlider != null)
+            {
+                _indicatorEmitterSourceZSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceIntensitySlider != null)
+            {
+                _indicatorEmitterSourceIntensitySlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceRadiusSlider != null)
+            {
+                _indicatorEmitterSourceRadiusSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceFalloffSlider != null)
+            {
+                _indicatorEmitterSourceFalloffSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceRSlider != null)
+            {
+                _indicatorEmitterSourceRSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceGSlider != null)
+            {
+                _indicatorEmitterSourceGSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
+            if (_indicatorEmitterSourceBSlider != null)
+            {
+                _indicatorEmitterSourceBSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+            }
             _materialBaseRSlider.PropertyChanged += OnMaterialBaseColorChanged;
             _materialBaseGSlider.PropertyChanged += OnMaterialBaseColorChanged;
             _materialBaseBSlider.PropertyChanged += OnMaterialBaseColorChanged;

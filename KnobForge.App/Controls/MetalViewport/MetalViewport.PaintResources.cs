@@ -414,8 +414,14 @@ namespace KnobForge.App.Controls
                 IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
                 if (blitEncoder != IntPtr.Zero)
                 {
-                    ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, _paintMaskTexture);
-                    ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                    try
+                    {
+                        ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, _paintMaskTexture);
+                    }
+                    finally
+                    {
+                        ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                    }
                 }
 
                 ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);

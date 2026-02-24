@@ -97,6 +97,23 @@ namespace KnobForge.App.Views
             WireHeavyGeometryFlushOnRelease(_collarOffsetYSlider);
             WireHeavyGeometryFlushOnRelease(_collarElevationSlider);
             WireHeavyGeometryFlushOnRelease(_collarInflateSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorBaseWidthSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorBaseHeightSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorBaseThicknessSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorHousingRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorHousingHeightSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorLensRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorLensHeightSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorReflectorBaseRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorReflectorTopRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorReflectorDepthSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorEmitterRadiusSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorEmitterSpreadSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorEmitterDepthSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorEmitterCountSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorRadialSegmentsSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorLensLatitudeSegmentsSlider);
+            WireHeavyGeometryFlushOnRelease(_indicatorLensLongitudeSegmentsSlider);
         }
 
         private void RequestHeavyGeometryRefresh()

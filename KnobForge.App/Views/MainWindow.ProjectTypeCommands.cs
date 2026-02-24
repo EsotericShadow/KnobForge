@@ -95,6 +95,11 @@ namespace KnobForge.App.Views
                 currentType,
                 InteractorProjectType.PushButton,
                 value => selectedType = value));
+            content.Children.Add(CreateProjectTypePickerButton(
+                dialog,
+                currentType,
+                InteractorProjectType.IndicatorLight,
+                value => selectedType = value));
 
             var actions = new StackPanel
             {
@@ -248,6 +253,7 @@ namespace KnobForge.App.Views
                 InteractorProjectType.FlipSwitch => "Flip Switch",
                 InteractorProjectType.ThumbSlider => "Thumb Slider",
                 InteractorProjectType.PushButton => "Push Button",
+                InteractorProjectType.IndicatorLight => "Indicator Light",
                 _ => "Rotary Knob"
             };
         }
@@ -259,6 +265,7 @@ namespace KnobForge.App.Views
                 InteractorProjectType.FlipSwitch => "Toggle switch workflow with base + lever meshes.",
                 InteractorProjectType.ThumbSlider => "Slider workflow with backplate + thumb meshes.",
                 InteractorProjectType.PushButton => "Button workflow scaffold (geometry to be expanded).",
+                InteractorProjectType.IndicatorLight => "Indicator workflow with bezel + dome + emitter rig.",
                 _ => "Encoder and knob-focused workflow."
             };
         }

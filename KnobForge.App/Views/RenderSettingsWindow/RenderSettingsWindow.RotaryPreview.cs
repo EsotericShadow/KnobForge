@@ -29,7 +29,8 @@ namespace KnobForge.App.Views
             _project.ProjectType == InteractorProjectType.RotaryKnob ||
             _project.ProjectType == InteractorProjectType.ThumbSlider ||
             _project.ProjectType == InteractorProjectType.FlipSwitch ||
-            _project.ProjectType == InteractorProjectType.PushButton;
+            _project.ProjectType == InteractorProjectType.PushButton ||
+            _project.ProjectType == InteractorProjectType.IndicatorLight;
 
         private string InteractivePreviewModeDisplayName => _project.ProjectType switch
         {
@@ -37,6 +38,7 @@ namespace KnobForge.App.Views
             InteractorProjectType.ThumbSlider => "Slider",
             InteractorProjectType.FlipSwitch => "Switch",
             InteractorProjectType.PushButton => "Button",
+            InteractorProjectType.IndicatorLight => "Indicator",
             _ => "Interactor"
         };
 
@@ -48,6 +50,7 @@ namespace KnobForge.App.Views
                 InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames.",
                 InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames.",
                 InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames.",
+                InteractorProjectType.IndicatorLight => "Choose perspective, then click Create Indicator Preview. Drag to scrub the loop and validate emissive timing/framing.",
                 _ => "Interactive preview is unavailable for this project type."
             };
         }
@@ -275,6 +278,9 @@ namespace KnobForge.App.Views
                             stateSnapshot.PushButtonPressAmountNormalized),
                         DispatcherPriority.Render);
 
+                    double animationTimeSeconds = _project.ProjectType == InteractorProjectType.IndicatorLight
+                        ? InteractorFrameTimeline.ResolveLoopAnimationTimeSeconds(i, frameCount)
+                        : InteractorFrameTimeline.ResolveAnimationTimeSeconds(i, frameCount);
                     SKBitmap? gpuFrame = await Dispatcher.UIThread.InvokeAsync(
                         () =>
                         {
@@ -282,7 +288,8 @@ namespace KnobForge.App.Views
                                 request.RenderResolution,
                                 request.RenderResolution,
                                 cameraState,
-                                out SKBitmap? frame))
+                                out SKBitmap? frame,
+                                animationTimeSeconds))
                             {
                                 return frame;
                             }
@@ -402,6 +409,9 @@ namespace KnobForge.App.Views
                                 originalPushButtonPressAmountNormalized),
                             DispatcherPriority.Render);
 
+                        double animationTimeSeconds = _project.ProjectType == InteractorProjectType.IndicatorLight
+                            ? InteractorFrameTimeline.ResolveLoopAnimationTimeSeconds(sampleFrameIndex, request.FrameCount)
+                            : InteractorFrameTimeline.ResolveAnimationTimeSeconds(sampleFrameIndex, request.FrameCount);
                         SKBitmap? sampleBitmap = await Dispatcher.UIThread.InvokeAsync(
                             () =>
                             {
@@ -409,7 +419,8 @@ namespace KnobForge.App.Views
                                     request.Resolution,
                                     request.Resolution,
                                     cameraState,
-                                    out SKBitmap? frame))
+                                    out SKBitmap? frame,
+                                    animationTimeSeconds))
                                 {
                                     return frame;
                                 }

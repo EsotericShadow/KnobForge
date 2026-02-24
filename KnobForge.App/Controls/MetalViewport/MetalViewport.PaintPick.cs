@@ -144,60 +144,65 @@ namespace KnobForge.App.Controls
                 return false;
             }
 
-            var encoderHandle = new MTLRenderCommandEncoderHandle(encoderPtr);
-            ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, _paintPickPipeline);
-            ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetDepthStencilState, _paintPickDepthStencilState);
-            MetalPipelineManager.SetBackfaceCulling(encoderHandle, true);
-
-            GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
-            bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
-            bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
-                ? !frontFacingClockwiseBase
-                : frontFacingClockwiseBase;
-            bool frontFacingClockwiseCollar = frontFacingClockwiseBase;
-            if (drawCollarPick && collarNode is not null && IsImportedCollarPreset(collarNode) && _invertImportedStlFrontFaceWinding)
+            try
             {
-                frontFacingClockwiseCollar = !frontFacingClockwiseCollar;
-            }
+                var encoderHandle = new MTLRenderCommandEncoderHandle(encoderPtr);
+                ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetRenderPipelineState, _paintPickPipeline);
+                ObjC.Void_objc_msgSend_IntPtr(encoderPtr, Selectors.SetDepthStencilState, _paintPickDepthStencilState);
+                MetalPipelineManager.SetBackfaceCulling(encoderHandle, true);
 
-            if (drawCollarPick && _collarResources is not null)
-            {
-                MetalPipelineManager.SetFrontFacingWinding(encoderHandle, frontFacingClockwiseCollar);
+                GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
+                bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
+                bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
+                    ? !frontFacingClockwiseBase
+                    : frontFacingClockwiseBase;
+                bool frontFacingClockwiseCollar = frontFacingClockwiseBase;
+                if (drawCollarPick && collarNode is not null && IsImportedCollarPreset(collarNode) && _invertImportedStlFrontFaceWinding)
+                {
+                    frontFacingClockwiseCollar = !frontFacingClockwiseCollar;
+                }
+
+                if (drawCollarPick && _collarResources is not null)
+                {
+                    MetalPipelineManager.SetFrontFacingWinding(encoderHandle, frontFacingClockwiseCollar);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                        encoderPtr,
+                        Selectors.SetVertexBufferOffsetAtIndex,
+                        _collarResources.VertexBuffer.Handle,
+                        0,
+                        0);
+                    UploadPaintPickUniform(encoderPtr, collarPickUniform);
+                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                        MTLPrimitiveTypeTriangle,
+                        (nuint)_collarResources.IndexCount,
+                        (nuint)_collarResources.IndexType,
+                        _collarResources.IndexBuffer.Handle,
+                        0);
+                }
+
+                MetalPipelineManager.SetFrontFacingWinding(encoderHandle, frontFacingClockwiseKnob);
                 ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
                     encoderPtr,
                     Selectors.SetVertexBufferOffsetAtIndex,
-                    _collarResources.VertexBuffer.Handle,
+                    _meshResources.VertexBuffer.Handle,
                     0,
                     0);
-                UploadPaintPickUniform(encoderPtr, collarPickUniform);
+                UploadPaintPickUniform(encoderPtr, knobPickUniform);
                 ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
                     encoderPtr,
                     Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
                     MTLPrimitiveTypeTriangle,
-                    (nuint)_collarResources.IndexCount,
-                    (nuint)_collarResources.IndexType,
-                    _collarResources.IndexBuffer.Handle,
+                    (nuint)_meshResources.IndexCount,
+                    (nuint)_meshResources.IndexType,
+                    _meshResources.IndexBuffer.Handle,
                     0);
             }
-
-            MetalPipelineManager.SetFrontFacingWinding(encoderHandle, frontFacingClockwiseKnob);
-            ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
-                encoderPtr,
-                Selectors.SetVertexBufferOffsetAtIndex,
-                _meshResources.VertexBuffer.Handle,
-                0,
-                0);
-            UploadPaintPickUniform(encoderPtr, knobPickUniform);
-            ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
-                encoderPtr,
-                Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
-                MTLPrimitiveTypeTriangle,
-                (nuint)_meshResources.IndexCount,
-                (nuint)_meshResources.IndexType,
-                _meshResources.IndexBuffer.Handle,
-                0);
-
-            ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
             ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
             ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
             _paintPickMapDirty = false;

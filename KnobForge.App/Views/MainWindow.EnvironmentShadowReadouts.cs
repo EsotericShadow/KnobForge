@@ -666,6 +666,211 @@ namespace KnobForge.App.Views
                 _indicatorColorBValueText.Text = $"{_indicatorColorBSlider.Value:0.00}";
             }
 
+            if (_indicatorBaseWidthSlider != null && _indicatorBaseWidthValueText != null)
+            {
+                _indicatorBaseWidthValueText.Text = FormatSliderDimensionValue(_indicatorBaseWidthSlider.Value);
+            }
+
+            if (_indicatorBaseHeightSlider != null && _indicatorBaseHeightValueText != null)
+            {
+                _indicatorBaseHeightValueText.Text = FormatSliderDimensionValue(_indicatorBaseHeightSlider.Value);
+            }
+
+            if (_indicatorBaseThicknessSlider != null && _indicatorBaseThicknessValueText != null)
+            {
+                _indicatorBaseThicknessValueText.Text = FormatSliderDimensionValue(_indicatorBaseThicknessSlider.Value);
+            }
+
+            if (_indicatorHousingRadiusSlider != null && _indicatorHousingRadiusValueText != null)
+            {
+                _indicatorHousingRadiusValueText.Text = FormatSliderDimensionValue(_indicatorHousingRadiusSlider.Value);
+            }
+
+            if (_indicatorHousingHeightSlider != null && _indicatorHousingHeightValueText != null)
+            {
+                _indicatorHousingHeightValueText.Text = FormatSliderDimensionValue(_indicatorHousingHeightSlider.Value);
+            }
+
+            if (_indicatorLensRadiusSlider != null && _indicatorLensRadiusValueText != null)
+            {
+                _indicatorLensRadiusValueText.Text = FormatSliderDimensionValue(_indicatorLensRadiusSlider.Value);
+            }
+
+            if (_indicatorLensHeightSlider != null && _indicatorLensHeightValueText != null)
+            {
+                _indicatorLensHeightValueText.Text = FormatSliderDimensionValue(_indicatorLensHeightSlider.Value);
+            }
+
+            if (_indicatorLensTransmissionSlider != null && _indicatorLensTransmissionValueText != null)
+            {
+                _indicatorLensTransmissionValueText.Text = $"{_indicatorLensTransmissionSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensIorSlider != null && _indicatorLensIorValueText != null)
+            {
+                _indicatorLensIorValueText.Text = $"{_indicatorLensIorSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensThicknessSlider != null && _indicatorLensThicknessValueText != null)
+            {
+                _indicatorLensThicknessValueText.Text = $"{_indicatorLensThicknessSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensAbsorptionSlider != null && _indicatorLensAbsorptionValueText != null)
+            {
+                _indicatorLensAbsorptionValueText.Text = $"{_indicatorLensAbsorptionSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensSurfaceRoughnessSlider != null && _indicatorLensSurfaceRoughnessValueText != null)
+            {
+                _indicatorLensSurfaceRoughnessValueText.Text = $"{_indicatorLensSurfaceRoughnessSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensSurfaceSpecularSlider != null && _indicatorLensSurfaceSpecularValueText != null)
+            {
+                _indicatorLensSurfaceSpecularValueText.Text = $"{_indicatorLensSurfaceSpecularSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensTintRSlider != null && _indicatorLensTintRValueText != null)
+            {
+                _indicatorLensTintRValueText.Text = $"{_indicatorLensTintRSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensTintGSlider != null && _indicatorLensTintGValueText != null)
+            {
+                _indicatorLensTintGValueText.Text = $"{_indicatorLensTintGSlider.Value:0.00}";
+            }
+
+            if (_indicatorLensTintBSlider != null && _indicatorLensTintBValueText != null)
+            {
+                _indicatorLensTintBValueText.Text = $"{_indicatorLensTintBSlider.Value:0.00}";
+            }
+
+            if (_indicatorReflectorBaseRadiusSlider != null && _indicatorReflectorBaseRadiusValueText != null)
+            {
+                _indicatorReflectorBaseRadiusValueText.Text = FormatSliderDimensionValue(_indicatorReflectorBaseRadiusSlider.Value);
+            }
+
+            if (_indicatorReflectorTopRadiusSlider != null && _indicatorReflectorTopRadiusValueText != null)
+            {
+                _indicatorReflectorTopRadiusValueText.Text = FormatSliderDimensionValue(_indicatorReflectorTopRadiusSlider.Value);
+            }
+
+            if (_indicatorReflectorDepthSlider != null && _indicatorReflectorDepthValueText != null)
+            {
+                _indicatorReflectorDepthValueText.Text = FormatSliderDimensionValue(_indicatorReflectorDepthSlider.Value);
+            }
+
+            if (_indicatorEmitterRadiusSlider != null && _indicatorEmitterRadiusValueText != null)
+            {
+                _indicatorEmitterRadiusValueText.Text = FormatSliderDimensionValue(_indicatorEmitterRadiusSlider.Value);
+            }
+
+            if (_indicatorEmitterSpreadSlider != null && _indicatorEmitterSpreadValueText != null)
+            {
+                _indicatorEmitterSpreadValueText.Text = FormatSliderDimensionValue(_indicatorEmitterSpreadSlider.Value);
+            }
+
+            if (_indicatorEmitterDepthSlider != null && _indicatorEmitterDepthValueText != null)
+            {
+                _indicatorEmitterDepthValueText.Text = $"{_indicatorEmitterDepthSlider.Value:0.0}px";
+            }
+
+            if (_indicatorEmitterCountSlider != null && _indicatorEmitterCountValueText != null)
+            {
+                _indicatorEmitterCountValueText.Text = $"{Math.Round(_indicatorEmitterCountSlider.Value):0}";
+            }
+
+            if (_indicatorRadialSegmentsSlider != null && _indicatorRadialSegmentsValueText != null)
+            {
+                _indicatorRadialSegmentsValueText.Text = $"{Math.Round(_indicatorRadialSegmentsSlider.Value):0}";
+            }
+
+            if (_indicatorLensLatitudeSegmentsSlider != null && _indicatorLensLatitudeSegmentsValueText != null)
+            {
+                _indicatorLensLatitudeSegmentsValueText.Text = $"{Math.Round(_indicatorLensLatitudeSegmentsSlider.Value):0}";
+            }
+
+            if (_indicatorLensLongitudeSegmentsSlider != null && _indicatorLensLongitudeSegmentsValueText != null)
+            {
+                _indicatorLensLongitudeSegmentsValueText.Text = $"{Math.Round(_indicatorLensLongitudeSegmentsSlider.Value):0}";
+            }
+
+            if (_indicatorLightAnimationSpeedSlider != null && _indicatorLightAnimationSpeedValueText != null)
+            {
+                _indicatorLightAnimationSpeedValueText.Text = $"{_indicatorLightAnimationSpeedSlider.Value:0.00}";
+            }
+
+            if (_indicatorLightFlickerAmountSlider != null && _indicatorLightFlickerAmountValueText != null)
+            {
+                _indicatorLightFlickerAmountValueText.Text = $"{_indicatorLightFlickerAmountSlider.Value:0.00}";
+            }
+
+            if (_indicatorLightFlickerDropoutSlider != null && _indicatorLightFlickerDropoutValueText != null)
+            {
+                _indicatorLightFlickerDropoutValueText.Text = $"{_indicatorLightFlickerDropoutSlider.Value:0.00}";
+            }
+
+            if (_indicatorLightFlickerSmoothingSlider != null && _indicatorLightFlickerSmoothingValueText != null)
+            {
+                _indicatorLightFlickerSmoothingValueText.Text = $"{_indicatorLightFlickerSmoothingSlider.Value:0.00}";
+            }
+
+            if (_indicatorLightFlickerSeedSlider != null && _indicatorLightFlickerSeedValueText != null)
+            {
+                _indicatorLightFlickerSeedValueText.Text = $"{Math.Round(_indicatorLightFlickerSeedSlider.Value):0}";
+            }
+
+            if (_indicatorEmitterSourceXSlider != null && _indicatorEmitterSourceXValueText != null)
+            {
+                _indicatorEmitterSourceXValueText.Text = $"{_indicatorEmitterSourceXSlider.Value:0.0}px";
+            }
+
+            if (_indicatorEmitterSourceYSlider != null && _indicatorEmitterSourceYValueText != null)
+            {
+                _indicatorEmitterSourceYValueText.Text = $"{_indicatorEmitterSourceYSlider.Value:0.0}px";
+            }
+
+            if (_indicatorEmitterSourceZSlider != null && _indicatorEmitterSourceZValueText != null)
+            {
+                _indicatorEmitterSourceZValueText.Text = $"{_indicatorEmitterSourceZSlider.Value:0.0}px";
+            }
+
+            if (_indicatorEmitterSourceIntensitySlider != null && _indicatorEmitterSourceIntensityValueText != null)
+            {
+                _indicatorEmitterSourceIntensityValueText.Text = $"{_indicatorEmitterSourceIntensitySlider.Value:0.00}";
+            }
+
+            if (_indicatorEmitterSourceRadiusSlider != null && _indicatorEmitterSourceRadiusValueText != null)
+            {
+                _indicatorEmitterSourceRadiusValueText.Text = FormatSliderDimensionValue(_indicatorEmitterSourceRadiusSlider.Value);
+            }
+
+            if (_indicatorEmitterSourceFalloffSlider != null && _indicatorEmitterSourceFalloffValueText != null)
+            {
+                _indicatorEmitterSourceFalloffValueText.Text = $"{_indicatorEmitterSourceFalloffSlider.Value:0.00}";
+            }
+
+            if (_indicatorEmitterSourcePhaseOffsetSlider != null && _indicatorEmitterSourcePhaseOffsetValueText != null)
+            {
+                _indicatorEmitterSourcePhaseOffsetValueText.Text = $"{_indicatorEmitterSourcePhaseOffsetSlider.Value:0.0} deg";
+            }
+
+            if (_indicatorEmitterSourceRSlider != null && _indicatorEmitterSourceRValueText != null)
+            {
+                _indicatorEmitterSourceRValueText.Text = $"{_indicatorEmitterSourceRSlider.Value:0.00}";
+            }
+
+            if (_indicatorEmitterSourceGSlider != null && _indicatorEmitterSourceGValueText != null)
+            {
+                _indicatorEmitterSourceGValueText.Text = $"{_indicatorEmitterSourceGSlider.Value:0.00}";
+            }
+
+            if (_indicatorEmitterSourceBSlider != null && _indicatorEmitterSourceBValueText != null)
+            {
+                _indicatorEmitterSourceBValueText.Text = $"{_indicatorEmitterSourceBSlider.Value:0.00}";
+            }
+
             if (_materialBaseRSlider != null && _materialBaseRValueText != null)
             {
                 _materialBaseRValueText.Text = $"{_materialBaseRSlider.Value:0.00}";

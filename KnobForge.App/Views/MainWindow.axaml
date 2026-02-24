@@ -1076,60 +1076,281 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeIndicatorExpander" Header="Indicator" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <CheckBox x:Name="IndicatorEnabledCheckBox"
-                                                  Content="Enable Indicator"/>
-                                        <CheckBox x:Name="IndicatorCadWallsCheckBox"
-                                                  Content="CAD Hard Walls"/>
+                                    <StackPanel Spacing="10" Margin="0,6,0,0">
+                                        <StackPanel x:Name="RotaryIndicatorPanel" Spacing="6">
+                                            <CheckBox x:Name="IndicatorEnabledCheckBox"
+                                                      Content="Enable Indicator"/>
+                                            <CheckBox x:Name="IndicatorCadWallsCheckBox"
+                                                      Content="CAD Hard Walls"/>
 
-                                        <TextBlock Text="Shape"/>
-                                        <ComboBox x:Name="IndicatorShapeCombo"/>
+                                            <TextBlock Text="Shape"/>
+                                            <ComboBox x:Name="IndicatorShapeCombo"/>
 
-                                        <TextBlock Text="Relief"/>
-                                        <ComboBox x:Name="IndicatorReliefCombo"/>
+                                            <TextBlock Text="Relief"/>
+                                            <ComboBox x:Name="IndicatorReliefCombo"/>
 
-                                        <TextBlock Text="Profile"/>
-                                        <ComboBox x:Name="IndicatorProfileCombo"/>
+                                            <TextBlock Text="Profile"/>
+                                            <ComboBox x:Name="IndicatorProfileCombo"/>
 
-                                        <TextBlock Text="Width"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorWidthSlider" Minimum="0.005" Maximum="0.35"/>
-                                        <TextBlock x:Name="IndicatorWidthValueText"/>
+                                            <TextBlock Text="Width"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorWidthSlider" Minimum="0.005" Maximum="0.35"/>
+                                            <TextBlock x:Name="IndicatorWidthValueText"/>
 
-                                        <TextBlock Text="Length"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorLengthSlider" Minimum="0.05" Maximum="0.8"/>
-                                        <TextBlock x:Name="IndicatorLengthValueText"/>
+                                            <TextBlock Text="Length"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLengthSlider" Minimum="0.05" Maximum="0.8"/>
+                                            <TextBlock x:Name="IndicatorLengthValueText"/>
 
-                                        <TextBlock Text="Position"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorPositionSlider" Minimum="0.05" Maximum="0.9"/>
-                                        <TextBlock x:Name="IndicatorPositionValueText"/>
+                                            <TextBlock Text="Position"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorPositionSlider" Minimum="0.05" Maximum="0.9"/>
+                                            <TextBlock x:Name="IndicatorPositionValueText"/>
 
-                                        <TextBlock Text="Thickness"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorThicknessSlider" Minimum="0" Maximum="0.08"/>
-                                        <TextBlock x:Name="IndicatorThicknessValueText"/>
+                                            <TextBlock Text="Thickness"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorThicknessSlider" Minimum="0" Maximum="0.08"/>
+                                            <TextBlock x:Name="IndicatorThicknessValueText"/>
 
-                                        <TextBlock Text="Edge Roundness"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorRoundnessSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="IndicatorRoundnessValueText"/>
+                                            <TextBlock Text="Edge Roundness"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorRoundnessSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorRoundnessValueText"/>
 
-                                        <TextBlock Text="Color Blend"/>
-                                        <controls:SpriteKnobSlider x:Name="IndicatorColorBlendSlider" Minimum="0" Maximum="1"/>
-                                        <TextBlock x:Name="IndicatorColorBlendValueText"/>
+                                            <TextBlock Text="Color Blend"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorColorBlendSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorColorBlendValueText"/>
 
-                                        <TextBlock Text="Indicator Color"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="R" Width="14"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorColorRSlider" Minimum="0" Maximum="1" Width="210"/>
-                                            <TextBlock x:Name="IndicatorColorRValueText" Width="36"/>
+                                            <TextBlock Text="Indicator Color"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="R" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorColorRSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorColorRValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="G" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorColorGSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorColorGValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="B" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorColorBSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorColorBValueText" Width="36"/>
+                                            </StackPanel>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="G" Width="14"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorColorGSlider" Minimum="0" Maximum="1" Width="210"/>
-                                            <TextBlock x:Name="IndicatorColorGValueText" Width="36"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="B" Width="14"/>
-                                            <controls:SpriteKnobSlider x:Name="IndicatorColorBSlider" Minimum="0" Maximum="1" Width="210"/>
-                                            <TextBlock x:Name="IndicatorColorBValueText" Width="36"/>
+
+                                        <StackPanel x:Name="IndicatorLightAssemblyPanel" Spacing="6" IsVisible="False">
+                                            <TextBlock Text="Indicator Light Assembly"/>
+                                            <CheckBox x:Name="IndicatorAssemblyEnabledCheckBox"
+                                                      Content="Enable Assembly"/>
+
+                                            <TextBlock Text="Base Width"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseWidthSlider" Minimum="24" Maximum="1024"/>
+                                            <TextBlock x:Name="IndicatorBaseWidthValueText"/>
+
+                                            <TextBlock Text="Base Height"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseHeightSlider" Minimum="24" Maximum="1024"/>
+                                            <TextBlock x:Name="IndicatorBaseHeightValueText"/>
+
+                                            <TextBlock Text="Base Thickness"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorBaseThicknessSlider" Minimum="2" Maximum="256"/>
+                                            <TextBlock x:Name="IndicatorBaseThicknessValueText"/>
+
+                                            <TextBlock Text="Housing Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorHousingRadiusSlider" Minimum="4" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorHousingRadiusValueText"/>
+
+                                            <TextBlock Text="Housing Height"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorHousingHeightSlider" Minimum="2" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorHousingHeightValueText"/>
+
+                                            <TextBlock Text="Lens Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensRadiusSlider" Minimum="2" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorLensRadiusValueText"/>
+
+                                            <TextBlock Text="Lens Height"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensHeightSlider" Minimum="2" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorLensHeightValueText"/>
+
+                                            <Separator/>
+                                            <TextBlock Text="Lens Material"/>
+
+                                            <TextBlock Text="Lens Transmission"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensTransmissionSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorLensTransmissionValueText"/>
+
+                                            <TextBlock Text="Lens IOR"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensIorSlider" Minimum="1" Maximum="2.5"/>
+                                            <TextBlock x:Name="IndicatorLensIorValueText"/>
+
+                                            <TextBlock Text="Lens Thickness"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensThicknessSlider" Minimum="0" Maximum="10"/>
+                                            <TextBlock x:Name="IndicatorLensThicknessValueText"/>
+
+                                            <TextBlock Text="Lens Absorption"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensAbsorptionSlider" Minimum="0" Maximum="8"/>
+                                            <TextBlock x:Name="IndicatorLensAbsorptionValueText"/>
+
+                                            <TextBlock Text="Lens Surface Roughness"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceRoughnessSlider" Minimum="0.04" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorLensSurfaceRoughnessValueText"/>
+
+                                            <TextBlock Text="Lens Surface Specular"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensSurfaceSpecularSlider" Minimum="0" Maximum="2.5"/>
+                                            <TextBlock x:Name="IndicatorLensSurfaceSpecularValueText"/>
+
+                                            <TextBlock Text="Lens Tint"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="R" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintRSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorLensTintRValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="G" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintGSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorLensTintGValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="B" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorLensTintBSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorLensTintBValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button x:Name="IndicatorLensPresetClearButton" Content="Clear Lens"/>
+                                                <Button x:Name="IndicatorLensPresetFrostedButton" Content="Frosted"/>
+                                                <Button x:Name="IndicatorLensPresetSaturatedButton" Content="Saturated LED"/>
+                                            </StackPanel>
+
+                                            <TextBlock Text="Reflector Base Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorBaseRadiusSlider" Minimum="1" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorReflectorBaseRadiusValueText"/>
+
+                                            <TextBlock Text="Reflector Top Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorTopRadiusSlider" Minimum="1" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorReflectorTopRadiusValueText"/>
+
+                                            <TextBlock Text="Reflector Depth"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorReflectorDepthSlider" Minimum="1" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorReflectorDepthValueText"/>
+
+                                            <TextBlock Text="Emitter Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterRadiusSlider" Minimum="0.5" Maximum="256"/>
+                                            <TextBlock x:Name="IndicatorEmitterRadiusValueText"/>
+
+                                            <TextBlock Text="Emitter Spread"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSpreadSlider" Minimum="0" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorEmitterSpreadValueText"/>
+
+                                            <TextBlock Text="Emitter Depth"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterDepthSlider" Minimum="-256" Maximum="256"/>
+                                            <TextBlock x:Name="IndicatorEmitterDepthValueText"/>
+
+                                            <TextBlock Text="Emitter Count"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterCountSlider" Minimum="1" Maximum="8"/>
+                                            <TextBlock x:Name="IndicatorEmitterCountValueText"/>
+
+                                            <TextBlock Text="Radial Segments"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorRadialSegmentsSlider" Minimum="8" Maximum="96"/>
+                                            <TextBlock x:Name="IndicatorRadialSegmentsValueText"/>
+
+                                            <TextBlock Text="Lens Latitude Segments"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensLatitudeSegmentsSlider" Minimum="4" Maximum="64"/>
+                                            <TextBlock x:Name="IndicatorLensLatitudeSegmentsValueText"/>
+
+                                            <TextBlock Text="Lens Longitude Segments"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLensLongitudeSegmentsSlider" Minimum="6" Maximum="96"/>
+                                            <TextBlock x:Name="IndicatorLensLongitudeSegmentsValueText"/>
+
+                                            <Button x:Name="IndicatorAssemblyResetDefaultsButton"
+                                                    Content="Reset Industrial Defaults"/>
+
+                                            <Separator/>
+                                            <TextBlock Text="Dynamic Emitter Lights"/>
+                                            <CheckBox x:Name="IndicatorDynamicLightsEnabledCheckBox"
+                                                      Content="Enable Dynamic Lights"/>
+
+                                            <TextBlock Text="Animation Mode"/>
+                                            <ComboBox x:Name="IndicatorLightAnimationModeCombo"/>
+
+                                            <TextBlock Text="Animation Speed"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLightAnimationSpeedSlider" Minimum="0" Maximum="10"/>
+                                            <TextBlock x:Name="IndicatorLightAnimationSpeedValueText"/>
+
+                                            <TextBlock Text="Flicker Amount"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerAmountSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorLightFlickerAmountValueText"/>
+
+                                            <TextBlock Text="Flicker Dropout"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerDropoutSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorLightFlickerDropoutValueText"/>
+
+                                            <TextBlock Text="Flicker Smoothing"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSmoothingSlider" Minimum="0" Maximum="1"/>
+                                            <TextBlock x:Name="IndicatorLightFlickerSmoothingValueText"/>
+
+                                            <TextBlock Text="Flicker Seed"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorLightFlickerSeedSlider" Minimum="1" Maximum="100000"/>
+                                            <TextBlock x:Name="IndicatorLightFlickerSeedValueText"/>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button x:Name="IndicatorLightPresetNeutralButton" Content="Neutral"/>
+                                                <Button x:Name="IndicatorLightPresetPulseButton" Content="Pulse"/>
+                                                <Button x:Name="IndicatorLightPresetFlickerButton" Content="Flicker"/>
+                                            </StackPanel>
+
+                                            <Separator/>
+                                            <TextBlock Text="Emitter Source Editor"/>
+                                            <TextBlock Text="Emitter"/>
+                                            <ComboBox x:Name="IndicatorEmitterSourceCombo"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <Button x:Name="IndicatorEmitterSourceMoveUpButton" Content="Move Up"/>
+                                                <Button x:Name="IndicatorEmitterSourceMoveDownButton" Content="Move Down"/>
+                                                <Button x:Name="IndicatorEmitterSourceAutoPhaseButton" Content="Auto Phase Spread"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Name"/>
+                                            <TextBox x:Name="IndicatorEmitterSourceNameTextBox"/>
+                                            <CheckBox x:Name="IndicatorEmitterSourceEnabledCheckBox"
+                                                      Content="Enabled"/>
+
+                                            <TextBlock Text="Animation Phase Offset"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourcePhaseOffsetSlider" Minimum="-360" Maximum="360"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourcePhaseOffsetValueText"/>
+
+                                            <TextBlock Text="Offset X"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceXSlider" Minimum="-512" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceXValueText"/>
+
+                                            <TextBlock Text="Offset Y"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceYSlider" Minimum="-512" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceYValueText"/>
+
+                                            <TextBlock Text="Offset Z"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceZSlider" Minimum="-512" Maximum="512"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceZValueText"/>
+
+                                            <TextBlock Text="Intensity"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceIntensitySlider" Minimum="0" Maximum="8"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceIntensityValueText"/>
+
+                                            <TextBlock Text="Radius"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRadiusSlider" Minimum="4" Maximum="2048"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceRadiusValueText"/>
+
+                                            <TextBlock Text="Falloff"/>
+                                            <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceFalloffSlider" Minimum="0.05" Maximum="4"/>
+                                            <TextBlock x:Name="IndicatorEmitterSourceFalloffValueText"/>
+
+                                            <TextBlock Text="Color"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="R" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceRSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorEmitterSourceRValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="G" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceGSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorEmitterSourceGValueText" Width="36"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="B" Width="14"/>
+                                                <controls:SpriteKnobSlider x:Name="IndicatorEmitterSourceBSlider" Minimum="0" Maximum="1" Width="210"/>
+                                                <TextBlock x:Name="IndicatorEmitterSourceBValueText" Width="36"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
                                 </Expander>

@@ -556,6 +556,31 @@ namespace KnobForge.App.Controls
                 referenceRadius = MathF.Max(referenceRadius, _pushButtonCapResources.ReferenceRadius);
             }
 
+            if (_indicatorBaseResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _indicatorBaseResources.ReferenceRadius);
+            }
+
+            if (_indicatorHousingResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _indicatorHousingResources.ReferenceRadius);
+            }
+
+            if (_indicatorLensResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _indicatorLensResources.ReferenceRadius);
+            }
+
+            if (_indicatorReflectorResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _indicatorReflectorResources.ReferenceRadius);
+            }
+
+            if (_indicatorEmitterResources is not null)
+            {
+                referenceRadius = MathF.Max(referenceRadius, _indicatorEmitterResources.ReferenceRadius);
+            }
+
             float cameraDistance = MathF.Max(1f, referenceRadius * 6f);
             Vector3 cameraPos = -forward * cameraDistance;
             Vector3 viewOrigin = -cameraPos;

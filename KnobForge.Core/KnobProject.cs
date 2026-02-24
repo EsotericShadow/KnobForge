@@ -114,7 +114,8 @@ namespace KnobForge.Core
         RotaryKnob = 0,
         FlipSwitch = 1,
         ThumbSlider = 2,
-        PushButton = 3
+        PushButton = 3,
+        IndicatorLight = 4
     }
 
     public sealed class KnobLight
@@ -136,6 +137,12 @@ namespace KnobForge.Core
     public class KnobProject
     {
         public const int DefaultPaintMaskSize = 1024;
+        private const int LegacyIndicatorRadialSegments = 32;
+        private const int LegacyIndicatorLensLatitudeSegments = 12;
+        private const int LegacyIndicatorLensLongitudeSegments = 20;
+        private const int DefaultIndicatorRadialSegments = 56;
+        private const int DefaultIndicatorLensLatitudeSegments = 20;
+        private const int DefaultIndicatorLensLongitudeSegments = 40;
         private float _spiralNormalLodFadeStart = 4.22f;
         private float _spiralNormalLodFadeEnd = 4.23f;
         private float _spiralRoughnessLodBoost = 0.78f;
@@ -175,6 +182,31 @@ namespace KnobForge.Core
         private float _sliderThumbDepth;
         private float _sliderThumbPositionNormalized = 0.5f;
         private float _pushButtonPressAmountNormalized;
+        private bool _indicatorAssemblyEnabled = true;
+        private float _indicatorBaseWidth;
+        private float _indicatorBaseHeight;
+        private float _indicatorBaseThickness;
+        private float _indicatorHousingRadius;
+        private float _indicatorHousingHeight;
+        private float _indicatorLensRadius;
+        private float _indicatorLensHeight;
+        private float _indicatorLensTransmission = IndicatorLensMaterialPresets.Clear.Transmission;
+        private float _indicatorLensIor = IndicatorLensMaterialPresets.Clear.Ior;
+        private float _indicatorLensThickness = IndicatorLensMaterialPresets.Clear.Thickness;
+        private Vector3 _indicatorLensTint = IndicatorLensMaterialPresets.Clear.Tint;
+        private float _indicatorLensAbsorption = IndicatorLensMaterialPresets.Clear.Absorption;
+        private float _indicatorLensSurfaceRoughness = IndicatorLensMaterialPresets.Clear.SurfaceRoughness;
+        private float _indicatorLensSurfaceSpecularStrength = IndicatorLensMaterialPresets.Clear.SurfaceSpecularStrength;
+        private float _indicatorReflectorBaseRadius;
+        private float _indicatorReflectorTopRadius;
+        private float _indicatorReflectorDepth;
+        private float _indicatorEmitterRadius;
+        private float _indicatorEmitterSpread;
+        private float _indicatorEmitterDepth;
+        private int _indicatorEmitterCount = 3;
+        private int _indicatorRadialSegments = DefaultIndicatorRadialSegments;
+        private int _indicatorLensLatitudeSegments = DefaultIndicatorLensLatitudeSegments;
+        private int _indicatorLensLongitudeSegments = DefaultIndicatorLensLongitudeSegments;
         private string _sliderBackplateImportedMeshPath = string.Empty;
         private string _sliderThumbImportedMeshPath = string.Empty;
         private float _togglePlateWidth;
@@ -460,6 +492,134 @@ namespace KnobForge.Core
         {
             get => _pushButtonPressAmountNormalized;
             set => _pushButtonPressAmountNormalized = Math.Clamp(value, 0f, 1f);
+        }
+        public bool IndicatorAssemblyEnabled
+        {
+            get => _indicatorAssemblyEnabled;
+            set => _indicatorAssemblyEnabled = value;
+        }
+        public float IndicatorBaseWidth
+        {
+            get => _indicatorBaseWidth;
+            set => _indicatorBaseWidth = ClampIndicatorDimension(value);
+        }
+        public float IndicatorBaseHeight
+        {
+            get => _indicatorBaseHeight;
+            set => _indicatorBaseHeight = ClampIndicatorDimension(value);
+        }
+        public float IndicatorBaseThickness
+        {
+            get => _indicatorBaseThickness;
+            set => _indicatorBaseThickness = ClampIndicatorDimension(value);
+        }
+        public float IndicatorHousingRadius
+        {
+            get => _indicatorHousingRadius;
+            set => _indicatorHousingRadius = ClampIndicatorDimension(value);
+        }
+        public float IndicatorHousingHeight
+        {
+            get => _indicatorHousingHeight;
+            set => _indicatorHousingHeight = ClampIndicatorDimension(value);
+        }
+        public float IndicatorLensRadius
+        {
+            get => _indicatorLensRadius;
+            set => _indicatorLensRadius = ClampIndicatorDimension(value);
+        }
+        public float IndicatorLensHeight
+        {
+            get => _indicatorLensHeight;
+            set => _indicatorLensHeight = ClampIndicatorDimension(value);
+        }
+        public float IndicatorLensTransmission
+        {
+            get => _indicatorLensTransmission;
+            set => _indicatorLensTransmission = Math.Clamp(value, 0f, 1f);
+        }
+        public float IndicatorLensIor
+        {
+            get => _indicatorLensIor;
+            set => _indicatorLensIor = Math.Clamp(value, 1f, 2.5f);
+        }
+        public float IndicatorLensThickness
+        {
+            get => _indicatorLensThickness;
+            set => _indicatorLensThickness = Math.Clamp(value, 0f, 10f);
+        }
+        public Vector3 IndicatorLensTint
+        {
+            get => _indicatorLensTint;
+            set => _indicatorLensTint = new Vector3(
+                Math.Clamp(value.X, 0f, 1f),
+                Math.Clamp(value.Y, 0f, 1f),
+                Math.Clamp(value.Z, 0f, 1f));
+        }
+        public float IndicatorLensAbsorption
+        {
+            get => _indicatorLensAbsorption;
+            set => _indicatorLensAbsorption = Math.Clamp(value, 0f, 8f);
+        }
+        public float IndicatorLensSurfaceRoughness
+        {
+            get => _indicatorLensSurfaceRoughness;
+            set => _indicatorLensSurfaceRoughness = Math.Clamp(value, 0.04f, 1f);
+        }
+        public float IndicatorLensSurfaceSpecularStrength
+        {
+            get => _indicatorLensSurfaceSpecularStrength;
+            set => _indicatorLensSurfaceSpecularStrength = Math.Clamp(value, 0f, 2.5f);
+        }
+        public float IndicatorReflectorBaseRadius
+        {
+            get => _indicatorReflectorBaseRadius;
+            set => _indicatorReflectorBaseRadius = ClampIndicatorDimension(value);
+        }
+        public float IndicatorReflectorTopRadius
+        {
+            get => _indicatorReflectorTopRadius;
+            set => _indicatorReflectorTopRadius = ClampIndicatorDimension(value);
+        }
+        public float IndicatorReflectorDepth
+        {
+            get => _indicatorReflectorDepth;
+            set => _indicatorReflectorDepth = ClampIndicatorDimension(value);
+        }
+        public float IndicatorEmitterRadius
+        {
+            get => _indicatorEmitterRadius;
+            set => _indicatorEmitterRadius = ClampIndicatorDimension(value);
+        }
+        public float IndicatorEmitterSpread
+        {
+            get => _indicatorEmitterSpread;
+            set => _indicatorEmitterSpread = ClampIndicatorDimension(value);
+        }
+        public float IndicatorEmitterDepth
+        {
+            get => _indicatorEmitterDepth;
+            set => _indicatorEmitterDepth = ClampIndicatorOffset(value, -2048f, 2048f);
+        }
+        public int IndicatorEmitterCount
+        {
+            get => _indicatorEmitterCount;
+            set => _indicatorEmitterCount = ClampIndicatorSegments(value, 3, 1, 8);
+        }
+        public int IndicatorRadialSegments
+        {
+            get => _indicatorRadialSegments;
+            set => _indicatorRadialSegments = ClampIndicatorSegments(value, DefaultIndicatorRadialSegments, 8, 96);
+        }
+        public int IndicatorLensLatitudeSegments
+        {
+            get => _indicatorLensLatitudeSegments;
+            set => _indicatorLensLatitudeSegments = ClampIndicatorSegments(value, DefaultIndicatorLensLatitudeSegments, 4, 64);
+        }
+        public int IndicatorLensLongitudeSegments
+        {
+            get => _indicatorLensLongitudeSegments;
+            set => _indicatorLensLongitudeSegments = ClampIndicatorSegments(value, DefaultIndicatorLensLongitudeSegments, 6, 96);
         }
         public string SliderBackplateImportedMeshPath
         {
@@ -781,6 +941,7 @@ namespace KnobForge.Core
         }
         public SceneRootNode SceneRoot { get; } = new SceneRootNode();
         public InteractorProjectType ProjectType { get; set; } = InteractorProjectType.RotaryKnob;
+        public DynamicLightRig DynamicLightRig { get; } = new();
         public SceneNode? SelectedNode { get; private set; }
         public List<KnobLight> Lights { get; } = new List<KnobLight>();
         public int SelectedLightIndex { get; private set; } = -1;
@@ -850,6 +1011,8 @@ namespace KnobForge.Core
             SliderThumbPositionNormalized = 0.5f;
             PushButtonPressAmountNormalized = 0f;
             ToggleStateBlendPosition = float.NaN;
+            DynamicLightRig.Enabled = false;
+            DynamicLightRig.AnimationMode = DynamicLightAnimationMode.Steady;
 
             switch (projectType)
             {
@@ -880,6 +1043,13 @@ namespace KnobForge.Core
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
                     break;
+                case InteractorProjectType.IndicatorLight:
+                    SliderMode = SliderAssemblyMode.Disabled;
+                    ToggleMode = ToggleAssemblyMode.Disabled;
+                    DynamicLightRig.Enabled = true;
+                    EnsureIndicatorAssemblyDefaults(forceReset: true);
+                    DynamicLightRig.EnsureIndicatorDefaults();
+                    break;
                 default:
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
@@ -887,6 +1057,127 @@ namespace KnobForge.Core
             }
 
             EnsureInteractorModulesForProjectType(projectType, pruneUnsupportedModules: true);
+        }
+
+        public void EnsureIndicatorAssemblyDefaults(bool forceReset = false)
+        {
+            ModelNode model = EnsureModelNode();
+            float knobRadius = MathF.Max(40f, model.Radius);
+            float knobHeight = MathF.Max(20f, model.Height);
+
+            float baseWidth = knobRadius * 1.55f;
+            float baseHeight = knobRadius * 1.55f;
+            float baseThickness = MathF.Max(10f, knobHeight * 0.25f);
+            float housingRadius = knobRadius * 0.56f;
+            float housingHeight = MathF.Max(8f, knobHeight * 0.46f);
+            float lensRadius = housingRadius * 0.78f;
+            float lensHeight = MathF.Max(6f, housingHeight * 0.78f);
+            IndicatorLensMaterialPresetDefinition clearLensPreset = IndicatorLensMaterialPresets.Clear;
+            float reflectorBaseRadius = housingRadius * 0.70f;
+            float reflectorTopRadius = reflectorBaseRadius * 0.36f;
+            float reflectorDepth = MathF.Max(3f, housingHeight * 0.52f);
+            float emitterRadius = MathF.Max(1.4f, lensRadius * 0.12f);
+            float emitterSpread = lensRadius * 0.85f;
+            float emitterDepth = -MathF.Max(0.8f, lensHeight * 0.38f);
+
+            bool geometryMissing =
+                _indicatorBaseWidth <= 0f ||
+                _indicatorBaseHeight <= 0f ||
+                _indicatorBaseThickness <= 0f ||
+                _indicatorHousingRadius <= 0f ||
+                _indicatorHousingHeight <= 0f ||
+                _indicatorLensRadius <= 0f ||
+                _indicatorLensHeight <= 0f ||
+                _indicatorReflectorBaseRadius <= 0f ||
+                _indicatorReflectorTopRadius <= 0f ||
+                _indicatorReflectorDepth <= 0f ||
+                _indicatorEmitterRadius <= 0f ||
+                _indicatorEmitterSpread <= 0f;
+
+            if (forceReset || geometryMissing)
+            {
+                IndicatorAssemblyEnabled = true;
+                IndicatorBaseWidth = baseWidth;
+                IndicatorBaseHeight = baseHeight;
+                IndicatorBaseThickness = baseThickness;
+                IndicatorHousingRadius = housingRadius;
+                IndicatorHousingHeight = housingHeight;
+                IndicatorLensRadius = lensRadius;
+                IndicatorLensHeight = lensHeight;
+                IndicatorLensTransmission = clearLensPreset.Transmission;
+                IndicatorLensIor = clearLensPreset.Ior;
+                IndicatorLensThickness = clearLensPreset.Thickness;
+                IndicatorLensTint = clearLensPreset.Tint;
+                IndicatorLensAbsorption = clearLensPreset.Absorption;
+                IndicatorLensSurfaceRoughness = clearLensPreset.SurfaceRoughness;
+                IndicatorLensSurfaceSpecularStrength = clearLensPreset.SurfaceSpecularStrength;
+                IndicatorReflectorBaseRadius = reflectorBaseRadius;
+                IndicatorReflectorTopRadius = reflectorTopRadius;
+                IndicatorReflectorDepth = reflectorDepth;
+                IndicatorEmitterRadius = emitterRadius;
+                IndicatorEmitterSpread = emitterSpread;
+                IndicatorEmitterDepth = emitterDepth;
+            }
+
+            if (forceReset || _indicatorEmitterCount <= 0)
+            {
+                IndicatorEmitterCount = 3;
+            }
+
+            bool usesLegacyIndicatorMeshResolution =
+                _indicatorRadialSegments == LegacyIndicatorRadialSegments &&
+                _indicatorLensLatitudeSegments == LegacyIndicatorLensLatitudeSegments &&
+                _indicatorLensLongitudeSegments == LegacyIndicatorLensLongitudeSegments;
+
+            if (forceReset || _indicatorRadialSegments <= 0 || usesLegacyIndicatorMeshResolution)
+            {
+                IndicatorRadialSegments = DefaultIndicatorRadialSegments;
+            }
+
+            if (forceReset || _indicatorLensLatitudeSegments <= 0 || usesLegacyIndicatorMeshResolution)
+            {
+                IndicatorLensLatitudeSegments = DefaultIndicatorLensLatitudeSegments;
+            }
+
+            if (forceReset || _indicatorLensLongitudeSegments <= 0 || usesLegacyIndicatorMeshResolution)
+            {
+                IndicatorLensLongitudeSegments = DefaultIndicatorLensLongitudeSegments;
+            }
+
+            if (forceReset || !float.IsFinite(_indicatorLensTransmission))
+            {
+                IndicatorLensTransmission = clearLensPreset.Transmission;
+            }
+
+            if (forceReset || !float.IsFinite(_indicatorLensIor))
+            {
+                IndicatorLensIor = clearLensPreset.Ior;
+            }
+
+            if (forceReset || _indicatorLensThickness < 0f || !float.IsFinite(_indicatorLensThickness))
+            {
+                IndicatorLensThickness = clearLensPreset.Thickness;
+            }
+
+            if (forceReset || !float.IsFinite(_indicatorLensTint.X) || !float.IsFinite(_indicatorLensTint.Y) || !float.IsFinite(_indicatorLensTint.Z))
+            {
+                IndicatorLensTint = clearLensPreset.Tint;
+            }
+
+            if (forceReset || _indicatorLensAbsorption < 0f || !float.IsFinite(_indicatorLensAbsorption))
+            {
+                IndicatorLensAbsorption = clearLensPreset.Absorption;
+            }
+
+            if (forceReset || !float.IsFinite(_indicatorLensSurfaceRoughness))
+            {
+                IndicatorLensSurfaceRoughness = clearLensPreset.SurfaceRoughness;
+            }
+
+            if (forceReset || !float.IsFinite(_indicatorLensSurfaceSpecularStrength))
+            {
+                IndicatorLensSurfaceSpecularStrength = clearLensPreset.SurfaceSpecularStrength;
+            }
         }
 
         public ModelNode EnsureModelNode()
@@ -1108,6 +1399,36 @@ namespace KnobForge.Core
             }
 
             return Math.Clamp(value, 1f, 4096f);
+        }
+
+        private static float ClampIndicatorDimension(float value)
+        {
+            if (!float.IsFinite(value) || value <= 0f)
+            {
+                return 0f;
+            }
+
+            return Math.Clamp(value, 0.5f, 4096f);
+        }
+
+        private static float ClampIndicatorOffset(float value, float min, float max)
+        {
+            if (!float.IsFinite(value))
+            {
+                return 0f;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static int ClampIndicatorSegments(int value, int fallback, int min, int max)
+        {
+            if (value <= 0)
+            {
+                return fallback;
+            }
+
+            return Math.Clamp(value, min, max);
         }
 
         private static int ClampToggleStateIndex(int value, ToggleAssemblyStateCount count)

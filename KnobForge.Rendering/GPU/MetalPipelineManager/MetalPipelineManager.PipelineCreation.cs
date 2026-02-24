@@ -37,7 +37,11 @@ public sealed partial class MetalPipelineManager
         return function;
     }
 
-    private static IntPtr CreateRenderPipelineState(IntPtr device, IntPtr vertexFunction, IntPtr fragmentFunction)
+    private static IntPtr CreateRenderPipelineState(
+        IntPtr device,
+        IntPtr vertexFunction,
+        IntPtr fragmentFunction,
+        nuint sampleCount = 1)
     {
         IntPtr descriptor = ObjC.IntPtr_objc_msgSend(
             ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPipelineDescriptor, Selectors.Alloc),
@@ -77,6 +81,10 @@ public sealed partial class MetalPipelineManager
             descriptor,
             Selectors.SetDepthAttachmentPixelFormat,
             DepthPixelFormat);
+        ObjC.Void_objc_msgSend_UInt(
+            descriptor,
+            Selectors.SetRasterSampleCount,
+            sampleCount < 1 ? (nuint)1 : sampleCount);
 
         IntPtr error;
         IntPtr pipelineState = ObjC.IntPtr_objc_msgSend_IntPtr_outIntPtr(
