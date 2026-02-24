@@ -245,6 +245,9 @@ namespace KnobForge.App.Controls
                 bool drawIndicatorEmitters =
                     _project.ProjectType == InteractorProjectType.IndicatorLight &&
                     IsRenderableMesh(_indicatorEmitterResources);
+                bool drawIndicatorAura =
+                    _project.ProjectType == InteractorProjectType.IndicatorLight &&
+                    IsRenderableMesh(_indicatorAuraResources);
                 if (!drawKnob &&
                     !drawCollar &&
                     !drawSliderBackplate &&
@@ -258,7 +261,8 @@ namespace KnobForge.App.Controls
                     !drawIndicatorHousing &&
                     !drawIndicatorLens &&
                     !drawIndicatorReflector &&
-                    !drawIndicatorEmitters)
+                    !drawIndicatorEmitters &&
+                    !drawIndicatorAura)
                 {
                     return false;
                 }
@@ -282,6 +286,7 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorLens ? _indicatorLensResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorReflector ? _indicatorReflectorResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorEmitters ? _indicatorEmitterResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorAura ? _indicatorAuraResources : null);
                 EnsureEnvironmentMapTexture(_project);
                 GpuUniforms knobUniforms = BuildUniformsForPixels(
                     _project,
@@ -370,16 +375,42 @@ namespace KnobForge.App.Controls
                         assemblyMaterialPalette.AccentRoughness,
                         assemblyMaterialPalette.Pearlescence)
                     : default;
-                DynamicLightSource? primaryEmitter = _project.DynamicLightRig.Sources.FirstOrDefault(source => source.Enabled);
-                SKColor primaryEmitterColor = primaryEmitter?.Color ?? new SKColor(180, 255, 210, 255);
-                Vector3 emitterColor = new(
-                    primaryEmitterColor.Red / 255f,
-                    primaryEmitterColor.Green / 255f,
-                    primaryEmitterColor.Blue / 255f);
-                float primaryEmitterIntensity = MathF.Max(0f, primaryEmitter?.Intensity ?? 0f);
+                Vector3 emitterColor = new(180f / 255f, 1f, 210f / 255f);
+                float primaryEmitterIntensity = 0f;
+                var enabledEmitters = _project.DynamicLightRig.Sources.Where(source => source.Enabled).ToList();
+                if (enabledEmitters.Count > 0)
+                {
+                    float weightedR = 0f;
+                    float weightedG = 0f;
+                    float weightedB = 0f;
+                    float weightSum = 0f;
+                    foreach (DynamicLightSource source in enabledEmitters)
+                    {
+                        float weight = MathF.Max(0.01f, source.Intensity);
+                        weightedR += (source.Color.Red / 255f) * weight;
+                        weightedG += (source.Color.Green / 255f) * weight;
+                        weightedB += (source.Color.Blue / 255f) * weight;
+                        weightSum += weight;
+                        primaryEmitterIntensity = MathF.Max(primaryEmitterIntensity, source.Intensity);
+                    }
+
+                    if (weightSum > 1e-5f)
+                    {
+                        emitterColor = new Vector3(weightedR, weightedG, weightedB) / weightSum;
+                    }
+                }
                 float indicatorLightEnabledFactor = _project.DynamicLightRig.Enabled ? 1f : 0f;
-                float indicatorMasterBrightness = MathF.Max(0f, _project.DynamicLightRig.MasterIntensity);
+                float indicatorMasterBrightness = ComputeIndicatorEmissiveResponse(_project.DynamicLightRig.MasterIntensity);
                 float indicatorGlow = MathF.Max(0f, _project.DynamicLightRig.EmissiveGlow);
+                float emitterDrive = MathF.Max(0.35f, primaryEmitterIntensity);
+                float indicatorEmissionStrength =
+                    indicatorLightEnabledFactor *
+                    (0.20f + (emitterDrive * indicatorMasterBrightness * 3.50f)) *
+                    (0.25f + (indicatorGlow * 1.10f));
+                float indicatorAuraStrength =
+                    indicatorLightEnabledFactor *
+                    (0.25f + (emitterDrive * indicatorMasterBrightness * 1.85f)) *
+                    (0.50f + (indicatorGlow * 1.65f));
                 GpuUniforms indicatorBaseUniforms = drawIndicatorBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -409,7 +440,9 @@ namespace KnobForge.App.Controls
                         ior: _project.IndicatorLensIor,
                         thickness: _project.IndicatorLensThickness,
                         tint: _project.IndicatorLensTint,
-                        absorption: _project.IndicatorLensAbsorption)
+                        absorption: _project.IndicatorLensAbsorption,
+                        emissionColor: emitterColor,
+                        emissionStrength: indicatorEmissionStrength)
                     : default;
                 GpuUniforms indicatorReflectorUniforms = drawIndicatorReflector
                     ? BuildSliderPartUniforms(
@@ -423,11 +456,15 @@ namespace KnobForge.App.Controls
                     ? BuildIndicatorEmitterUniforms(
                         knobUniforms,
                         emissionColor: emitterColor,
-                        emissionStrength:
-                            indicatorLightEnabledFactor *
-                            (0.15f + (primaryEmitterIntensity * indicatorMasterBrightness * 1.85f)) *
-                            (0.35f + (indicatorGlow * 0.65f)),
+                        emissionStrength: indicatorEmissionStrength,
                         roughness: 0.10f)
+                    : default;
+                GpuUniforms indicatorAuraUniforms = drawIndicatorAura
+                    ? BuildIndicatorEmitterUniforms(
+                        knobUniforms,
+                        emissionColor: emitterColor,
+                        emissionStrength: indicatorAuraStrength,
+                        roughness: 1.0f)
                     : default;
                 EnsurePaintMaskTexture(_project);
                 EnsurePaintColorTexture(_project);
@@ -926,6 +963,32 @@ namespace KnobForge.App.Controls
                             RenderShadowPasses(encoderPtr, knobUniforms, shadowConfig, _meshResources!);
                         }
                         }
+                        pipelineManager.UseDepthWriteState(new MTLRenderCommandEncoderHandle(encoderPtr));
+                    }
+
+                    if (drawIndicatorAura && indicatorAuraStrength > 1e-3f)
+                    {
+                        pipelineManager.UseAdditivePipeline(new MTLRenderCommandEncoderHandle(encoderPtr), mainPassSampleCount);
+                        MetalPipelineManager.SetBackfaceCulling(new MTLRenderCommandEncoderHandle(encoderPtr), false);
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _indicatorAuraResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, indicatorAuraUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3, // MTLPrimitiveTypeTriangle
+                            (nuint)_indicatorAuraResources.IndexCount,
+                            (nuint)_indicatorAuraResources.IndexType,
+                            _indicatorAuraResources.IndexBuffer.Handle,
+                            0);
+                        MetalPipelineManager.SetBackfaceCulling(new MTLRenderCommandEncoderHandle(encoderPtr), true);
                         pipelineManager.UseDepthWriteState(new MTLRenderCommandEncoderHandle(encoderPtr));
                     }
                 }

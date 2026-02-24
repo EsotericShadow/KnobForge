@@ -144,7 +144,8 @@ namespace KnobForge.Core
                 Y = 0f,
                 Z = -28f,
                 Intensity = 1.35f,
-                Radius = 180f,
+                Radius = 72f,
+                Falloff = 6f,
                 AnimationPhaseOffsetDegrees = -35f
             });
             Sources.Add(new DynamicLightSource
@@ -154,7 +155,8 @@ namespace KnobForge.Core
                 Y = 0f,
                 Z = -28f,
                 Intensity = 1.60f,
-                Radius = 180f,
+                Radius = 72f,
+                Falloff = 6f,
                 AnimationPhaseOffsetDegrees = 0f
             });
             Sources.Add(new DynamicLightSource
@@ -164,7 +166,8 @@ namespace KnobForge.Core
                 Y = 0f,
                 Z = -28f,
                 Intensity = 1.35f,
-                Radius = 180f,
+                Radius = 72f,
+                Falloff = 6f,
                 AnimationPhaseOffsetDegrees = 35f
             });
         }

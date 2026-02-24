@@ -99,13 +99,15 @@ static inline float3 RrtAndOdtFit(float3 v)
 static inline float3 AcesFitted(float3 color)
 {
     const float3x3 ACESInputMat = float3x3(
-        float3(0.59719, 0.35458, 0.04823),
-        float3(0.07600, 0.90834, 0.01566),
-        float3(0.02840, 0.13383, 0.83777));
+        // Metal's float3x3 constructor takes columns. Keep matrices in column form
+        // so neutral white stays neutral through ACES tonemapping.
+        float3(0.59719, 0.07600, 0.02840),
+        float3(0.35458, 0.90834, 0.13383),
+        float3(0.04823, 0.01566, 0.83777));
     const float3x3 ACESOutputMat = float3x3(
-        float3(1.60475, -0.53108, -0.07367),
-        float3(-0.10208, 1.10813, -0.00605),
-        float3(-0.00327, -0.07276, 1.07602));
+        float3(1.60475, -0.10208, -0.00327),
+        float3(-0.53108, 1.10813, -0.07276),
+        float3(-0.07367, -0.00605, 1.07602));
 
     float3 aces = ACESInputMat * color;
     aces = RrtAndOdtFit(aces);
@@ -419,7 +421,7 @@ fragment float4 fragment_main(
     int lightingMode = int(round(uniforms.materialRoughnessDiffuseSpecMode.w));
     bool emitterGlowMode = lightingMode == 4;
     float3 emitterGlowColor = Clamp01(uniforms.indicatorColorAndBlend.xyz);
-    float emitterGlowStrength = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 24.0);
+    float emitterGlowStrength = clamp(uniforms.indicatorColorAndBlend.w, 0.0, 192.0);
     float envMapBlend = clamp(uniforms.environmentMapParams.x, 0.0, 1.0);
     bool envMapAvailable = uniforms.environmentMapParams.y > 0.5;
     float envMapRotationRadians = uniforms.environmentMapParams.z;
@@ -718,11 +720,11 @@ fragment float4 fragment_main(
 
     float NdotV = max(0.0, dot(normal, viewDir));
     float maxBase = max(1e-6, max(baseColor.x, max(baseColor.y, baseColor.z)));
-    float3 baseHue = baseColor / maxBase;
     // Keep a minimum metallic reflectance floor so pure-black tint does not collapse
     // to a dead absorber with no visible light response.
     float metalReflectance = max(0.08, maxBase);
-    float3 metalSpecColor = Clamp01(baseHue * metalReflectance);
+    // Keep specular neutral so white point/directional/environment lights stay white.
+    float3 metalSpecColor = float3(metalReflectance);
     float3 F0 = mix(float3(0.04), metalSpecColor, metallic);
     float metallicSpecFloor = mix(0.04, 0.08, metallic);
     F0 = max(F0, float3(metallicSpecFloor));
@@ -756,8 +758,18 @@ fragment float4 fragment_main(
             float3 delta = light.positionType.xyz - inVertex.worldPos;
             float dist = max(1e-4, length(delta));
             L = delta / dist;
-            float distNorm = dist / max(1.0, referenceRadius * 2.0);
-            attenuation = 1.0 / (1.0 + max(0.0, light.params0.x) * distNorm * distNorm);
+            float falloff = max(0.0, light.params0.x);
+            float attenuationRadius = dynamicLight
+                ? max(4.0, light.params0.w)
+                : max(1.0, referenceRadius * 2.0);
+            float distNorm = dist / attenuationRadius;
+            attenuation = 1.0 / (1.0 + falloff * distNorm * distNorm);
+            if (dynamicLight)
+            {
+                // Keep indicator emitters local so their hue does not wash the full scene.
+                float rangeFade = 1.0 - smoothstep(0.85, 1.35, distNorm);
+                attenuation *= clamp(rangeFade, 0.0, 1.0);
+            }
         }
 
         float NdotL = max(0.0, dot(normal, L));
@@ -832,9 +844,7 @@ fragment float4 fragment_main(
         envMapAvailable,
         envMapRotationRadians);
     float envSpecWeight = 0.20 + 1.15 * metallic;
-    float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
-    float3 specTint = mix(float3(1.0), chromeTint, metallic);
-    float3 envSpecular = envColor * fresnelView * specTint * envSpecWeight;
+    float3 envSpecular = envColor * fresnelView * envSpecWeight;
     float envDiffuseWeight = max(0.0, 1.0 - metallic);
     float3 envDiffuse = Hadamard(baseColor, envColor) * envDiffuseWeight;
     float envDiffuseEnergy = 0.35;
@@ -852,11 +862,13 @@ fragment float4 fragment_main(
 
     if (pearlescence > 1e-4)
     {
+        // Keep pearlescence energy, but avoid hue-shifting light color (pink/cyan artifacts).
         float pearlEdge = pow(1.0 - NdotV, 1.35);
         float pearlPhase = clamp(dot(normalize(R + viewDir), float3(0.23, 0.67, 0.71)) * 0.5 + 0.5, 0.0, 1.0);
-        float3 pearlTint = 0.5 + 0.5 * cos(6.2831853 * (pearlPhase + float3(0.00, 0.33, 0.67)));
+        float pearlWave = 0.5 + 0.5 * cos(6.2831853 * pearlPhase);
         float pearlStrength = pearlescence * (0.15 + 0.85 * pearlEdge);
-        accum += pearlTint * pearlStrength * (0.20 + 0.80 * envIntensity);
+        float pearlEnergy = pearlStrength * (0.20 + 0.80 * envIntensity) * mix(0.85, 1.15, pearlWave);
+        accum += float3(pearlEnergy);
     }
 
     float outputAlpha = 1.0;
@@ -906,11 +918,19 @@ fragment float4 fragment_main(
             + internalGlow * 0.32;
         float3 surfaceSpec = envColor * (fresnel + 0.22 * grazingBoost) * (1.05 + 0.95 * max(0.0, specularStrength));
         float refractionWeight = clamp((1.0 - fresnel) * (0.75 + 0.25 * lensTransmission), 0.0, 1.0);
-        float3 lensColor = transmitted * refractionWeight + surfaceSpec;
+        float lensCenter = pow(max(1e-4, NdotV), 0.24);
+        float lensHalo = pow(1.0 - NdotV, 1.35);
+        float lensGlowShape = 0.55 * lensCenter + 0.45 * lensHalo;
+        float lensEmitterEnergy = emitterGlowStrength * (0.55 + 0.45 * lensTransmission);
+        float3 lensEmitterGlow = emitterGlowColor * lensEmitterEnergy * lensGlowShape;
+
+        float3 lensColor = transmitted * refractionWeight + surfaceSpec + lensEmitterGlow;
         accum = mix(accum * 0.25, lensColor, lensTransmission);
+        accum += lensEmitterGlow * (0.15 + 0.35 * lensTransmission);
 
         float frontalAlpha = 1.0 - (lensTransmission * (1.0 - fresnel));
-        outputAlpha = clamp(frontalAlpha, 0.08, 0.96);
+        float emissiveAlphaBoost = clamp(emitterGlowStrength * 0.010, 0.0, 0.85);
+        outputAlpha = clamp(max(frontalAlpha, 0.12 + emissiveAlphaBoost), 0.08, 0.98);
     }
 
     if (emitterGlowMode && emitterGlowStrength > 1e-4)

@@ -20,6 +20,8 @@ public sealed partial class MetalPipelineManager
     private readonly IMTLFunction _fragmentFunction;
     private readonly IMTLRenderPipelineState _defaultPipeline;
     private readonly IMTLRenderPipelineState? _msaaPipeline;
+    private readonly IMTLRenderPipelineState _additivePipeline;
+    private readonly IMTLRenderPipelineState? _msaaAdditivePipeline;
     private readonly IntPtr _defaultDepthStencilState;
     private readonly IntPtr _shadowDepthStencilState;
 
@@ -97,6 +99,35 @@ public sealed partial class MetalPipelineManager
             _msaaPipeline = null;
         }
 
+        IntPtr additivePipelineStatePtr = CreateRenderPipelineState(
+            device,
+            _vertexFunction.Handle,
+            _fragmentFunction.Handle,
+            sampleCount: 1,
+            additiveColorBlending: true);
+        if (additivePipelineStatePtr == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("Failed to create additive Metal render pipeline state.");
+        }
+
+        _additivePipeline = new MTLRenderPipelineStateHandle(additivePipelineStatePtr);
+
+        IntPtr msaaAdditivePipelineStatePtr = CreateRenderPipelineState(
+            device,
+            _vertexFunction.Handle,
+            _fragmentFunction.Handle,
+            sampleCount: MsaaSampleCount,
+            additiveColorBlending: true);
+        if (msaaAdditivePipelineStatePtr != IntPtr.Zero)
+        {
+            _msaaAdditivePipeline = new MTLRenderPipelineStateHandle(msaaAdditivePipelineStatePtr);
+        }
+        else
+        {
+            LogError("MSAA additive pipeline creation failed. Falling back to non-MSAA additive rendering.");
+            _msaaAdditivePipeline = null;
+        }
+
         _defaultDepthStencilState = CreateDepthStencilState(device, depthWriteEnabled: true);
         if (_defaultDepthStencilState == IntPtr.Zero)
         {
@@ -149,6 +180,30 @@ public sealed partial class MetalPipelineManager
         ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, pipeline.Handle);
         UseDepthWriteState(encoder);
 
+        SetBackfaceCulling(encoder, true);
+        SetFrontFacingWinding(encoder, clockwise: true);
+    }
+
+    public void UseAdditivePipeline(IMTLRenderCommandEncoder encoder, nuint sampleCount = 1)
+    {
+        if (encoder is null)
+        {
+            throw new ArgumentNullException(nameof(encoder));
+        }
+
+        nuint resolvedSampleCount = ResolveSupportedSampleCount(sampleCount);
+        bool hasMsaaAdditivePipeline = _msaaAdditivePipeline != null && _msaaAdditivePipeline.Handle != IntPtr.Zero;
+        IMTLRenderPipelineState pipeline = resolvedSampleCount > 1 && hasMsaaAdditivePipeline
+            ? _msaaAdditivePipeline!
+            : _additivePipeline;
+
+        if (encoder.Handle == IntPtr.Zero || pipeline.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, pipeline.Handle);
+        UseDepthReadOnlyState(encoder);
         SetBackfaceCulling(encoder, true);
         SetFrontFacingWinding(encoder, clockwise: true);
     }

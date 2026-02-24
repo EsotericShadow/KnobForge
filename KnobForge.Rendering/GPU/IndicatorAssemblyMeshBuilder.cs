@@ -284,7 +284,7 @@ public static class IndicatorAssemblyMeshBuilder
         Vector3 baseCenter = ResolveAssemblyCenter(config);
         float baseTop = baseCenter.Z + (config.BaseThickness * 0.5f);
         float housingTop = baseTop + config.HousingHeight;
-        float emitterZ = housingTop + config.EmitterDepth;
+        float emitterZ = housingTop + config.EmitterDepth + (config.LensRadius * 0.35f);
         int emitterCount = Math.Max(1, config.EmitterCount);
         float spread = MathF.Max(0f, config.EmitterSpread);
 
@@ -301,6 +301,40 @@ public static class IndicatorAssemblyMeshBuilder
                     latitudeSegments: 12,
                     longitudeSegments: 18);
         }
+
+        return BuildPartMesh(vertices, indices);
+    }
+
+    public static IndicatorPartMesh BuildAuraMesh(in IndicatorAssemblyConfig config)
+    {
+        if (!config.Enabled)
+        {
+            return new IndicatorPartMesh();
+        }
+
+        var vertices = new List<MetalVertex>(560);
+        var indices = new List<uint>(1600);
+
+        Vector3 baseCenter = ResolveAssemblyCenter(config);
+        float baseTop = baseCenter.Z + (config.BaseThickness * 0.5f);
+        float housingTop = baseTop + config.HousingHeight;
+        float stemHeight = MathF.Max(1f, config.LensHeight * 0.25f);
+        Vector3 stemStart = new(0f, baseCenter.Y, housingTop - stemHeight * 0.55f);
+        Vector3 stemEnd = stemStart + new Vector3(0f, 0f, stemHeight);
+        float domeRadius = MathF.Max(1f, config.LensRadius);
+        Vector3 domeCenter = new(0f, baseCenter.Y, stemEnd.Z + (domeRadius * 0.35f));
+
+        float auraRadius = MathF.Max(
+            config.LensRadius * 1.35f,
+            config.LensRadius + (config.EmitterSpread * 0.22f) + (config.EmitterRadius * 2.0f));
+
+        AddSphere(
+            vertices,
+            indices,
+            domeCenter,
+            auraRadius,
+            latitudeSegments: Math.Max(10, config.LensLatitudeSegments),
+            longitudeSegments: Math.Max(18, config.LensLongitudeSegments));
 
         return BuildPartMesh(vertices, indices);
     }

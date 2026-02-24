@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using KnobForge.Core;
 using SkiaSharp;
 using System;
+using System.Linq;
 
 namespace KnobForge.App.Views
 {
@@ -698,18 +699,36 @@ namespace KnobForge.App.Views
 
             float centerY = -baseHeight * 0.45f;
             float baseTop = (-(baseThickness * 0.5f) - 8f) + (baseThickness * 0.5f);
-            float emitterZ = baseTop + housingHeight + emitterDepth;
+            float lensRadius = _project.IndicatorLensRadius > 0f
+                ? _project.IndicatorLensRadius
+                : MathF.Max(8f, _project.IndicatorHousingRadius * 0.78f);
+            float emitterZ = baseTop + housingHeight + emitterDepth + (lensRadius * 0.35f);
+            float defaultEmitterLightRadius = Math.Clamp(MathF.Max(24f, lensRadius * 1.10f), 24f, 512f);
+            bool looksLikeLegacyPlacement =
+                !recenterSources &&
+                rig.Sources.Count > 0 &&
+                rig.Sources.All(source => MathF.Abs(source.Y) <= 1f && MathF.Abs(source.Z + 28f) <= 8f);
+            bool shouldRecenter = recenterSources || looksLikeLegacyPlacement;
 
             for (int i = 0; i < rig.Sources.Count; i++)
             {
                 float t = rig.Sources.Count == 1 ? 0.5f : i / (float)(rig.Sources.Count - 1);
                 float x = (t - 0.5f) * spread;
                 DynamicLightSource source = rig.Sources[i];
-                if (recenterSources)
+                if (shouldRecenter)
                 {
                     source.X = x;
                     source.Y = centerY;
                     source.Z = emitterZ;
+                }
+
+                bool usesLegacyEmitterLightDefaults =
+                    source.Radius >= 160f &&
+                    source.Falloff <= 1.05f;
+                if (looksLikeLegacyPlacement || usesLegacyEmitterLightDefaults)
+                {
+                    source.Radius = defaultEmitterLightRadius;
+                    source.Falloff = 6f;
                 }
 
                 DynamicLightRig.NormalizeSourceIdentity(source, i, rig.Sources.Count);

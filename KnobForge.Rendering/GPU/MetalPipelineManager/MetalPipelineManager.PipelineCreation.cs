@@ -41,7 +41,8 @@ public sealed partial class MetalPipelineManager
         IntPtr device,
         IntPtr vertexFunction,
         IntPtr fragmentFunction,
-        nuint sampleCount = 1)
+        nuint sampleCount = 1,
+        bool additiveColorBlending = false)
     {
         IntPtr descriptor = ObjC.IntPtr_objc_msgSend(
             ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPipelineDescriptor, Selectors.Alloc),
@@ -71,12 +72,24 @@ public sealed partial class MetalPipelineManager
         ObjC.Void_objc_msgSend_Bool(colorAttachment0, Selectors.SetBlendingEnabled, true);
         ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetRgbBlendOperation, 0); // MTLBlendOperationAdd
         ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetAlphaBlendOperation, 0); // MTLBlendOperationAdd
-        ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceRGBBlendFactor, 4); // MTLBlendFactorSourceAlpha
-        // Preserve exported transparent-shadow coverage: alpha channel should be srcA + dstA*(1-srcA),
-        // not srcA*srcA + dstA*(1-srcA).
-        ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceAlphaBlendFactor, 1); // MTLBlendFactorOne
-        ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationRGBBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
-        ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationAlphaBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
+        if (additiveColorBlending)
+        {
+            // Additive RGB for emissive halo passes.
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceRGBBlendFactor, 1); // MTLBlendFactorOne
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationRGBBlendFactor, 1); // MTLBlendFactorOne
+            // Keep alpha compositing stable for transparent exports.
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceAlphaBlendFactor, 4); // MTLBlendFactorSourceAlpha
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationAlphaBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
+        }
+        else
+        {
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceRGBBlendFactor, 4); // MTLBlendFactorSourceAlpha
+            // Preserve exported transparent-shadow coverage: alpha channel should be srcA + dstA*(1-srcA),
+            // not srcA*srcA + dstA*(1-srcA).
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceAlphaBlendFactor, 1); // MTLBlendFactorOne
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationRGBBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
+            ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationAlphaBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
+        }
         ObjC.Void_objc_msgSend_UInt(
             descriptor,
             Selectors.SetDepthAttachmentPixelFormat,

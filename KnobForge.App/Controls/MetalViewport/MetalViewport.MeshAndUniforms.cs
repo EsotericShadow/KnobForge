@@ -29,6 +29,7 @@ namespace KnobForge.App.Controls
             ReplaceMeshResources(ref _indicatorLensResources, null);
             ReplaceMeshResources(ref _indicatorReflectorResources, null);
             ReplaceMeshResources(ref _indicatorEmitterResources, null);
+            ReplaceMeshResources(ref _indicatorAuraResources, null);
             _paintPickMapDirty = true;
         }
 
@@ -200,6 +201,7 @@ namespace KnobForge.App.Controls
                 ReplaceMeshResources(ref _indicatorLensResources, null);
                 ReplaceMeshResources(ref _indicatorReflectorResources, null);
                 ReplaceMeshResources(ref _indicatorEmitterResources, null);
+                ReplaceMeshResources(ref _indicatorAuraResources, null);
                 _indicatorAssemblyShapeKey = default;
             }
             else if (indicatorShapeChanged ||
@@ -207,7 +209,8 @@ namespace KnobForge.App.Controls
                 _indicatorHousingResources == null ||
                 _indicatorLensResources == null ||
                 _indicatorReflectorResources == null ||
-                _indicatorEmitterResources == null)
+                _indicatorEmitterResources == null ||
+                _indicatorAuraResources == null)
             {
                 _indicatorAssemblyShapeKey = nextIndicatorKey;
                 IndicatorPartMesh baseMesh = IndicatorAssemblyMeshBuilder.BuildBaseMesh(indicatorConfig);
@@ -215,11 +218,13 @@ namespace KnobForge.App.Controls
                 IndicatorPartMesh lensMesh = IndicatorAssemblyMeshBuilder.BuildLensMesh(indicatorConfig);
                 IndicatorPartMesh reflectorMesh = IndicatorAssemblyMeshBuilder.BuildReflectorMesh(indicatorConfig);
                 IndicatorPartMesh emitterMesh = IndicatorAssemblyMeshBuilder.BuildEmitterCoreMesh(indicatorConfig);
+                IndicatorPartMesh auraMesh = IndicatorAssemblyMeshBuilder.BuildAuraMesh(indicatorConfig);
                 MetalMeshGpuResources? nextBaseResources = null;
                 MetalMeshGpuResources? nextHousingResources = null;
                 MetalMeshGpuResources? nextLensResources = null;
                 MetalMeshGpuResources? nextReflectorResources = null;
                 MetalMeshGpuResources? nextEmitterResources = null;
+                MetalMeshGpuResources? nextAuraResources = null;
 
                 if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
                 {
@@ -246,11 +251,17 @@ namespace KnobForge.App.Controls
                     nextEmitterResources = CreateGpuResources(emitterMesh.Vertices, emitterMesh.Indices, emitterMesh.ReferenceRadius);
                 }
 
+                if (auraMesh.Vertices.Length > 0 && auraMesh.Indices.Length > 0)
+                {
+                    nextAuraResources = CreateGpuResources(auraMesh.Vertices, auraMesh.Indices, auraMesh.ReferenceRadius);
+                }
+
                 ReplaceMeshResources(ref _indicatorBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _indicatorHousingResources, nextHousingResources);
                 ReplaceMeshResources(ref _indicatorLensResources, nextLensResources);
                 ReplaceMeshResources(ref _indicatorReflectorResources, nextReflectorResources);
                 ReplaceMeshResources(ref _indicatorEmitterResources, nextEmitterResources);
+                ReplaceMeshResources(ref _indicatorAuraResources, nextAuraResources);
             }
 
             if (project.ProjectType != InteractorProjectType.RotaryKnob)
@@ -854,7 +865,9 @@ namespace KnobForge.App.Controls
             float ior,
             float thickness,
             Vector3 tint,
-            float absorption)
+            float absorption,
+            Vector3 emissionColor,
+            float emissionStrength)
         {
             GpuUniforms uniforms = BuildSliderPartUniforms(
                 baseUniforms,
@@ -874,6 +887,11 @@ namespace KnobForge.App.Controls
                 Math.Clamp(tint.Y, 0f, 1f),
                 Math.Clamp(tint.Z, 0f, 1f),
                 Math.Clamp(absorption, 0f, 8f));
+            uniforms.IndicatorColorAndBlend = new Vector4(
+                Math.Clamp(emissionColor.X, 0f, 1f),
+                Math.Clamp(emissionColor.Y, 0f, 1f),
+                Math.Clamp(emissionColor.Z, 0f, 1f),
+                Math.Clamp(emissionStrength, 0f, 192f));
             return uniforms;
         }
 
@@ -901,7 +919,7 @@ namespace KnobForge.App.Controls
                 Math.Clamp(emissionColor.X, 0f, 1f),
                 Math.Clamp(emissionColor.Y, 0f, 1f),
                 Math.Clamp(emissionColor.Z, 0f, 1f),
-                Math.Clamp(emissionStrength, 0f, 24f));
+                Math.Clamp(emissionStrength, 0f, 192f));
             return uniforms;
         }
 
@@ -1103,6 +1121,13 @@ namespace KnobForge.App.Controls
             KnobProject project,
             double? animationTimeSecondsOverride = null)
         {
+            // Indicator emitter rig is indicator-project-only. Do not bleed LED colors
+            // into rotary/slider/switch/button scene lighting.
+            if (project.ProjectType != InteractorProjectType.IndicatorLight)
+            {
+                return 0;
+            }
+
             DynamicLightRig rig = project.DynamicLightRig;
             bool rigEnabled = rig.Enabled;
             if (!rigEnabled || rig.Sources.Count == 0)
@@ -1143,7 +1168,7 @@ namespace KnobForge.App.Controls
                         MathF.Max(0f, source.Falloff),
                         1f, // diffuse boost
                         1f, // specular boost
-                        64f)
+                        MathF.Max(4f, source.Radius))
                 };
 
                 SetDynamicGpuLight(ref uniforms, packedCount, packed);
@@ -1164,7 +1189,7 @@ namespace KnobForge.App.Controls
             int sourceIndex,
             double timeSeconds)
         {
-            float masterIntensity = MathF.Max(0f, rig.MasterIntensity);
+            float masterIntensity = ComputeIndicatorDynamicLightResponse(rig.MasterIntensity);
             float baseIntensity = MathF.Max(0f, source.Intensity) * masterIntensity;
             if (baseIntensity <= 1e-6f)
             {
@@ -1228,6 +1253,33 @@ namespace KnobForge.App.Controls
             }
 
             return baseIntensity * MathF.Max(0f, modeMultiplier);
+        }
+
+        private static float ComputeIndicatorDynamicLightResponse(float sliderValue)
+        {
+            float value = MathF.Max(0f, sliderValue);
+            if (value <= 1f)
+            {
+                return value;
+            }
+
+            // Keep point lights localized and controlled to avoid washing the base/housing.
+            float over = value - 1f;
+            return 1f + (over * 0.35f);
+        }
+
+        private static float ComputeIndicatorEmissiveResponse(float sliderValue)
+        {
+            // Keep low-end control linear, then aggressively boost upper range so max settings
+            // can drive a visibly bright emitter through filmic tonemapping.
+            float value = MathF.Max(0f, sliderValue);
+            if (value <= 1f)
+            {
+                return value;
+            }
+
+            float over = value - 1f;
+            return 1f + (over * (4f + (8f * over)));
         }
 
         private static float Wrap01(float value)
