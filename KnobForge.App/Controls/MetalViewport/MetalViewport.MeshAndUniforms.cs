@@ -762,11 +762,10 @@ namespace KnobForge.App.Controls
             uniforms.LensMaterialParams0 = Vector4.Zero;
             uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
             uniforms.EnvironmentMapParams = Vector4.Zero;
-            uniforms.EnvironmentMapParams2 = new Vector4(
-                _orientation.InvertX ? -1f : 1f,
-                _orientation.InvertY ? -1f : 1f,
-                _orientation.InvertZ ? -1f : 1f,
-                0f);
+            float lightEffectX = _orientation.InvertX ^ _lightEffectInvertX ? -1f : 1f;
+            float lightEffectY = _orientation.InvertY ^ _lightEffectInvertY ? -1f : 1f;
+            float lightEffectZ = _orientation.InvertZ ^ _lightEffectInvertZ ? -1f : 1f;
+            uniforms.EnvironmentMapParams2 = new Vector4(lightEffectX, lightEffectY, lightEffectZ, 0f);
             uniforms.PostProcessParams = new Vector4(1f, 1.10f, 0.55f, 0.40f);
             uniforms.PostProcessParams2 = Vector4.Zero;
             uniforms.TonemapParams = new Vector4((float)TonemapOperator.Aces, 1f, 0f, 0f);
@@ -859,6 +858,17 @@ namespace KnobForge.App.Controls
             uniforms.MicroDetailParams.W = 0f;
             uniforms.LensMaterialParams0 = Vector4.Zero;
             uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
+            if (IsImportedCollarPreset(collarNode))
+            {
+                float envX = collarNode.ImportedMirrorX ? -1f : 1f;
+                float envY = collarNode.ImportedMirrorY ? -1f : 1f;
+                float envZ = collarNode.ImportedMirrorZ ? -1f : 1f;
+                uniforms.EnvironmentMapParams2 = new Vector4(
+                    uniforms.EnvironmentMapParams2.X * envX,
+                    uniforms.EnvironmentMapParams2.Y * envY,
+                    uniforms.EnvironmentMapParams2.Z * envZ,
+                    uniforms.EnvironmentMapParams2.W);
+            }
             return uniforms;
         }
 

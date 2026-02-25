@@ -162,6 +162,14 @@ static inline float3 EvaluateEnvironmentLighting(
     return mix(gradient, sampled, clamp(envMapBlend, 0.0, 1.0));
 }
 
+static inline float3 ApplyModelRotationInverse(float3 direction, float cosA, float sinA)
+{
+    return float3(
+        direction.x * cosA + direction.y * sinA,
+        -direction.x * sinA + direction.y * cosA,
+        direction.z);
+}
+
 static inline float Hash21(float2 p)
 {
     p = fract(p * float2(123.34, 456.21));
@@ -843,9 +851,10 @@ fragment float4 fragment_main(
     float envRoughMix = clamp(uniforms.environmentBottomColorAndRoughnessMix.w, 0.0, 1.0);
 
     float3 R = reflect(-viewDir, normal);
+    float3 envDir = ApplyModelRotationInverse(R, cosA, sinA);
     float3 envColor = EvaluateEnvironmentLighting(
         environmentMap,
-        R,
+        envDir,
         envBottom,
         envTop,
         envMapBlend,
@@ -903,7 +912,7 @@ fragment float4 fragment_main(
         float3 absorptionFilter = exp(-lensAbsorption * opticalPath * (1.0 - lensTint));
         float3 refractedEnv = EvaluateEnvironmentLighting(
             environmentMap,
-            refractedDir,
+            ApplyModelRotationInverse(refractedDir, cosA, sinA),
             envBottom,
             envTop,
             envMapBlend,
@@ -913,7 +922,7 @@ fragment float4 fragment_main(
         float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
         float3 refractedEnvWide = EvaluateEnvironmentLighting(
             environmentMap,
-            refractedDirWide,
+            ApplyModelRotationInverse(refractedDirWide, cosA, sinA),
             envBottom,
             envTop,
             envMapBlend,

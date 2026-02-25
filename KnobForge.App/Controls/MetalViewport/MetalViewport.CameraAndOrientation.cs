@@ -215,6 +215,45 @@ namespace KnobForge.App.Controls
                 InvalidateGpu();
             };
 
+            var lightEffectInvertXItem = new MenuItem
+            {
+                Header = "Light Effects Invert X",
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = _lightEffectInvertX
+            };
+            lightEffectInvertXItem.Click += (_, _) =>
+            {
+                _lightEffectInvertX = !_lightEffectInvertX;
+                PrintOrientation();
+                InvalidateGpu();
+            };
+
+            var lightEffectInvertYItem = new MenuItem
+            {
+                Header = "Light Effects Invert Y",
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = _lightEffectInvertY
+            };
+            lightEffectInvertYItem.Click += (_, _) =>
+            {
+                _lightEffectInvertY = !_lightEffectInvertY;
+                PrintOrientation();
+                InvalidateGpu();
+            };
+
+            var lightEffectInvertZItem = new MenuItem
+            {
+                Header = "Light Effects Invert Z",
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = _lightEffectInvertZ
+            };
+            lightEffectInvertZItem.Click += (_, _) =>
+            {
+                _lightEffectInvertZ = !_lightEffectInvertZ;
+                PrintOrientation();
+                InvalidateGpu();
+            };
+
             var flipCameraItem = new MenuItem
             {
                 Header = "Flip Camera 180°",
@@ -286,6 +325,9 @@ namespace KnobForge.App.Controls
                 _brushInvertX = false;
                 _brushInvertY = true;
                 _brushInvertZ = false;
+                _lightEffectInvertX = false;
+                _lightEffectInvertY = false;
+                _lightEffectInvertZ = false;
                 _invertImportedCollarOrbit = false;
                 _invertKnobFrontFaceWinding = true;
                 _invertImportedStlFrontFaceWinding = true;
@@ -308,6 +350,10 @@ namespace KnobForge.App.Controls
                     brushInvertXItem,
                     brushInvertYItem,
                     brushInvertZItem,
+                    new Separator(),
+                    lightEffectInvertXItem,
+                    lightEffectInvertYItem,
+                    lightEffectInvertZItem,
                     new Separator(),
                     flipCameraItem,
                     invertCollarOrbitItem,
@@ -335,6 +381,9 @@ namespace KnobForge.App.Controls
             Console.WriteLine($"BrushInvertX: {_brushInvertX}");
             Console.WriteLine($"BrushInvertY: {_brushInvertY}");
             Console.WriteLine($"BrushInvertZ: {_brushInvertZ}");
+            Console.WriteLine($"LightEffectInvertX: {_lightEffectInvertX}");
+            Console.WriteLine($"LightEffectInvertY: {_lightEffectInvertY}");
+            Console.WriteLine($"LightEffectInvertZ: {_lightEffectInvertZ}");
             Console.WriteLine($"FlipCamera180: {_orientation.FlipCamera180}");
             Console.WriteLine($"InvertImportedCollarOrbit: {_invertImportedCollarOrbit}");
             Console.WriteLine($"InvertKnobFrontFaceWinding: {_invertKnobFrontFaceWinding}");

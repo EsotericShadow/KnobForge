@@ -76,6 +76,9 @@ namespace KnobForge.App.Controls
             public bool BrushInvertX { get; set; }
             public bool BrushInvertY { get; set; }
             public bool BrushInvertZ { get; set; }
+            public bool LightEffectInvertX { get; set; }
+            public bool LightEffectInvertY { get; set; }
+            public bool LightEffectInvertZ { get; set; }
             public bool InvertImportedCollarOrbit { get; set; }
             public bool InvertKnobFrontFaceWinding { get; set; }
             public bool InvertImportedStlFrontFaceWinding { get; set; }

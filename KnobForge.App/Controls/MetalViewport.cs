@@ -337,6 +337,9 @@ namespace KnobForge.App.Controls
         private bool _brushInvertX;
         private bool _brushInvertY = true;
         private bool _brushInvertZ;
+        private bool _lightEffectInvertX;
+        private bool _lightEffectInvertY;
+        private bool _lightEffectInvertZ;
         private bool _invertImportedCollarOrbit;
         private bool _invertKnobFrontFaceWinding = true;
         private bool _invertImportedStlFrontFaceWinding = true;

@@ -440,6 +440,9 @@ namespace KnobForge.App.Controls
                 BrushInvertX = _brushInvertX,
                 BrushInvertY = _brushInvertY,
                 BrushInvertZ = _brushInvertZ,
+                LightEffectInvertX = _lightEffectInvertX,
+                LightEffectInvertY = _lightEffectInvertY,
+                LightEffectInvertZ = _lightEffectInvertZ,
                 InvertImportedCollarOrbit = _invertImportedCollarOrbit,
                 InvertKnobFrontFaceWinding = _invertKnobFrontFaceWinding,
                 InvertImportedStlFrontFaceWinding = _invertImportedStlFrontFaceWinding
@@ -492,6 +495,9 @@ namespace KnobForge.App.Controls
             _brushInvertX = state.BrushInvertX;
             _brushInvertY = state.BrushInvertY;
             _brushInvertZ = state.BrushInvertZ;
+            _lightEffectInvertX = state.LightEffectInvertX;
+            _lightEffectInvertY = state.LightEffectInvertY;
+            _lightEffectInvertZ = state.LightEffectInvertZ;
             _invertImportedCollarOrbit = state.InvertImportedCollarOrbit;
             _invertKnobFrontFaceWinding = state.InvertKnobFrontFaceWinding;
             _invertImportedStlFrontFaceWinding = state.InvertImportedStlFrontFaceWinding;
