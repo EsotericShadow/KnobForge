@@ -599,6 +599,26 @@ namespace KnobForge.App.Views
                         _toggleUpperBushingKnurlDepthSlider.Value = project.ToggleUpperBushingKnurlDepth;
                     }
 
+                    if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+                    {
+                        _toggleUpperBushingAnisotropyStrengthSlider.Value = project.ToggleUpperBushingAnisotropyStrength;
+                    }
+
+                    if (_toggleUpperBushingAnisotropyDensitySlider != null)
+                    {
+                        _toggleUpperBushingAnisotropyDensitySlider.Value = project.ToggleUpperBushingAnisotropyDensity;
+                    }
+
+                    if (_toggleUpperBushingAnisotropyAngleSlider != null)
+                    {
+                        _toggleUpperBushingAnisotropyAngleSlider.Value = project.ToggleUpperBushingAnisotropyAngleDegrees;
+                    }
+
+                    if (_toggleUpperBushingSurfaceCharacterSlider != null)
+                    {
+                        _toggleUpperBushingSurfaceCharacterSlider.Value = project.ToggleUpperBushingSurfaceCharacter;
+                    }
+
                     if (_togglePivotHousingRadiusSlider != null)
                     {
                         _togglePivotHousingRadiusSlider.Value = project.TogglePivotHousingRadius;
@@ -801,7 +821,11 @@ namespace KnobForge.App.Views
                         CollarPresetOption collarOption = ResolveCollarPresetOptionForState(collar.Preset, collar.ImportedMeshPath);
                         _collarPresetCombo.SelectedItem = collarOption;
                         _lastSelectableCollarPresetOption = collarOption;
-                        _collarMeshPathTextBox.Text = collarOption.ResolveImportedMeshPath(collar.ImportedMeshPath);
+                        string resolvedImportedMeshPath = ResolveBestImportedCollarPath(
+                            collarOption.Preset,
+                            collarOption.ResolveImportedMeshPath(collar.ImportedMeshPath));
+                        collar.ImportedMeshPath = resolvedImportedMeshPath;
+                        _collarMeshPathTextBox.Text = resolvedImportedMeshPath;
                         _collarScaleSlider.Value = collar.ImportedScale;
                         _collarBodyLengthSlider.Value = collar.ImportedBodyLengthScale;
                         _collarBodyThicknessSlider.Value = collar.ImportedBodyThicknessScale;
@@ -1444,6 +1468,26 @@ namespace KnobForge.App.Views
                 if (_toggleUpperBushingKnurlDepthSlider != null)
                 {
                     _toggleUpperBushingKnurlDepthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+                {
+                    _toggleUpperBushingAnisotropyStrengthSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingAnisotropyDensitySlider != null)
+                {
+                    _toggleUpperBushingAnisotropyDensitySlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingAnisotropyAngleSlider != null)
+                {
+                    _toggleUpperBushingAnisotropyAngleSlider.IsEnabled = hasModel;
+                }
+
+                if (_toggleUpperBushingSurfaceCharacterSlider != null)
+                {
+                    _toggleUpperBushingSurfaceCharacterSlider.IsEnabled = hasModel;
                 }
 
                 if (_togglePivotHousingRadiusSlider != null)

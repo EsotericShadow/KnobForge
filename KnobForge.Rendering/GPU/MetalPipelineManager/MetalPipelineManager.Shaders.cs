@@ -54,7 +54,9 @@ struct GpuUniforms
     float4 lensMaterialParams0;
     float4 lensMaterialTintAndAbsorption;
     float4 environmentMapParams;
+    float4 environmentMapParams2;
     float4 postProcessParams;
+    float4 postProcessParams2;
     float4 tonemapParams;
     GpuLight lights[MAX_LIGHTS];
     float4 dynamicLightParams;
@@ -142,15 +144,16 @@ static inline float3 EvaluateEnvironmentLighting(
     float3 envTop,
     float envMapBlend,
     bool envMapAvailable,
-    float envMapRotationRadians)
+    float envMapRotationRadians,
+    float3 envOrientation)
 {
-    float3 gradient = EvaluateEnvironmentColor(direction, envBottom, envTop);
+    float3 dir = normalize(direction) * envOrientation;
+    float3 gradient = EvaluateEnvironmentColor(dir, envBottom, envTop);
     if (!envMapAvailable || envMapBlend <= 1e-4)
     {
         return gradient;
     }
 
-    float3 dir = normalize(direction);
     float azimuth = atan2(dir.x, dir.z) + envMapRotationRadians;
     float u = fract((azimuth * 0.15915494309) + 0.5);
     float v = clamp(acos(clamp(dir.y, -1.0, 1.0)) * 0.31830988618, 0.0, 1.0);
@@ -425,6 +428,11 @@ fragment float4 fragment_main(
     float envMapBlend = clamp(uniforms.environmentMapParams.x, 0.0, 1.0);
     bool envMapAvailable = uniforms.environmentMapParams.y > 0.5;
     float envMapRotationRadians = uniforms.environmentMapParams.z;
+    float3 envOrientation = uniforms.environmentMapParams2.xyz;
+    if (dot(envOrientation, envOrientation) < 0.5)
+    {
+        envOrientation = float3(1.0, 1.0, 1.0);
+    }
     float exposure = max(0.10, uniforms.postProcessParams.x);
     float bloomThreshold = max(0.0, uniforms.postProcessParams.y);
     float bloomKnee = max(0.001, uniforms.postProcessParams.z);
@@ -720,11 +728,11 @@ fragment float4 fragment_main(
 
     float NdotV = max(0.0, dot(normal, viewDir));
     float maxBase = max(1e-6, max(baseColor.x, max(baseColor.y, baseColor.z)));
+    float3 baseHue = baseColor / maxBase;
     // Keep a minimum metallic reflectance floor so pure-black tint does not collapse
     // to a dead absorber with no visible light response.
     float metalReflectance = max(0.08, maxBase);
-    // Keep specular neutral so white point/directional/environment lights stay white.
-    float3 metalSpecColor = float3(metalReflectance);
+    float3 metalSpecColor = Clamp01(baseHue * metalReflectance);
     float3 F0 = mix(float3(0.04), metalSpecColor, metallic);
     float metallicSpecFloor = mix(0.04, 0.08, metallic);
     F0 = max(F0, float3(metallicSpecFloor));
@@ -842,9 +850,12 @@ fragment float4 fragment_main(
         envTop,
         envMapBlend,
         envMapAvailable,
-        envMapRotationRadians);
+        envMapRotationRadians,
+        envOrientation);
     float envSpecWeight = 0.20 + 1.15 * metallic;
-    float3 envSpecular = envColor * fresnelView * envSpecWeight;
+    float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
+    float3 specTint = mix(float3(1.0), chromeTint, metallic);
+    float3 envSpecular = envColor * fresnelView * specTint * envSpecWeight;
     float envDiffuseWeight = max(0.0, 1.0 - metallic);
     float3 envDiffuse = Hadamard(baseColor, envColor) * envDiffuseWeight;
     float envDiffuseEnergy = 0.35;
@@ -862,13 +873,11 @@ fragment float4 fragment_main(
 
     if (pearlescence > 1e-4)
     {
-        // Keep pearlescence energy, but avoid hue-shifting light color (pink/cyan artifacts).
         float pearlEdge = pow(1.0 - NdotV, 1.35);
         float pearlPhase = clamp(dot(normalize(R + viewDir), float3(0.23, 0.67, 0.71)) * 0.5 + 0.5, 0.0, 1.0);
-        float pearlWave = 0.5 + 0.5 * cos(6.2831853 * pearlPhase);
+        float3 pearlTint = 0.5 + 0.5 * cos(6.2831853 * (pearlPhase + float3(0.00, 0.33, 0.67)));
         float pearlStrength = pearlescence * (0.15 + 0.85 * pearlEdge);
-        float pearlEnergy = pearlStrength * (0.20 + 0.80 * envIntensity) * mix(0.85, 1.15, pearlWave);
-        accum += float3(pearlEnergy);
+        accum += pearlTint * pearlStrength * (0.20 + 0.80 * envIntensity);
     }
 
     float outputAlpha = 1.0;
@@ -899,7 +908,8 @@ fragment float4 fragment_main(
             envTop,
             envMapBlend,
             envMapAvailable,
-            envMapRotationRadians);
+            envMapRotationRadians,
+            envOrientation);
         float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
         float3 refractedEnvWide = EvaluateEnvironmentLighting(
             environmentMap,
@@ -908,7 +918,8 @@ fragment float4 fragment_main(
             envTop,
             envMapBlend,
             envMapAvailable,
-            envMapRotationRadians);
+            envMapRotationRadians,
+            envOrientation);
         float3 transmittedEnv = refractedEnv * lensTint * absorptionFilter;
         float3 transmittedEnvWide = refractedEnvWide * lensTint * absorptionFilter;
         float3 transmittedBody = accum * lensTint * absorptionFilter * (0.10 + 0.30 * NdotV);
@@ -956,5 +967,82 @@ fragment float4 fragment_main(
 
     accum = ApplyTonemap(tonemapMode, accum);
     return float4(accum, outputAlpha);
-}";
+}
+
+struct FullscreenVertexOut
+{
+    float4 position [[position]];
+    float2 uv;
+};
+
+vertex FullscreenVertexOut vertex_fullscreen(uint vertexId [[vertex_id]])
+{
+    FullscreenVertexOut out;
+    float2 positions[3] = {
+        float2(-1.0, -1.0),
+        float2(3.0, -1.0),
+        float2(-1.0, 3.0)
+    };
+    float2 pos = positions[vertexId % 3];
+    out.position = float4(pos, 0.0, 1.0);
+    out.uv = pos * 0.5 + 0.5;
+    return out;
+}
+
+fragment float4 fragment_fullscreen_blit(
+    FullscreenVertexOut inVertex [[stage_in]],
+    texture2d<float> sourceTexture [[texture(0)]])
+{
+    constexpr sampler blitSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
+    float4 color = sourceTexture.sample(blitSampler, inVertex.uv);
+    return color;
+}
+
+fragment float4 fragment_bloom_extract(
+    FullscreenVertexOut inVertex [[stage_in]],
+    texture2d<float> sourceTexture [[texture(0)]],
+    constant GpuUniforms& uniforms [[buffer(1)]])
+{
+    constexpr sampler blitSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
+    float3 color = sourceTexture.sample(blitSampler, inVertex.uv).rgb;
+    float luminance = dot(color, float3(0.2126, 0.7152, 0.0722));
+    float threshold = max(0.0, uniforms.postProcessParams.y);
+    float knee = max(0.001, uniforms.postProcessParams.z);
+    float strength = max(0.0, uniforms.postProcessParams.w);
+    float soft = smoothstep(threshold - knee, threshold + knee, luminance);
+    float3 result = color * soft * strength;
+    return float4(result, 1.0);
+}
+
+fragment float4 fragment_bloom_blur(
+    FullscreenVertexOut inVertex [[stage_in]],
+    texture2d<float> sourceTexture [[texture(0)]],
+    constant GpuUniforms& uniforms [[buffer(1)]])
+{
+    constexpr sampler blitSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
+    float2 texel = uniforms.postProcessParams2.xy;
+    float2 dir = float2(uniforms.postProcessParams2.z, uniforms.postProcessParams2.w);
+    float2 step = texel * dir;
+
+    float3 result = sourceTexture.sample(blitSampler, inVertex.uv).rgb * 0.227027;
+    result += sourceTexture.sample(blitSampler, inVertex.uv + step).rgb * 0.316216;
+    result += sourceTexture.sample(blitSampler, inVertex.uv - step).rgb * 0.316216;
+    result += sourceTexture.sample(blitSampler, inVertex.uv + step * 2.0).rgb * 0.070270;
+    result += sourceTexture.sample(blitSampler, inVertex.uv - step * 2.0).rgb * 0.070270;
+    return float4(result, 1.0);
+}
+
+fragment float4 fragment_bloom_composite(
+    FullscreenVertexOut inVertex [[stage_in]],
+    texture2d<float> sourceTexture [[texture(0)]],
+    texture2d<float> bloomTexture [[texture(1)]])
+{
+    constexpr sampler blitSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
+    float4 baseColor = sourceTexture.sample(blitSampler, inVertex.uv);
+    float3 bloom = bloomTexture.sample(blitSampler, inVertex.uv).rgb;
+    float bloomAlpha = clamp(max(bloom.r, max(bloom.g, bloom.b)), 0.0, 1.0);
+    float outAlpha = clamp(max(baseColor.a, bloomAlpha), 0.0, 1.0);
+    return float4(baseColor.rgb + bloom, outAlpha);
+}
+";
 }

@@ -11,6 +11,11 @@ public sealed partial class MetalPipelineManager
 
     private const string VertexFunctionName = "vertex_main";
     private const string FragmentFunctionName = "fragment_main";
+    private const string FullscreenVertexFunctionName = "vertex_fullscreen";
+    private const string FullscreenBlitFragmentFunctionName = "fragment_fullscreen_blit";
+    private const string BloomExtractFragmentFunctionName = "fragment_bloom_extract";
+    private const string BloomBlurFragmentFunctionName = "fragment_bloom_blur";
+    private const string BloomCompositeFragmentFunctionName = "fragment_bloom_composite";
     private const nuint DepthPixelFormat = 252; // MTLPixelFormatDepth32Float
     private const nuint MsaaSampleCount = 4;
 
@@ -18,10 +23,19 @@ public sealed partial class MetalPipelineManager
     private readonly IMTLLibrary _library;
     private readonly IMTLFunction _vertexFunction;
     private readonly IMTLFunction _fragmentFunction;
+    private readonly IMTLFunction _fullscreenVertexFunction;
+    private readonly IMTLFunction _fullscreenBlitFragmentFunction;
+    private readonly IMTLFunction? _fullscreenBloomExtractFragmentFunction;
+    private readonly IMTLFunction? _fullscreenBloomBlurFragmentFunction;
+    private readonly IMTLFunction? _fullscreenBloomCompositeFragmentFunction;
     private readonly IMTLRenderPipelineState _defaultPipeline;
     private readonly IMTLRenderPipelineState? _msaaPipeline;
     private readonly IMTLRenderPipelineState _additivePipeline;
     private readonly IMTLRenderPipelineState? _msaaAdditivePipeline;
+    private readonly IMTLRenderPipelineState _fullscreenBlitPipeline;
+    private readonly IMTLRenderPipelineState? _fullscreenBloomExtractPipeline;
+    private readonly IMTLRenderPipelineState? _fullscreenBloomBlurPipeline;
+    private readonly IMTLRenderPipelineState? _fullscreenBloomCompositePipeline;
     private readonly IntPtr _defaultDepthStencilState;
     private readonly IntPtr _shadowDepthStencilState;
 
@@ -71,6 +85,39 @@ public sealed partial class MetalPipelineManager
 
         _vertexFunction = new MTLFunctionHandle(vertexFunctionPtr);
         _fragmentFunction = new MTLFunctionHandle(fragmentFunctionPtr);
+
+        IntPtr fullscreenVertexFunctionPtr = CreateFunction(libraryPtr, FullscreenVertexFunctionName);
+        IntPtr fullscreenBlitFragmentFunctionPtr = CreateFunction(libraryPtr, FullscreenBlitFragmentFunctionName);
+        if (fullscreenVertexFunctionPtr == IntPtr.Zero || fullscreenBlitFragmentFunctionPtr == IntPtr.Zero)
+        {
+            throw new InvalidOperationException(
+                $"Failed to load shader functions '{FullscreenVertexFunctionName}'/'{FullscreenBlitFragmentFunctionName}' from '{shaderPath}'.");
+        }
+
+        _fullscreenVertexFunction = new MTLFunctionHandle(fullscreenVertexFunctionPtr);
+        _fullscreenBlitFragmentFunction = new MTLFunctionHandle(fullscreenBlitFragmentFunctionPtr);
+
+        IntPtr bloomExtractFunctionPtr = CreateFunction(libraryPtr, BloomExtractFragmentFunctionName);
+        IntPtr bloomBlurFunctionPtr = CreateFunction(libraryPtr, BloomBlurFragmentFunctionName);
+        IntPtr bloomCompositeFunctionPtr = CreateFunction(libraryPtr, BloomCompositeFragmentFunctionName);
+        if (bloomExtractFunctionPtr == IntPtr.Zero ||
+            bloomBlurFunctionPtr == IntPtr.Zero ||
+            bloomCompositeFunctionPtr == IntPtr.Zero)
+        {
+            LogError(
+                $"Bloom shader functions missing. Extract={bloomExtractFunctionPtr != IntPtr.Zero}, " +
+                $"Blur={bloomBlurFunctionPtr != IntPtr.Zero}, Composite={bloomCompositeFunctionPtr != IntPtr.Zero}.");
+        }
+
+        _fullscreenBloomExtractFragmentFunction = bloomExtractFunctionPtr != IntPtr.Zero
+            ? new MTLFunctionHandle(bloomExtractFunctionPtr)
+            : null;
+        _fullscreenBloomBlurFragmentFunction = bloomBlurFunctionPtr != IntPtr.Zero
+            ? new MTLFunctionHandle(bloomBlurFunctionPtr)
+            : null;
+        _fullscreenBloomCompositeFragmentFunction = bloomCompositeFunctionPtr != IntPtr.Zero
+            ? new MTLFunctionHandle(bloomCompositeFunctionPtr)
+            : null;
 
         IntPtr pipelineStatePtr = CreateRenderPipelineState(
             device,
@@ -139,6 +186,65 @@ public sealed partial class MetalPipelineManager
         {
             throw new InvalidOperationException("Failed to create shadow Metal depth stencil state.");
         }
+
+        IntPtr fullscreenBlitPipelineStatePtr = CreateRenderPipelineState(
+            device,
+            _fullscreenVertexFunction.Handle,
+            _fullscreenBlitFragmentFunction.Handle,
+            sampleCount: 1,
+            additiveColorBlending: false,
+            enableDepth: false,
+            enableBlending: false);
+        if (fullscreenBlitPipelineStatePtr == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("Failed to create fullscreen blit Metal render pipeline state.");
+        }
+
+        _fullscreenBlitPipeline = new MTLRenderPipelineStateHandle(fullscreenBlitPipelineStatePtr);
+
+        _fullscreenBloomExtractPipeline = CreateFullscreenPipeline(
+            device,
+            _fullscreenVertexFunction,
+            _fullscreenBloomExtractFragmentFunction,
+            "bloom extract");
+        _fullscreenBloomBlurPipeline = CreateFullscreenPipeline(
+            device,
+            _fullscreenVertexFunction,
+            _fullscreenBloomBlurFragmentFunction,
+            "bloom blur");
+        _fullscreenBloomCompositePipeline = CreateFullscreenPipeline(
+            device,
+            _fullscreenVertexFunction,
+            _fullscreenBloomCompositeFragmentFunction,
+            "bloom composite");
+    }
+
+    private IMTLRenderPipelineState? CreateFullscreenPipeline(
+        IntPtr device,
+        IMTLFunction vertexFunction,
+        IMTLFunction? fragmentFunction,
+        string label)
+    {
+        if (fragmentFunction is null || fragmentFunction.Handle == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        IntPtr pipelineStatePtr = CreateRenderPipelineState(
+            device,
+            vertexFunction.Handle,
+            fragmentFunction.Handle,
+            sampleCount: 1,
+            additiveColorBlending: false,
+            enableDepth: false,
+            enableBlending: false);
+        if (pipelineStatePtr == IntPtr.Zero)
+        {
+            LogError($"Failed to create fullscreen {label} Metal render pipeline state.");
+            return null;
+        }
+
+        return new MTLRenderPipelineStateHandle(pipelineStatePtr);
     }
 
     public IMTLRenderPipelineState GetDefaultPipeline()
@@ -205,6 +311,85 @@ public sealed partial class MetalPipelineManager
         ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, pipeline.Handle);
         UseDepthReadOnlyState(encoder);
         SetBackfaceCulling(encoder, true);
+        SetFrontFacingWinding(encoder, clockwise: true);
+    }
+
+    public bool HasFullscreenBlitPipeline => _fullscreenBlitPipeline.Handle != IntPtr.Zero;
+
+    public bool HasBloomPipelines =>
+        _fullscreenBloomExtractPipeline is { Handle: not 0 } &&
+        _fullscreenBloomBlurPipeline is { Handle: not 0 } &&
+        _fullscreenBloomCompositePipeline is { Handle: not 0 };
+
+    public void UseFullscreenBlitPipeline(IMTLRenderCommandEncoder encoder)
+    {
+        if (encoder is null)
+        {
+            throw new ArgumentNullException(nameof(encoder));
+        }
+
+        if (encoder.Handle == IntPtr.Zero || _fullscreenBlitPipeline.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _fullscreenBlitPipeline.Handle);
+        UseDepthReadOnlyState(encoder);
+        SetBackfaceCulling(encoder, false);
+        SetFrontFacingWinding(encoder, clockwise: true);
+    }
+
+    public void UseBloomExtractPipeline(IMTLRenderCommandEncoder encoder)
+    {
+        if (encoder is null)
+        {
+            throw new ArgumentNullException(nameof(encoder));
+        }
+
+        if (encoder.Handle == IntPtr.Zero || _fullscreenBloomExtractPipeline is null || _fullscreenBloomExtractPipeline.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _fullscreenBloomExtractPipeline.Handle);
+        UseDepthReadOnlyState(encoder);
+        SetBackfaceCulling(encoder, false);
+        SetFrontFacingWinding(encoder, clockwise: true);
+    }
+
+    public void UseBloomBlurPipeline(IMTLRenderCommandEncoder encoder)
+    {
+        if (encoder is null)
+        {
+            throw new ArgumentNullException(nameof(encoder));
+        }
+
+        if (encoder.Handle == IntPtr.Zero || _fullscreenBloomBlurPipeline is null || _fullscreenBloomBlurPipeline.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _fullscreenBloomBlurPipeline.Handle);
+        UseDepthReadOnlyState(encoder);
+        SetBackfaceCulling(encoder, false);
+        SetFrontFacingWinding(encoder, clockwise: true);
+    }
+
+    public void UseBloomCompositePipeline(IMTLRenderCommandEncoder encoder)
+    {
+        if (encoder is null)
+        {
+            throw new ArgumentNullException(nameof(encoder));
+        }
+
+        if (encoder.Handle == IntPtr.Zero || _fullscreenBloomCompositePipeline is null || _fullscreenBloomCompositePipeline.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _fullscreenBloomCompositePipeline.Handle);
+        UseDepthReadOnlyState(encoder);
+        SetBackfaceCulling(encoder, false);
         SetFrontFacingWinding(encoder, clockwise: true);
     }
 

@@ -42,6 +42,7 @@ namespace KnobForge.App.Controls
             Vector2 savedPan = _panPx;
 
             IntPtr colorTexture = IntPtr.Zero;
+            IntPtr postColorTexture = IntPtr.Zero;
             IntPtr depthTexture = IntPtr.Zero;
             IntPtr msaaColorTexture = IntPtr.Zero;
             IntPtr msaaDepthTexture = IntPtr.Zero;
@@ -72,6 +73,8 @@ namespace KnobForge.App.Controls
 
                 ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetUsage, 4); // MTLTextureUsageRenderTarget
                 ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetStorageMode, 0); // MTLStorageModeShared
+                // Allow post-process sampling (bloom) from the resolved color buffer.
+                ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
                 colorTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, colorDescriptor);
                 if (colorTexture == IntPtr.Zero)
                 {
@@ -296,6 +299,7 @@ namespace KnobForge.App.Controls
                     height,
                     dynamicLightAnimationTimeSeconds);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
+                GpuUniforms postProcessUniforms = knobUniforms;
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
@@ -326,6 +330,10 @@ namespace KnobForge.App.Controls
                 float toggleSleeveRust = _project.ToggleTipSleeveRustAmount;
                 float toggleSleeveWear = _project.ToggleTipSleeveWearAmount;
                 float toggleSleeveGunk = _project.ToggleTipSleeveGunkAmount;
+                float toggleBushingAnisotropyStrength = _project.ToggleUpperBushingAnisotropyStrength;
+                float toggleBushingAnisotropyDensity = _project.ToggleUpperBushingAnisotropyDensity;
+                float toggleBushingSurfaceCharacter = _project.ToggleUpperBushingSurfaceCharacter;
+                float toggleBushingAnisotropyAngle = _project.ToggleUpperBushingAnisotropyAngleDegrees * (MathF.PI / 180f);
                 GpuUniforms toggleBaseUniforms = drawToggleBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -333,10 +341,10 @@ namespace KnobForge.App.Controls
                         assemblyMaterialPalette.BaseMetallic,
                         assemblyMaterialPalette.BaseRoughness,
                         assemblyMaterialPalette.Pearlescence,
-                        surfaceBrushStrength: 0.72f,
-                        surfaceBrushDensity: 82f,
-                        surfaceCharacter: 0.58f,
-                        anisotropyAngleRadians: 0f)
+                        surfaceBrushStrength: toggleBushingAnisotropyStrength,
+                        surfaceBrushDensity: toggleBushingAnisotropyDensity,
+                        surfaceCharacter: toggleBushingSurfaceCharacter,
+                        anisotropyAngleRadians: toggleBushingAnisotropyAngle)
                     : default;
                 GpuUniforms toggleLeverUniforms = drawToggleLever
                     ? BuildSliderPartUniforms(
@@ -896,8 +904,21 @@ namespace KnobForge.App.Controls
                             RenderShadowPasses(encoderPtr, toggleBaseUniforms, shadowConfig, _toggleBaseResources!);
                         }
 
-                        // Skip lever shadow projection for export as well to avoid the same
-                        // self-shadowing artifact seen in the interactive viewport.
+                        if (drawToggleLever)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseToggleLever);
+                            RenderShadowPasses(encoderPtr, toggleLeverUniforms, shadowConfig, _toggleLeverResources!);
+                        }
+
+                        if (drawToggleSleeve)
+                        {
+                            MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseToggleSleeve);
+                            RenderShadowPasses(encoderPtr, toggleSleeveUniforms, shadowConfig, _toggleSleeveResources!);
+                        }
 
                         if (drawPushButtonBase)
                         {
@@ -996,6 +1017,38 @@ namespace KnobForge.App.Controls
                 {
                     ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
                 }
+
+                IntPtr finalColorTexture = colorTexture;
+                bool bloomEnabled = _project.EnvironmentBloomStrength > 0.001f && pipelineManager.HasBloomPipelines;
+                if (bloomEnabled)
+                {
+                    IntPtr postDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                        ObjCClasses.MTLTextureDescriptor,
+                        Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                        (nuint)MetalRendererContext.DefaultColorFormat,
+                        (nuint)width,
+                        (nuint)height,
+                        false);
+                    if (postDescriptor != IntPtr.Zero)
+                    {
+                        ObjC.Void_objc_msgSend_UInt(postDescriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+                        ObjC.Void_objc_msgSend_UInt(postDescriptor, Selectors.SetStorageMode, 0); // MTLStorageModeShared
+                        postColorTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, postDescriptor);
+                    }
+
+                    if (postColorTexture != IntPtr.Zero &&
+                        RenderBloomPasses(
+                            commandBuffer,
+                            postColorTexture,
+                            colorTexture,
+                            (nuint)width,
+                            (nuint)height,
+                            postProcessUniforms))
+                    {
+                        finalColorTexture = postColorTexture;
+                    }
+                }
+
                 ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
                 ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
 
@@ -1009,7 +1062,7 @@ namespace KnobForge.App.Controls
                         new MTLOrigin(0, 0, 0),
                         new MTLSize((nuint)width, (nuint)height, 1));
                     ObjC.Void_objc_msgSend_IntPtr_UInt_MTLRegion_UInt(
-                        colorTexture,
+                        finalColorTexture,
                         Selectors.GetBytesBytesPerRowFromRegionMipmapLevel,
                         pinned.AddrOfPinnedObject(),
                         (nuint)bytesPerRow,
@@ -1047,6 +1100,11 @@ namespace KnobForge.App.Controls
                 if (msaaColorTexture != IntPtr.Zero)
                 {
                     ObjC.Void_objc_msgSend(msaaColorTexture, Selectors.Release);
+                }
+
+                if (postColorTexture != IntPtr.Zero)
+                {
+                    ObjC.Void_objc_msgSend(postColorTexture, Selectors.Release);
                 }
 
                 if (colorTexture != IntPtr.Zero)

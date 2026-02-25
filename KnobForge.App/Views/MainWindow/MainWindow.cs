@@ -139,6 +139,10 @@ namespace KnobForge.App.Views
         private readonly Slider? _toggleUpperBushingKnurlAmountSlider;
         private readonly Slider? _toggleUpperBushingKnurlDensitySlider;
         private readonly Slider? _toggleUpperBushingKnurlDepthSlider;
+        private readonly Slider? _toggleUpperBushingAnisotropyStrengthSlider;
+        private readonly Slider? _toggleUpperBushingAnisotropyDensitySlider;
+        private readonly Slider? _toggleUpperBushingAnisotropyAngleSlider;
+        private readonly Slider? _toggleUpperBushingSurfaceCharacterSlider;
         private readonly Slider? _togglePivotHousingRadiusSlider;
         private readonly Slider? _togglePivotHousingDepthSlider;
         private readonly Slider? _togglePivotHousingBevelSlider;
@@ -481,6 +485,10 @@ namespace KnobForge.App.Views
         private readonly TextBlock? _toggleUpperBushingKnurlAmountValueText;
         private readonly TextBlock? _toggleUpperBushingKnurlDensityValueText;
         private readonly TextBlock? _toggleUpperBushingKnurlDepthValueText;
+        private readonly TextBlock? _toggleUpperBushingAnisotropyStrengthValueText;
+        private readonly TextBlock? _toggleUpperBushingAnisotropyDensityValueText;
+        private readonly TextBlock? _toggleUpperBushingAnisotropyAngleValueText;
+        private readonly TextBlock? _toggleUpperBushingSurfaceCharacterValueText;
         private readonly TextBlock? _togglePivotHousingRadiusValueText;
         private readonly TextBlock? _togglePivotHousingDepthValueText;
         private readonly TextBlock? _togglePivotHousingBevelValueText;
@@ -824,6 +832,10 @@ namespace KnobForge.App.Views
             _toggleUpperBushingKnurlAmountSlider = this.FindControl<Slider>("ToggleUpperBushingKnurlAmountSlider");
             _toggleUpperBushingKnurlDensitySlider = this.FindControl<Slider>("ToggleUpperBushingKnurlDensitySlider");
             _toggleUpperBushingKnurlDepthSlider = this.FindControl<Slider>("ToggleUpperBushingKnurlDepthSlider");
+            _toggleUpperBushingAnisotropyStrengthSlider = this.FindControl<Slider>("ToggleUpperBushingAnisotropyStrengthSlider");
+            _toggleUpperBushingAnisotropyDensitySlider = this.FindControl<Slider>("ToggleUpperBushingAnisotropyDensitySlider");
+            _toggleUpperBushingAnisotropyAngleSlider = this.FindControl<Slider>("ToggleUpperBushingAnisotropyAngleSlider");
+            _toggleUpperBushingSurfaceCharacterSlider = this.FindControl<Slider>("ToggleUpperBushingSurfaceCharacterSlider");
             _togglePivotHousingRadiusSlider = this.FindControl<Slider>("TogglePivotHousingRadiusSlider");
             _togglePivotHousingDepthSlider = this.FindControl<Slider>("TogglePivotHousingDepthSlider");
             _togglePivotHousingBevelSlider = this.FindControl<Slider>("TogglePivotHousingBevelSlider");
@@ -1167,6 +1179,10 @@ namespace KnobForge.App.Views
             _toggleUpperBushingKnurlAmountValueText = this.FindControl<TextBlock>("ToggleUpperBushingKnurlAmountValueText");
             _toggleUpperBushingKnurlDensityValueText = this.FindControl<TextBlock>("ToggleUpperBushingKnurlDensityValueText");
             _toggleUpperBushingKnurlDepthValueText = this.FindControl<TextBlock>("ToggleUpperBushingKnurlDepthValueText");
+            _toggleUpperBushingAnisotropyStrengthValueText = this.FindControl<TextBlock>("ToggleUpperBushingAnisotropyStrengthValueText");
+            _toggleUpperBushingAnisotropyDensityValueText = this.FindControl<TextBlock>("ToggleUpperBushingAnisotropyDensityValueText");
+            _toggleUpperBushingAnisotropyAngleValueText = this.FindControl<TextBlock>("ToggleUpperBushingAnisotropyAngleValueText");
+            _toggleUpperBushingSurfaceCharacterValueText = this.FindControl<TextBlock>("ToggleUpperBushingSurfaceCharacterValueText");
             _togglePivotHousingRadiusValueText = this.FindControl<TextBlock>("TogglePivotHousingRadiusValueText");
             _togglePivotHousingDepthValueText = this.FindControl<TextBlock>("TogglePivotHousingDepthValueText");
             _togglePivotHousingBevelValueText = this.FindControl<TextBlock>("TogglePivotHousingBevelValueText");

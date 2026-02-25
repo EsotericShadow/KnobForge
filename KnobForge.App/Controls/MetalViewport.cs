@@ -215,6 +215,9 @@ namespace KnobForge.App.Controls
 
         private IntPtr _nativeView;
         private IntPtr _metalLayer;
+        private IntPtr _mainColorTexture;
+        private IntPtr _bloomExtractTexture;
+        private IntPtr _bloomBlurTexture;
         private IntPtr _depthTexture;
         private IntPtr _msaaColorTexture;
         private IntPtr _msaaDepthTexture;
@@ -250,6 +253,10 @@ namespace KnobForge.App.Controls
         private int _paintStampUniformUploadScratchSize;
         private nuint _depthTextureWidth;
         private nuint _depthTextureHeight;
+        private nuint _mainColorTextureWidth;
+        private nuint _mainColorTextureHeight;
+        private nuint _bloomTextureWidth;
+        private nuint _bloomTextureHeight;
         private nuint _msaaTextureWidth;
         private nuint _msaaTextureHeight;
         private MetalRendererContext? _context;
@@ -557,14 +564,33 @@ namespace KnobForge.App.Controls
                     _nativeView = IntPtr.Zero;
                 }
 
-                if (_depthTexture != IntPtr.Zero)
-                {
-                    ObjC.Void_objc_msgSend(_depthTexture, Selectors.Release);
-                    _depthTexture = IntPtr.Zero;
-                    _depthTextureWidth = 0;
-                    _depthTextureHeight = 0;
-                }
-                ReleaseMsaaRenderTextures();
+            if (_depthTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_depthTexture, Selectors.Release);
+                _depthTexture = IntPtr.Zero;
+                _depthTextureWidth = 0;
+                _depthTextureHeight = 0;
+            }
+            if (_mainColorTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_mainColorTexture, Selectors.Release);
+                _mainColorTexture = IntPtr.Zero;
+                _mainColorTextureWidth = 0;
+                _mainColorTextureHeight = 0;
+            }
+            if (_bloomExtractTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomExtractTexture, Selectors.Release);
+                _bloomExtractTexture = IntPtr.Zero;
+            }
+            if (_bloomBlurTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomBlurTexture, Selectors.Release);
+                _bloomBlurTexture = IntPtr.Zero;
+            }
+            _bloomTextureWidth = 0;
+            _bloomTextureHeight = 0;
+            ReleaseMsaaRenderTextures();
 
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
@@ -629,9 +655,12 @@ namespace KnobForge.App.Controls
             nuint drawableWidth = ObjC.UInt_objc_msgSend(texture, Selectors.Width);
             nuint drawableHeight = ObjC.UInt_objc_msgSend(texture, Selectors.Height);
             EnsureDepthTexture(drawableWidth, drawableHeight);
+            EnsureMainColorTexture(drawableWidth, drawableHeight);
             MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
             nuint mainPassSampleCount = pipelineManager.ResolveSupportedSampleCount(ViewportMsaaSampleCount);
-            IntPtr mainPassColorTexture = texture;
+            bool usePostProcess = _mainColorTexture != IntPtr.Zero && pipelineManager.HasFullscreenBlitPipeline;
+            IntPtr resolveColorTexture = usePostProcess ? _mainColorTexture : texture;
+            IntPtr mainPassColorTexture = resolveColorTexture;
             IntPtr mainPassDepthTexture = _depthTexture;
             if (mainPassSampleCount > 1)
             {
@@ -655,11 +684,14 @@ namespace KnobForge.App.Controls
                 return;
             }
 
+            GpuUniforms postProcessUniforms = default;
+            bool hasPostProcessUniforms = false;
+
             ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, mainPassColorTexture);
             ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
             if (mainPassSampleCount > 1)
             {
-                ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetResolveTexture, texture);
+                ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetResolveTexture, resolveColorTexture);
                 ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionMultisampleResolve);
             }
             else
@@ -779,6 +811,8 @@ namespace KnobForge.App.Controls
                 EnsureEnvironmentMapTexture(_project);
                 GpuUniforms knobUniforms = BuildUniforms(_project, modelNode, sceneReferenceRadius, Bounds.Size);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
+                postProcessUniforms = knobUniforms;
+                hasPostProcessUniforms = true;
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
@@ -815,6 +849,12 @@ namespace KnobForge.App.Controls
                 float toggleSleeveRust = _project?.ToggleTipSleeveRustAmount ?? 0f;
                 float toggleSleeveWear = _project?.ToggleTipSleeveWearAmount ?? 0f;
                 float toggleSleeveGunk = _project?.ToggleTipSleeveGunkAmount ?? 0f;
+                float toggleBushingAnisotropyStrength = _project?.ToggleUpperBushingAnisotropyStrength ?? 0.72f;
+                float toggleBushingAnisotropyDensity = _project?.ToggleUpperBushingAnisotropyDensity ?? 82f;
+                float toggleBushingSurfaceCharacter = _project?.ToggleUpperBushingSurfaceCharacter ?? 0.58f;
+                float toggleBushingAnisotropyAngle = _project != null
+                    ? _project.ToggleUpperBushingAnisotropyAngleDegrees * (MathF.PI / 180f)
+                    : 0f;
                 GpuUniforms toggleBaseUniforms = drawToggleBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -822,10 +862,10 @@ namespace KnobForge.App.Controls
                         assemblyMaterialPalette.BaseMetallic,
                         assemblyMaterialPalette.BaseRoughness,
                         assemblyMaterialPalette.Pearlescence,
-                        surfaceBrushStrength: 0.72f,
-                        surfaceBrushDensity: 82f,
-                        surfaceCharacter: 0.58f,
-                        anisotropyAngleRadians: 0f)
+                        surfaceBrushStrength: toggleBushingAnisotropyStrength,
+                        surfaceBrushDensity: toggleBushingAnisotropyDensity,
+                        surfaceCharacter: toggleBushingSurfaceCharacter,
+                        anisotropyAngleRadians: toggleBushingAnisotropyAngle)
                     : default;
                 GpuUniforms toggleLeverUniforms = drawToggleLever
                     ? BuildSliderPartUniforms(
@@ -1387,8 +1427,21 @@ namespace KnobForge.App.Controls
                                 RenderShadowPasses(encoderPtr, toggleBaseUniforms, shadowConfig, _toggleBaseResources!);
                             }
 
-                            // Skip lever shadow projection: this screen-space shadow pass can self-project
-                            // onto the lever and produce mid-shaft "floating plane" artifacts.
+                            if (drawToggleLever)
+                            {
+                                MetalPipelineManager.SetFrontFacingWinding(
+                                    new MTLRenderCommandEncoderHandle(encoderPtr),
+                                    frontFacingClockwiseToggleLever);
+                                RenderShadowPasses(encoderPtr, toggleLeverUniforms, shadowConfig, _toggleLeverResources!);
+                            }
+
+                            if (drawToggleSleeve)
+                            {
+                                MetalPipelineManager.SetFrontFacingWinding(
+                                    new MTLRenderCommandEncoderHandle(encoderPtr),
+                                    frontFacingClockwiseToggleSleeve);
+                                RenderShadowPasses(encoderPtr, toggleSleeveUniforms, shadowConfig, _toggleSleeveResources!);
+                            }
 
                             if (drawPushButtonBase)
                             {
@@ -1490,6 +1543,30 @@ namespace KnobForge.App.Controls
                 }
             }
 
+            if (usePostProcess && resolveColorTexture != IntPtr.Zero)
+            {
+                bool bloomEnabled = hasPostProcessUniforms &&
+                    _project != null &&
+                    _project.EnvironmentBloomStrength > 0.001f &&
+                    pipelineManager.HasBloomPipelines;
+
+                if (bloomEnabled &&
+                    RenderBloomPasses(
+                        commandBuffer,
+                        texture,
+                        resolveColorTexture,
+                        drawableWidth,
+                        drawableHeight,
+                        postProcessUniforms))
+                {
+                    // Bloom composite already rendered into target texture.
+                }
+                else
+                {
+                    RenderFullscreenBlitPass(commandBuffer, texture, resolveColorTexture);
+                }
+            }
+
             RenderLightGizmoOverlayPass(commandBuffer, texture, drawableWidth, drawableHeight);
             ObjC.Void_objc_msgSend_IntPtr(commandBuffer, Selectors.PresentDrawable, drawable);
             ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
@@ -1497,6 +1574,257 @@ namespace KnobForge.App.Controls
             RecordFrameDiagnostics(frameStartTimestamp, Stopwatch.GetTimestamp());
             PublishRuntimeDiagnosticsSnapshot(force: false);
             ViewportFrameRendered?.Invoke();
+        }
+
+        private void RenderFullscreenBlitPass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture)
+        {
+            if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr passDescriptor = ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPassDescriptor, Selectors.RenderPassDescriptor);
+            IntPtr colorAttachments = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.ColorAttachments);
+            IntPtr attachment = ObjC.IntPtr_objc_msgSend_UInt(colorAttachments, Selectors.ObjectAtIndexedSubscript, 0);
+            if (attachment == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, targetTexture);
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_MTLClearColor(attachment, Selectors.SetClearColor, new MTLClearColor(0d, 0d, 0d, 1d));
+
+            IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
+            if (encoderPtr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+                pipelineManager.UseFullscreenBlitPipeline(new MTLRenderCommandEncoderHandle(encoderPtr));
+                ObjC.Void_objc_msgSend_IntPtr_UInt(
+                    encoderPtr,
+                    Selectors.SetFragmentTextureAtIndex,
+                    sourceTexture,
+                    0);
+                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                    encoderPtr,
+                    Selectors.DrawPrimitivesVertexStartVertexCount,
+                    MTLPrimitiveTypeTriangle,
+                    0,
+                    3);
+            }
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
+        }
+
+        private bool RenderBloomPasses(
+            IntPtr commandBuffer,
+            IntPtr finalTargetTexture,
+            IntPtr sourceTexture,
+            nuint sourceWidth,
+            nuint sourceHeight,
+            in GpuUniforms baseUniforms)
+        {
+            if (commandBuffer == IntPtr.Zero || finalTargetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+            if (!pipelineManager.HasBloomPipelines)
+            {
+                return false;
+            }
+
+            EnsureBloomTextures(sourceWidth, sourceHeight);
+            if (_bloomExtractTexture == IntPtr.Zero || _bloomBlurTexture == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            GpuUniforms uniforms = baseUniforms;
+            uniforms.PostProcessParams2 = new Vector4(
+                1f / MathF.Max(1f, _bloomTextureWidth),
+                1f / MathF.Max(1f, _bloomTextureHeight),
+                0f,
+                0f);
+
+            RenderBloomExtractPass(commandBuffer, _bloomExtractTexture, sourceTexture, uniforms);
+
+            uniforms.PostProcessParams2 = new Vector4(
+                1f / MathF.Max(1f, _bloomTextureWidth),
+                1f / MathF.Max(1f, _bloomTextureHeight),
+                1f,
+                0f);
+            RenderBloomBlurPass(commandBuffer, _bloomBlurTexture, _bloomExtractTexture, uniforms);
+
+            uniforms.PostProcessParams2 = new Vector4(
+                1f / MathF.Max(1f, _bloomTextureWidth),
+                1f / MathF.Max(1f, _bloomTextureHeight),
+                0f,
+                1f);
+            RenderBloomBlurPass(commandBuffer, _bloomExtractTexture, _bloomBlurTexture, uniforms);
+
+            RenderBloomCompositePass(commandBuffer, finalTargetTexture, sourceTexture, _bloomExtractTexture);
+            return true;
+        }
+
+        private void RenderBloomExtractPass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, in GpuUniforms uniforms)
+        {
+            if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr passDescriptor = ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPassDescriptor, Selectors.RenderPassDescriptor);
+            IntPtr colorAttachments = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.ColorAttachments);
+            IntPtr attachment = ObjC.IntPtr_objc_msgSend_UInt(colorAttachments, Selectors.ObjectAtIndexedSubscript, 0);
+            if (attachment == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, targetTexture);
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_MTLClearColor(attachment, Selectors.SetClearColor, new MTLClearColor(0d, 0d, 0d, 1d));
+
+            IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
+            if (encoderPtr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+                pipelineManager.UseBloomExtractPipeline(new MTLRenderCommandEncoderHandle(encoderPtr));
+                ObjC.Void_objc_msgSend_IntPtr_UInt(
+                    encoderPtr,
+                    Selectors.SetFragmentTextureAtIndex,
+                    sourceTexture,
+                    0);
+                UploadUniforms(encoderPtr, uniforms);
+                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                    encoderPtr,
+                    Selectors.DrawPrimitivesVertexStartVertexCount,
+                    MTLPrimitiveTypeTriangle,
+                    0,
+                    3);
+            }
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
+        }
+
+        private void RenderBloomBlurPass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, in GpuUniforms uniforms)
+        {
+            if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr passDescriptor = ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPassDescriptor, Selectors.RenderPassDescriptor);
+            IntPtr colorAttachments = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.ColorAttachments);
+            IntPtr attachment = ObjC.IntPtr_objc_msgSend_UInt(colorAttachments, Selectors.ObjectAtIndexedSubscript, 0);
+            if (attachment == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, targetTexture);
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_MTLClearColor(attachment, Selectors.SetClearColor, new MTLClearColor(0d, 0d, 0d, 1d));
+
+            IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
+            if (encoderPtr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+                pipelineManager.UseBloomBlurPipeline(new MTLRenderCommandEncoderHandle(encoderPtr));
+                ObjC.Void_objc_msgSend_IntPtr_UInt(
+                    encoderPtr,
+                    Selectors.SetFragmentTextureAtIndex,
+                    sourceTexture,
+                    0);
+                UploadUniforms(encoderPtr, uniforms);
+                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                    encoderPtr,
+                    Selectors.DrawPrimitivesVertexStartVertexCount,
+                    MTLPrimitiveTypeTriangle,
+                    0,
+                    3);
+            }
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
+        }
+
+        private void RenderBloomCompositePass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, IntPtr bloomTexture)
+        {
+            if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero || bloomTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr passDescriptor = ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPassDescriptor, Selectors.RenderPassDescriptor);
+            IntPtr colorAttachments = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.ColorAttachments);
+            IntPtr attachment = ObjC.IntPtr_objc_msgSend_UInt(colorAttachments, Selectors.ObjectAtIndexedSubscript, 0);
+            if (attachment == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, targetTexture);
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_MTLClearColor(attachment, Selectors.SetClearColor, new MTLClearColor(0d, 0d, 0d, 1d));
+
+            IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
+            if (encoderPtr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+                pipelineManager.UseBloomCompositePipeline(new MTLRenderCommandEncoderHandle(encoderPtr));
+                ObjC.Void_objc_msgSend_IntPtr_UInt(
+                    encoderPtr,
+                    Selectors.SetFragmentTextureAtIndex,
+                    sourceTexture,
+                    0);
+                ObjC.Void_objc_msgSend_IntPtr_UInt(
+                    encoderPtr,
+                    Selectors.SetFragmentTextureAtIndex,
+                    bloomTexture,
+                    1);
+                ObjC.Void_objc_msgSend_UInt_UInt_UInt(
+                    encoderPtr,
+                    Selectors.DrawPrimitivesVertexStartVertexCount,
+                    MTLPrimitiveTypeTriangle,
+                    0,
+                    3);
+            }
+            finally
+            {
+                ObjC.Void_objc_msgSend(encoderPtr, Selectors.EndEncoding);
+            }
         }
         public void Dispose()
         {

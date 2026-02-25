@@ -301,6 +301,50 @@ namespace KnobForge.App.Views
             base.OnClosed(e);
         }
 
+        internal async Task ShowProjectLoadErrorDialogAsync(string title, string message)
+        {
+            var dialog = new Window
+            {
+                Title = title,
+                Width = 460,
+                Height = 190,
+                CanResize = false,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            var okButton = new Button
+            {
+                Content = "OK",
+                HorizontalAlignment = HorizontalAlignment.Right,
+                MinWidth = 90
+            };
+            okButton.Click += (_, _) => dialog.Close();
+
+            dialog.Content = new Grid
+            {
+                Margin = new Thickness(16),
+                RowDefinitions = new RowDefinitions("*,Auto"),
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = message,
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children = { okButton },
+                        [Grid.RowProperty] = 1
+                    }
+                }
+            };
+
+            await dialog.ShowDialog(this);
+        }
+
         private void DisposeThumbnails()
         {
             foreach (ProjectCard card in _projectCards)

@@ -119,6 +119,10 @@ namespace KnobForge.App.Views
             public float ToggleUpperBushingKnurlAmount { get; set; }
             public int ToggleUpperBushingKnurlDensity { get; set; } = 20;
             public float ToggleUpperBushingKnurlDepth { get; set; } = 0.22f;
+            public float ToggleUpperBushingAnisotropyStrength { get; set; }
+            public float ToggleUpperBushingAnisotropyDensity { get; set; } = 48f;
+            public float ToggleUpperBushingAnisotropyAngleDegrees { get; set; }
+            public float ToggleUpperBushingSurfaceCharacter { get; set; } = 0.55f;
             public float TogglePivotHousingRadius { get; set; }
             public float TogglePivotHousingDepth { get; set; }
             public float TogglePivotHousingBevel { get; set; }

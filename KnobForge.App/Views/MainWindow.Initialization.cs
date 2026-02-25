@@ -509,6 +509,22 @@ namespace KnobForge.App.Views
             {
                 _toggleUpperBushingKnurlDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
+            if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+            {
+                _toggleUpperBushingAnisotropyStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingAnisotropyDensitySlider != null)
+            {
+                _toggleUpperBushingAnisotropyDensitySlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingAnisotropyAngleSlider != null)
+            {
+                _toggleUpperBushingAnisotropyAngleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
+            if (_toggleUpperBushingSurfaceCharacterSlider != null)
+            {
+                _toggleUpperBushingSurfaceCharacterSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+            }
             if (_togglePivotHousingRadiusSlider != null)
             {
                 _togglePivotHousingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;

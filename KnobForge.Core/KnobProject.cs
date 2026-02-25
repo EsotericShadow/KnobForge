@@ -232,6 +232,10 @@ namespace KnobForge.Core
         private float _toggleUpperBushingKnurlAmount;
         private int _toggleUpperBushingKnurlDensity = 20;
         private float _toggleUpperBushingKnurlDepth = 0.22f;
+        private float _toggleUpperBushingAnisotropyStrength;
+        private float _toggleUpperBushingAnisotropyDensity = 48f;
+        private float _toggleUpperBushingAnisotropyAngleDegrees;
+        private float _toggleUpperBushingSurfaceCharacter = 0.55f;
         private float _togglePivotHousingRadius;
         private float _togglePivotHousingDepth;
         private float _togglePivotHousingBevel;
@@ -803,6 +807,26 @@ namespace KnobForge.Core
             get => _toggleUpperBushingKnurlDepth;
             set => _toggleUpperBushingKnurlDepth = ClampToggleRatio(value, 0.22f, 0f, 1f);
         }
+        public float ToggleUpperBushingAnisotropyStrength
+        {
+            get => _toggleUpperBushingAnisotropyStrength;
+            set => _toggleUpperBushingAnisotropyStrength = ClampToggleRatio(value, 0f, 0f, 1f);
+        }
+        public float ToggleUpperBushingAnisotropyDensity
+        {
+            get => _toggleUpperBushingAnisotropyDensity;
+            set => _toggleUpperBushingAnisotropyDensity = ClampToggleScale(value, 48f, 3f, 128f);
+        }
+        public float ToggleUpperBushingAnisotropyAngleDegrees
+        {
+            get => _toggleUpperBushingAnisotropyAngleDegrees;
+            set => _toggleUpperBushingAnisotropyAngleDegrees = ClampToggleOffset(value, -180f, 180f);
+        }
+        public float ToggleUpperBushingSurfaceCharacter
+        {
+            get => _toggleUpperBushingSurfaceCharacter;
+            set => _toggleUpperBushingSurfaceCharacter = ClampToggleRatio(value, 0.55f, 0f, 1f);
+        }
         public float TogglePivotHousingRadius
         {
             get => _togglePivotHousingRadius;
@@ -1077,6 +1101,10 @@ namespace KnobForge.Core
                     ToggleUpperBushingKnurlAmount = 0f;
                     ToggleUpperBushingKnurlDensity = 20;
                     ToggleUpperBushingKnurlDepth = 0.22f;
+                    ToggleUpperBushingAnisotropyStrength = 0.72f;
+                    ToggleUpperBushingAnisotropyDensity = 82f;
+                    ToggleUpperBushingAnisotropyAngleDegrees = 0f;
+                    ToggleUpperBushingSurfaceCharacter = 0.58f;
                     TogglePivotHousingRadius = 0f;
                     TogglePivotHousingDepth = 0f;
                     TogglePivotHousingBevel = 0f;

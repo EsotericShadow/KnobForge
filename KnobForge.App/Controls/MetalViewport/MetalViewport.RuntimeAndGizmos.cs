@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Threading;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
+using KnobForge.App.Diagnostics;
 using KnobForge.Rendering.GPU;
 using SkiaSharp;
 
@@ -68,7 +69,16 @@ namespace KnobForge.App.Controls
                 return;
             }
 
-            Render(_ => { });
+            try
+            {
+                Render(_ => { });
+            }
+            catch (Exception ex)
+            {
+                FatalLog.Append($">>> [RenderLoop] {ex}");
+                Console.Error.WriteLine($">>> [RenderLoop] {ex}");
+                _dirty = false;
+            }
         }
 
         private void UpdateDrawableSize(Size size)
@@ -120,7 +130,7 @@ namespace KnobForge.App.Controls
                 return;
             }
 
-            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 4); // MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
             IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
             if (texture == IntPtr.Zero)
             {
@@ -130,6 +140,123 @@ namespace KnobForge.App.Controls
             _depthTexture = texture;
             _depthTextureWidth = width;
             _depthTextureHeight = height;
+        }
+
+        private void EnsureMainColorTexture(nuint width, nuint height)
+        {
+            if (_context is null || width == 0 || height == 0)
+            {
+                return;
+            }
+
+            if (_mainColorTexture != IntPtr.Zero &&
+                _mainColorTextureWidth == width &&
+                _mainColorTextureHeight == height)
+            {
+                return;
+            }
+
+            if (_mainColorTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_mainColorTexture, Selectors.Release);
+                _mainColorTexture = IntPtr.Zero;
+                _mainColorTextureWidth = 0;
+                _mainColorTextureHeight = 0;
+            }
+
+            IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                (nuint)MetalRendererContext.DefaultColorFormat,
+                width,
+                height,
+                false);
+            if (descriptor == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+            IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+            if (texture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            _mainColorTexture = texture;
+            _mainColorTextureWidth = width;
+            _mainColorTextureHeight = height;
+        }
+
+        private void EnsureBloomTextures(nuint width, nuint height)
+        {
+            if (_context is null || width == 0 || height == 0)
+            {
+                return;
+            }
+
+            nuint bloomWidth = Math.Max(1, width / 2);
+            nuint bloomHeight = Math.Max(1, height / 2);
+            if (_bloomExtractTexture != IntPtr.Zero &&
+                _bloomBlurTexture != IntPtr.Zero &&
+                _bloomTextureWidth == bloomWidth &&
+                _bloomTextureHeight == bloomHeight)
+            {
+                return;
+            }
+
+            if (_bloomExtractTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomExtractTexture, Selectors.Release);
+                _bloomExtractTexture = IntPtr.Zero;
+            }
+
+            if (_bloomBlurTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomBlurTexture, Selectors.Release);
+                _bloomBlurTexture = IntPtr.Zero;
+            }
+
+            _bloomTextureWidth = 0;
+            _bloomTextureHeight = 0;
+
+            IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                (nuint)MetalRendererContext.DefaultColorFormat,
+                bloomWidth,
+                bloomHeight,
+                false);
+            if (descriptor == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+
+            IntPtr extractTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+            IntPtr blurTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+            if (extractTexture == IntPtr.Zero || blurTexture == IntPtr.Zero)
+            {
+                if (extractTexture != IntPtr.Zero)
+                {
+                    ObjC.Void_objc_msgSend(extractTexture, Selectors.Release);
+                }
+
+                if (blurTexture != IntPtr.Zero)
+                {
+                    ObjC.Void_objc_msgSend(blurTexture, Selectors.Release);
+                }
+
+                return;
+            }
+
+            _bloomExtractTexture = extractTexture;
+            _bloomBlurTexture = blurTexture;
+            _bloomTextureWidth = bloomWidth;
+            _bloomTextureHeight = bloomHeight;
         }
 
         private void EnsureMsaaRenderTextures(nuint width, nuint height)

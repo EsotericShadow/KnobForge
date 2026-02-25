@@ -58,6 +58,7 @@ namespace KnobForge.App.Views
                 try
                 {
                     ApplyInspectorUndoSnapshot(snapshot);
+                    RemapLoadedCollarImportedPathIfMissing();
                     if (_metalViewport != null)
                     {
                         if (!string.IsNullOrWhiteSpace(envelope.PaintStateJson))

@@ -111,6 +111,10 @@ namespace KnobForge.App.Views
             _project.ToggleUpperBushingKnurlAmount = snapshot.ToggleUpperBushingKnurlAmount;
             _project.ToggleUpperBushingKnurlDensity = snapshot.ToggleUpperBushingKnurlDensity;
             _project.ToggleUpperBushingKnurlDepth = snapshot.ToggleUpperBushingKnurlDepth;
+            _project.ToggleUpperBushingAnisotropyStrength = snapshot.ToggleUpperBushingAnisotropyStrength;
+            _project.ToggleUpperBushingAnisotropyDensity = snapshot.ToggleUpperBushingAnisotropyDensity;
+            _project.ToggleUpperBushingAnisotropyAngleDegrees = snapshot.ToggleUpperBushingAnisotropyAngleDegrees;
+            _project.ToggleUpperBushingSurfaceCharacter = snapshot.ToggleUpperBushingSurfaceCharacter;
             _project.TogglePivotHousingRadius = snapshot.TogglePivotHousingRadius;
             _project.TogglePivotHousingDepth = snapshot.TogglePivotHousingDepth;
             _project.TogglePivotHousingBevel = snapshot.TogglePivotHousingBevel;

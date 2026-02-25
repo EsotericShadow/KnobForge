@@ -23,7 +23,7 @@ namespace KnobForge.App.Views
             }
 
             bool customImportedPreset = customImportedPresetOverride ?? preset == CollarPreset.ImportedStl;
-            string resolvedPath = CollarNode.ResolveImportedMeshPath(preset, customPath);
+            string resolvedPath = ResolveBestImportedCollarPath(preset, customPath);
             _collarResolvedMeshPathText.Text = $"Resolved Source: {resolvedPath}";
 
             if (string.IsNullOrWhiteSpace(resolvedPath))

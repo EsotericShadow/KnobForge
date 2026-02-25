@@ -42,7 +42,9 @@ public sealed partial class MetalPipelineManager
         IntPtr vertexFunction,
         IntPtr fragmentFunction,
         nuint sampleCount = 1,
-        bool additiveColorBlending = false)
+        bool additiveColorBlending = false,
+        bool enableDepth = true,
+        bool enableBlending = true)
     {
         IntPtr descriptor = ObjC.IntPtr_objc_msgSend(
             ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPipelineDescriptor, Selectors.Alloc),
@@ -69,10 +71,10 @@ public sealed partial class MetalPipelineManager
             colorAttachment0,
             Selectors.SetPixelFormat,
             (nuint)MetalRendererContext.DefaultColorFormat);
-        ObjC.Void_objc_msgSend_Bool(colorAttachment0, Selectors.SetBlendingEnabled, true);
+        ObjC.Void_objc_msgSend_Bool(colorAttachment0, Selectors.SetBlendingEnabled, enableBlending);
         ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetRgbBlendOperation, 0); // MTLBlendOperationAdd
         ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetAlphaBlendOperation, 0); // MTLBlendOperationAdd
-        if (additiveColorBlending)
+        if (enableBlending && additiveColorBlending)
         {
             // Additive RGB for emissive halo passes.
             ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceRGBBlendFactor, 1); // MTLBlendFactorOne
@@ -81,7 +83,7 @@ public sealed partial class MetalPipelineManager
             ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceAlphaBlendFactor, 4); // MTLBlendFactorSourceAlpha
             ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetDestinationAlphaBlendFactor, 5); // MTLBlendFactorOneMinusSourceAlpha
         }
-        else
+        else if (enableBlending)
         {
             ObjC.Void_objc_msgSend_UInt(colorAttachment0, Selectors.SetSourceRGBBlendFactor, 4); // MTLBlendFactorSourceAlpha
             // Preserve exported transparent-shadow coverage: alpha channel should be srcA + dstA*(1-srcA),
@@ -93,7 +95,7 @@ public sealed partial class MetalPipelineManager
         ObjC.Void_objc_msgSend_UInt(
             descriptor,
             Selectors.SetDepthAttachmentPixelFormat,
-            DepthPixelFormat);
+            enableDepth ? DepthPixelFormat : 0);
         ObjC.Void_objc_msgSend_UInt(
             descriptor,
             Selectors.SetRasterSampleCount,

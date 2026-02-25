@@ -403,6 +403,26 @@ namespace KnobForge.App.Views
                 _toggleUpperBushingKnurlDepthValueText.Text = $"{_toggleUpperBushingKnurlDepthSlider.Value:0.00}";
             }
 
+            if (_toggleUpperBushingAnisotropyStrengthSlider != null && _toggleUpperBushingAnisotropyStrengthValueText != null)
+            {
+                _toggleUpperBushingAnisotropyStrengthValueText.Text = $"{_toggleUpperBushingAnisotropyStrengthSlider.Value:0.00}";
+            }
+
+            if (_toggleUpperBushingAnisotropyDensitySlider != null && _toggleUpperBushingAnisotropyDensityValueText != null)
+            {
+                _toggleUpperBushingAnisotropyDensityValueText.Text = $"{Math.Round(_toggleUpperBushingAnisotropyDensitySlider.Value):0}";
+            }
+
+            if (_toggleUpperBushingAnisotropyAngleSlider != null && _toggleUpperBushingAnisotropyAngleValueText != null)
+            {
+                _toggleUpperBushingAnisotropyAngleValueText.Text = $"{_toggleUpperBushingAnisotropyAngleSlider.Value:0.0}deg";
+            }
+
+            if (_toggleUpperBushingSurfaceCharacterSlider != null && _toggleUpperBushingSurfaceCharacterValueText != null)
+            {
+                _toggleUpperBushingSurfaceCharacterValueText.Text = $"{_toggleUpperBushingSurfaceCharacterSlider.Value:0.00}";
+            }
+
             if (_togglePivotHousingRadiusSlider != null && _togglePivotHousingRadiusValueText != null)
             {
                 _togglePivotHousingRadiusValueText.Text = FormatSliderDimensionValue(_togglePivotHousingRadiusSlider.Value);

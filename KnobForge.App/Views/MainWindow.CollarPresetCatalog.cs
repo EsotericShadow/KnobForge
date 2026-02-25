@@ -332,7 +332,7 @@ namespace KnobForge.App.Views
 
             if (preset == CollarPreset.ImportedStl)
             {
-                string normalizedResolvedPath = NormalizePathForCompare(CollarNode.ResolveImportedMeshPath(preset, importedMeshPath));
+                string normalizedResolvedPath = NormalizePathForCompare(ResolveBestImportedCollarPath(preset, importedMeshPath));
                 if (!string.IsNullOrWhiteSpace(normalizedResolvedPath))
                 {
                     CollarPresetOption? matchedLibraryOption = _collarPresetOptions.FirstOrDefault(option =>
@@ -365,6 +365,25 @@ namespace KnobForge.App.Views
             }
 
             return GetFirstSelectableCollarPresetOption();
+        }
+
+        private void RemapLoadedCollarImportedPathIfMissing()
+        {
+            ModelNode? model = GetModelNode();
+            CollarNode? collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
+            if (collar == null || collar.Preset != CollarPreset.ImportedStl)
+            {
+                return;
+            }
+
+            string remappedPath = ResolveBestImportedCollarPath(collar.Preset, collar.ImportedMeshPath);
+            if (PathsEqual(collar.ImportedMeshPath, remappedPath))
+            {
+                return;
+            }
+
+            Console.WriteLine($"[CollarPresetCatalog] Remapped missing collar path '{collar.ImportedMeshPath}' -> '{remappedPath}'.");
+            collar.ImportedMeshPath = remappedPath;
         }
 
         private CollarPresetOption GetFirstSelectableCollarPresetOption()
@@ -690,6 +709,72 @@ namespace KnobForge.App.Views
 
             name = name.Replace('_', ' ');
             return string.Join(' ', name.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        private static string ResolveBestImportedCollarPath(CollarPreset preset, string? importedMeshPath)
+        {
+            if (!CollarNode.IsImportedMeshPreset(preset))
+            {
+                return string.Empty;
+            }
+
+            string resolvedPath = CollarNode.ResolveImportedMeshPath(preset, importedMeshPath);
+            if (string.IsNullOrWhiteSpace(resolvedPath))
+            {
+                return string.Empty;
+            }
+
+            if (File.Exists(resolvedPath))
+            {
+                return resolvedPath;
+            }
+
+            string? remapped = TryResolveDiscoveredCollarModelPathByFileName(resolvedPath);
+            return string.IsNullOrWhiteSpace(remapped) ? resolvedPath : remapped;
+        }
+
+        private static string? TryResolveDiscoveredCollarModelPathByFileName(string? sourcePath)
+        {
+            if (string.IsNullOrWhiteSpace(sourcePath))
+            {
+                return null;
+            }
+
+            string sourceFileName = Path.GetFileName(sourcePath.Trim());
+            if (string.IsNullOrWhiteSpace(sourceFileName))
+            {
+                return null;
+            }
+
+            string[] candidates = EnumerateDiscoveredCollarModelPaths().ToArray();
+            if (candidates.Length == 0)
+            {
+                return null;
+            }
+
+            string? preferred = null;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                string candidate = candidates[i];
+                if (!string.Equals(Path.GetFileName(candidate), sourceFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (preferred == null)
+                {
+                    preferred = candidate;
+                    continue;
+                }
+
+                string normalized = NormalizePathForCompare(candidate);
+                if (normalized.Contains("/models/collar_models/", StringComparison.OrdinalIgnoreCase))
+                {
+                    preferred = candidate;
+                }
+            }
+
+            return preferred;
         }
 
         private static string NormalizePathForCompare(string? path)

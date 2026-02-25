@@ -106,7 +106,9 @@ namespace KnobForge.App.Views
             }
 
             collar.Preset = selectedOption.Preset;
-            string resolvedImportedMeshPath = selectedOption.ResolveImportedMeshPath(_collarMeshPathTextBox.Text);
+            string resolvedImportedMeshPath = ResolveBestImportedCollarPath(
+                selectedOption.Preset,
+                selectedOption.ResolveImportedMeshPath(_collarMeshPathTextBox.Text));
             collar.ImportedMeshPath = resolvedImportedMeshPath;
             collar.ImportedScale = (float)_collarScaleSlider.Value;
             collar.ImportedBodyLengthScale = (float)_collarBodyLengthSlider.Value;

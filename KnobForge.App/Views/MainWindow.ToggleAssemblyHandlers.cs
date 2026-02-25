@@ -33,6 +33,10 @@ namespace KnobForge.App.Views
                 _toggleUpperBushingKnurlAmountSlider == null ||
                 _toggleUpperBushingKnurlDensitySlider == null ||
                 _toggleUpperBushingKnurlDepthSlider == null ||
+                _toggleUpperBushingAnisotropyStrengthSlider == null ||
+                _toggleUpperBushingAnisotropyDensitySlider == null ||
+                _toggleUpperBushingAnisotropyAngleSlider == null ||
+                _toggleUpperBushingSurfaceCharacterSlider == null ||
                 _togglePivotHousingRadiusSlider == null ||
                 _togglePivotHousingDepthSlider == null ||
                 _togglePivotHousingBevelSlider == null ||
@@ -156,6 +160,10 @@ namespace KnobForge.App.Views
                 _toggleUpperBushingKnurlAmountSlider == null ||
                 _toggleUpperBushingKnurlDensitySlider == null ||
                 _toggleUpperBushingKnurlDepthSlider == null ||
+                _toggleUpperBushingAnisotropyStrengthSlider == null ||
+                _toggleUpperBushingAnisotropyDensitySlider == null ||
+                _toggleUpperBushingAnisotropyAngleSlider == null ||
+                _toggleUpperBushingSurfaceCharacterSlider == null ||
                 _togglePivotHousingRadiusSlider == null ||
                 _togglePivotHousingDepthSlider == null ||
                 _togglePivotHousingBevelSlider == null ||
@@ -236,6 +244,10 @@ namespace KnobForge.App.Views
             _toggleUpperBushingKnurlDensitySlider.Value = upperBushingKnurlDensity;
             _project.ToggleUpperBushingKnurlDensity = upperBushingKnurlDensity;
             _project.ToggleUpperBushingKnurlDepth = (float)_toggleUpperBushingKnurlDepthSlider.Value;
+            _project.ToggleUpperBushingAnisotropyStrength = (float)_toggleUpperBushingAnisotropyStrengthSlider.Value;
+            _project.ToggleUpperBushingAnisotropyDensity = (float)_toggleUpperBushingAnisotropyDensitySlider.Value;
+            _project.ToggleUpperBushingAnisotropyAngleDegrees = (float)_toggleUpperBushingAnisotropyAngleSlider.Value;
+            _project.ToggleUpperBushingSurfaceCharacter = (float)_toggleUpperBushingSurfaceCharacterSlider.Value;
             _project.TogglePivotHousingRadius = (float)_togglePivotHousingRadiusSlider.Value;
             _project.TogglePivotHousingDepth = (float)_togglePivotHousingDepthSlider.Value;
             _project.TogglePivotHousingBevel = (float)_togglePivotHousingBevelSlider.Value;

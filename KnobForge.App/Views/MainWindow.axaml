@@ -705,6 +705,23 @@
                                                 <controls:SpriteKnobSlider x:Name="ToggleUpperBushingKnurlDepthSlider" Minimum="0" Maximum="1"/>
                                                 <TextBlock x:Name="ToggleUpperBushingKnurlDepthValueText"/>
 
+                                                <Separator/>
+                                                <TextBlock Text="Upper Bushing Anisotropy Strength"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingAnisotropyStrengthSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleUpperBushingAnisotropyStrengthValueText"/>
+
+                                                <TextBlock Text="Upper Bushing Anisotropy Density"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingAnisotropyDensitySlider" Minimum="3" Maximum="128"/>
+                                                <TextBlock x:Name="ToggleUpperBushingAnisotropyDensityValueText"/>
+
+                                                <TextBlock Text="Upper Bushing Anisotropy Angle (deg)"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingAnisotropyAngleSlider" Minimum="-180" Maximum="180"/>
+                                                <TextBlock x:Name="ToggleUpperBushingAnisotropyAngleValueText"/>
+
+                                                <TextBlock Text="Upper Bushing Surface Character"/>
+                                                <controls:SpriteKnobSlider x:Name="ToggleUpperBushingSurfaceCharacterSlider" Minimum="0" Maximum="1"/>
+                                                <TextBlock x:Name="ToggleUpperBushingSurfaceCharacterValueText"/>
+
                                                 <CheckBox x:Name="ToggleInvertBaseWindingCheckBox"
                                                           Content="Invert Base/Bushing Winding"/>
                                             </StackPanel>
@@ -1790,25 +1807,6 @@
                             <controls:SpriteKnobSlider x:Name="EnvRoughnessMixSlider" Minimum="0" Maximum="1"/>
                             <TextBlock x:Name="EnvRoughnessMixValueText"/>
 
-                            <TextBlock Text="Tone Mapping"/>
-                            <ComboBox x:Name="EnvTonemapCombo"/>
-
-                            <TextBlock Text="Exposure"/>
-                            <controls:SpriteKnobSlider x:Name="EnvExposureSlider" Minimum="0.1" Maximum="4"/>
-                            <TextBlock x:Name="EnvExposureValueText"/>
-
-                            <TextBlock Text="Bloom Strength"/>
-                            <controls:SpriteKnobSlider x:Name="EnvBloomStrengthSlider" Minimum="0" Maximum="4"/>
-                            <TextBlock x:Name="EnvBloomStrengthValueText"/>
-
-                            <TextBlock Text="Bloom Threshold"/>
-                            <controls:SpriteKnobSlider x:Name="EnvBloomThresholdSlider" Minimum="0" Maximum="16"/>
-                            <TextBlock x:Name="EnvBloomThresholdValueText"/>
-
-                            <TextBlock Text="Bloom Knee"/>
-                            <controls:SpriteKnobSlider x:Name="EnvBloomKneeSlider" Minimum="0.001" Maximum="8"/>
-                            <TextBlock x:Name="EnvBloomKneeValueText"/>
-
                             <Separator/>
                             <TextBlock Text="Sky Color (Top)"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -1861,6 +1859,38 @@
                             <controls:SpriteKnobSlider x:Name="EnvHdriRotationSlider" Minimum="-360" Maximum="360"/>
                             <TextBlock x:Name="EnvHdriRotationValueText"/>
                         </StackPanel>
+                    </TabItem>
+
+                    <TabItem x:Name="EffectsTabItem" Header="Glare &amp; Effects">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="10" Margin="4">
+                                <TextBlock Text="Glare &amp; Effects" FontSize="18" FontWeight="SemiBold"/>
+
+                                <TextBlock Text="Tone Mapping"/>
+                                <ComboBox x:Name="EnvTonemapCombo"/>
+
+                                <TextBlock Text="Exposure"/>
+                                <controls:SpriteKnobSlider x:Name="EnvExposureSlider" Minimum="0.1" Maximum="4"/>
+                                <TextBlock x:Name="EnvExposureValueText"/>
+
+                                <Separator/>
+                                <TextBlock Text="Bloom Strength"/>
+                                <controls:SpriteKnobSlider x:Name="EnvBloomStrengthSlider" Minimum="0" Maximum="4"/>
+                                <TextBlock x:Name="EnvBloomStrengthValueText"/>
+
+                                <TextBlock Text="Bloom Threshold"/>
+                                <controls:SpriteKnobSlider x:Name="EnvBloomThresholdSlider" Minimum="0" Maximum="16"/>
+                                <TextBlock x:Name="EnvBloomThresholdValueText"/>
+
+                                <TextBlock Text="Bloom Knee"/>
+                                <controls:SpriteKnobSlider x:Name="EnvBloomKneeSlider" Minimum="0.001" Maximum="8"/>
+                                <TextBlock x:Name="EnvBloomKneeValueText"/>
+
+                                <Separator/>
+                                <TextBlock Text="Reflections (SSR + Probes)"/>
+                                <TextBlock Text="Coming next: screen-space reflections plus environment probes for shiny glare and bounce." TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </ScrollViewer>
                     </TabItem>
 
                     <TabItem x:Name="ShadowsTabItem" Header="Shadows">

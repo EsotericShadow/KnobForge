@@ -3,13 +3,12 @@ using Avalonia.Native;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using KnobForge.App.Diagnostics;
 
 namespace KnobForge.App;
 
 class Program
 {
-    private static readonly string FatalLogPath = Path.Combine(Path.GetTempPath(), "knobforge_fatal.log");
-
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
@@ -59,7 +58,7 @@ class Program
         {
             string message = $">>> [Fatal] Startup crash: {ex}";
             Console.Error.WriteLine(message);
-            AppendFatalLog(message);
+            FatalLog.Append(message);
             throw;
         }
     }
@@ -78,27 +77,13 @@ class Program
             string details = e.ExceptionObject is Exception ex
                 ? ex.ToString()
                 : e.ExceptionObject?.ToString() ?? "<null>";
-            AppendFatalLog($">>> [UnhandledException] IsTerminating={e.IsTerminating} {details}");
+            FatalLog.Append($">>> [UnhandledException] IsTerminating={e.IsTerminating} {details}");
         };
 
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            AppendFatalLog($">>> [UnobservedTaskException] {e.Exception}");
+            FatalLog.Append($">>> [UnobservedTaskException] {e.Exception}");
             e.SetObserved();
         };
-    }
-
-    private static void AppendFatalLog(string line)
-    {
-        try
-        {
-            File.AppendAllText(
-                FatalLogPath,
-                $"{DateTime.UtcNow:O} {line}{Environment.NewLine}");
-        }
-        catch
-        {
-            // best effort only
-        }
     }
 }

@@ -130,7 +130,9 @@ namespace KnobForge.App.Controls
             public Vector4 LensMaterialParams0;
             public Vector4 LensMaterialTintAndAbsorption;
             public Vector4 EnvironmentMapParams;
+            public Vector4 EnvironmentMapParams2;
             public Vector4 PostProcessParams;
+            public Vector4 PostProcessParams2;
             public Vector4 TonemapParams;
             public GpuLight Light0;
             public GpuLight Light1;
