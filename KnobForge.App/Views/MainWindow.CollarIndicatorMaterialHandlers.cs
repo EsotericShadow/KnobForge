@@ -124,6 +124,14 @@ namespace KnobForge.App.Views
             collar.ElevationRatio = (float)_collarElevationSlider.Value;
             collar.ImportedInflateRatio = (float)_collarInflateSlider.Value;
 
+            bool importedMaterialSourceChanged =
+                ReferenceEquals(sender, _collarPresetCombo) ||
+                ReferenceEquals(sender, _collarMeshPathTextBox);
+            if (importedMaterialSourceChanged)
+            {
+                SyncImportedCollarMaterialNodes();
+            }
+
             if (e.Property == ComboBox.SelectedItemProperty &&
                 !string.Equals(_collarMeshPathTextBox.Text, resolvedImportedMeshPath, StringComparison.Ordinal))
             {
@@ -168,16 +176,49 @@ namespace KnobForge.App.Views
             }
 
             CollarNode collar = EnsureCollarNode();
-            collar.BaseColor = new Vector3(
+            Vector3 baseColor = new(
                 (float)_collarMaterialBaseRSlider.Value,
                 (float)_collarMaterialBaseGSlider.Value,
                 (float)_collarMaterialBaseBSlider.Value);
-            collar.Metallic = (float)_collarMaterialMetallicSlider.Value;
-            collar.Roughness = (float)_collarMaterialRoughnessSlider.Value;
-            collar.Pearlescence = (float)_collarMaterialPearlescenceSlider.Value;
-            collar.RustAmount = (float)_collarMaterialRustSlider.Value;
-            collar.WearAmount = (float)_collarMaterialWearSlider.Value;
-            collar.GunkAmount = (float)_collarMaterialGunkSlider.Value;
+            float metallic = (float)_collarMaterialMetallicSlider.Value;
+            float roughness = (float)_collarMaterialRoughnessSlider.Value;
+            float pearlescence = (float)_collarMaterialPearlescenceSlider.Value;
+            float rust = (float)_collarMaterialRustSlider.Value;
+            float wear = (float)_collarMaterialWearSlider.Value;
+            float gunk = (float)_collarMaterialGunkSlider.Value;
+
+            if (CollarNode.IsImportedMeshPreset(collar.Preset) &&
+                TryGetSelectedMaterialNode(out MaterialNode importedMaterial))
+            {
+                importedMaterial.BaseColor = baseColor;
+                importedMaterial.Metallic = metallic;
+                importedMaterial.Roughness = roughness;
+                importedMaterial.Pearlescence = pearlescence;
+                importedMaterial.RustAmount = rust;
+                importedMaterial.WearAmount = wear;
+                importedMaterial.GunkAmount = gunk;
+
+                // Keep the legacy collar node in sync so single-material imported collars
+                // still have sensible fallback values if material extraction is unavailable.
+                collar.BaseColor = baseColor;
+                collar.Metallic = metallic;
+                collar.Roughness = roughness;
+                collar.Pearlescence = pearlescence;
+                collar.RustAmount = rust;
+                collar.WearAmount = wear;
+                collar.GunkAmount = gunk;
+            }
+            else
+            {
+                collar.BaseColor = baseColor;
+                collar.Metallic = metallic;
+                collar.Roughness = roughness;
+                collar.Pearlescence = pearlescence;
+                collar.RustAmount = rust;
+                collar.WearAmount = wear;
+                collar.GunkAmount = gunk;
+            }
+
             NotifyProjectStateChanged();
         }
 
@@ -479,19 +520,19 @@ namespace KnobForge.App.Views
         private bool TryGetSelectedMaterialNode(out MaterialNode material)
         {
             material = null!;
-            ModelNode? model = GetModelNode();
-            if (model == null)
+            MaterialNode[] materials = GetAvailableMaterialNodes();
+            if (materials.Length == 0)
             {
                 return false;
             }
 
-            MaterialNode? selected = model.Children.OfType<MaterialNode>().FirstOrDefault();
-            if (selected == null)
+            int selectedIndex = ClampSelectedMaterialIndex(materials);
+            if (selectedIndex < 0 || selectedIndex >= materials.Length)
             {
                 return false;
             }
 
-            material = selected;
+            material = materials[selectedIndex];
             return true;
         }
 

@@ -254,6 +254,17 @@ public static partial class ImportedStlCollarMeshBuilder
         {
             Vertices = vertices,
             Indices = indices.ToArray(),
+            SubMeshes = sourceMesh.SubMeshes is { Count: > 0 }
+                ? sourceMesh.SubMeshes.ToArray()
+                : new[]
+                {
+                    new SubMesh
+                    {
+                        IndexOffset = 0,
+                        IndexCount = indices.Count,
+                        MaterialIndex = 0
+                    }
+                },
             Tangents = tangents,
             ReferenceRadius = referenceRadius
         };

@@ -1437,8 +1437,45 @@
 
                                 <Expander x:Name="NodeMaterialExpander" Header="Material" IsExpanded="True">
                                     <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <TextBlock Text="Material Region"/>
-                                        <ComboBox x:Name="MaterialRegionCombo"/>
+                                        <StackPanel x:Name="MaterialListPanel"
+                                                    Spacing="6"
+                                                    IsVisible="False">
+                                            <TextBlock Text="Imported Materials" FontWeight="SemiBold"/>
+                                            <ListBox x:Name="MaterialListBox"
+                                                     MaxHeight="160"
+                                                     Background="#12171C"
+                                                     BorderBrush="#2C3845"
+                                                     BorderThickness="1">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid ColumnDefinitions="Auto,*"
+                                                              ColumnSpacing="8">
+                                                            <Border Width="14"
+                                                                    Height="14"
+                                                                    CornerRadius="3"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="{ReflectionBinding SwatchBrush}"
+                                                                    BorderBrush="#4A5663"
+                                                                    BorderThickness="1"/>
+                                                            <TextBlock Grid.Column="1"
+                                                                       VerticalAlignment="Center"
+                                                                       Text="{ReflectionBinding Name}"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                            <TextBlock Text="Material Name"/>
+                                            <TextBox x:Name="MaterialNameTextBox"
+                                                     Watermark="Material name"/>
+                                            <Separator Margin="0,2,0,2"/>
+                                        </StackPanel>
+
+                                        <StackPanel x:Name="MaterialRegionPanel"
+                                                    Spacing="6">
+                                            <TextBlock Text="Material Region"/>
+                                            <ComboBox x:Name="MaterialRegionCombo"/>
+                                        </StackPanel>
 
                                         <TextBlock Text="Base Color"/>
                                         <StackPanel Orientation="Horizontal" Spacing="8">

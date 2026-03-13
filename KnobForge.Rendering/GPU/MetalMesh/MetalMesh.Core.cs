@@ -28,6 +28,15 @@ public sealed class MetalMesh
     public float ReferenceRadius { get; init; }
 }
 
+public readonly struct SubMesh
+{
+    public int IndexOffset { get; init; }
+
+    public int IndexCount { get; init; }
+
+    public int MaterialIndex { get; init; }
+}
+
 public static partial class MetalMeshBuilder
 {
     public static MetalMesh? TryBuildFromProject(KnobProject? project)

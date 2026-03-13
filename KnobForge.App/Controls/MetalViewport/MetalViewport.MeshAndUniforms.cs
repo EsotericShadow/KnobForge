@@ -82,7 +82,7 @@ namespace KnobForge.App.Controls
                 }
                 else
                 {
-                    nextCollarResources = CreateGpuResources(collarMesh.Vertices, collarMesh.Indices, collarMesh.ReferenceRadius);
+                    nextCollarResources = CreateGpuResources(collarMesh.Vertices, collarMesh.Indices, collarMesh.ReferenceRadius, collarMesh.SubMeshes);
                 }
 
                 ReplaceMeshResources(ref _collarResources, nextCollarResources);
@@ -335,7 +335,7 @@ namespace KnobForge.App.Controls
             EnsureSpiralNormalTexture(modelNode, mesh.ReferenceRadius);
         }
 
-        private MetalMeshGpuResources? CreateGpuResources(MetalVertex[] vertices, uint[] indices, float referenceRadius)
+        private MetalMeshGpuResources? CreateGpuResources(MetalVertex[] vertices, uint[] indices, float referenceRadius, SubMesh[]? subMeshes = null)
         {
             if (_context is null)
             {
@@ -370,6 +370,17 @@ namespace KnobForge.App.Controls
 
             uint[] indicesCopy = indices.ToArray();
             CpuTriangleBvh bvh = CpuTriangleBvh.Build(positions, indicesCopy);
+            SubMesh[] resourceSubMeshes = subMeshes is { Length: > 0 }
+                ? subMeshes.ToArray()
+                : new[]
+                {
+                    new SubMesh
+                    {
+                        IndexOffset = 0,
+                        IndexCount = indices.Length,
+                        MaterialIndex = 0
+                    }
+                };
 
             return new MetalMeshGpuResources
             {
@@ -377,6 +388,7 @@ namespace KnobForge.App.Controls
                 IndexBuffer = indexBuffer,
                 IndexCount = indices.Length,
                 IndexType = MTLIndexType.UInt32,
+                SubMeshes = resourceSubMeshes,
                 ReferenceRadius = referenceRadius,
                 Positions = positions,
                 Indices = indicesCopy,
@@ -632,7 +644,7 @@ namespace KnobForge.App.Controls
             float radius = MathF.Max(1f, referenceRadius);
             Vector3 cameraPos = -forward * (radius * 6f);
 
-            MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
+            MaterialNode? materialNode = modelNode?.GetMaterialByIndex(0);
             Vector3 baseColor = materialNode?.BaseColor ?? new Vector3(0.55f, 0.16f, 0.16f);
             float metallic = Math.Clamp(materialNode?.Metallic ?? 0f, 0f, 1f);
             float roughness = Math.Clamp(materialNode?.Roughness ?? 0.5f, 0.04f, 1f);

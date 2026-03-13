@@ -87,6 +87,7 @@ namespace KnobForge.App.Views
             public DynamicLightRigSnapshot DynamicLightRig { get; set; } = new();
             public bool HasModelMaterialSnapshot { get; set; }
             public UserReferenceProfileSnapshot? ModelMaterialSnapshot { get; set; }
+            public List<MaterialNodeSnapshot> MaterialSnapshots { get; set; } = new();
             public ReferenceKnobStyle ModelReferenceStyle { get; set; } = ReferenceKnobStyle.Custom;
             public string? SelectedUserReferenceProfileName { get; set; }
             public CollarStateSnapshot? CollarSnapshot { get; set; }
@@ -193,6 +194,47 @@ namespace KnobForge.App.Views
             public SceneSelectionSnapshot Selection { get; set; } = new();
         }
 
+        private sealed class MaterialNodeSnapshot
+        {
+            public string Name { get; set; } = "Material";
+            public float BaseColorX { get; set; } = 0.55f;
+            public float BaseColorY { get; set; } = 0.16f;
+            public float BaseColorZ { get; set; } = 0.16f;
+            public float Metallic { get; set; } = 1f;
+            public float Roughness { get; set; } = 0.04f;
+            public float Pearlescence { get; set; }
+            public float RustAmount { get; set; }
+            public float WearAmount { get; set; }
+            public float GunkAmount { get; set; }
+            public float RadialBrushStrength { get; set; } = 0.65f;
+            public float RadialBrushDensity { get; set; } = 280.5f;
+            public float SurfaceCharacter { get; set; } = 1f;
+            public float SpecularPower { get; set; } = 64f;
+            public float DiffuseStrength { get; set; } = 1f;
+            public float SpecularStrength { get; set; } = 1f;
+            public bool PartMaterialsEnabled { get; set; }
+            public float TopBaseColorX { get; set; } = 0.55f;
+            public float TopBaseColorY { get; set; } = 0.16f;
+            public float TopBaseColorZ { get; set; } = 0.16f;
+            public float TopMetallic { get; set; } = 1f;
+            public float TopRoughness { get; set; } = 0.04f;
+            public float BevelBaseColorX { get; set; } = 0.55f;
+            public float BevelBaseColorY { get; set; } = 0.16f;
+            public float BevelBaseColorZ { get; set; } = 0.16f;
+            public float BevelMetallic { get; set; } = 1f;
+            public float BevelRoughness { get; set; } = 0.04f;
+            public float SideBaseColorX { get; set; } = 0.55f;
+            public float SideBaseColorY { get; set; } = 0.16f;
+            public float SideBaseColorZ { get; set; } = 0.16f;
+            public float SideMetallic { get; set; } = 1f;
+            public float SideRoughness { get; set; } = 0.04f;
+            public string? AlbedoMapPath { get; set; }
+            public string? NormalMapPath { get; set; }
+            public string? RoughnessMapPath { get; set; }
+            public string? MetallicMapPath { get; set; }
+            public float NormalMapStrength { get; set; } = 1f;
+        }
+
         private sealed class LightStateSnapshot
         {
             public string Name { get; set; } = "Light";
@@ -296,6 +338,7 @@ namespace KnobForge.App.Views
         {
             public SceneSelectionKind Kind { get; set; } = SceneSelectionKind.Unknown;
             public int LightIndex { get; set; } = -1;
+            public int MaterialIndex { get; set; } = -1;
         }
 
         private enum SceneSelectionKind

@@ -398,7 +398,11 @@ namespace KnobForge.App.Views
                 }
                 ApplyProjectTypeInspectorVisibility();
                 var model = GetModelNode();
-                var material = model?.Children.OfType<MaterialNode>().FirstOrDefault();
+                MaterialNode[] materials = model?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
+                int selectedMaterialIndex = ClampSelectedMaterialIndex(materials);
+                MaterialNode? material = selectedMaterialIndex >= 0 && selectedMaterialIndex < materials.Length
+                    ? materials[selectedMaterialIndex]
+                    : null;
                 var collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
 
                 _lightingModeCombo.SelectedItem = project.Mode;
@@ -819,6 +823,17 @@ namespace KnobForge.App.Views
                     _gripSharpnessSlider.Value = model.GripSharpness;
                     if (collar != null)
                     {
+                        bool importedCollarUsesMaterialNode =
+                            CollarNode.IsImportedMeshPreset(collar.Preset) &&
+                            material != null;
+                        Vector3 collarBaseColor = importedCollarUsesMaterialNode ? material!.BaseColor : collar.BaseColor;
+                        float collarMetallic = importedCollarUsesMaterialNode ? material!.Metallic : collar.Metallic;
+                        float collarRoughness = importedCollarUsesMaterialNode ? material!.Roughness : collar.Roughness;
+                        float collarPearlescence = importedCollarUsesMaterialNode ? material!.Pearlescence : collar.Pearlescence;
+                        float collarRust = importedCollarUsesMaterialNode ? material!.RustAmount : collar.RustAmount;
+                        float collarWear = importedCollarUsesMaterialNode ? material!.WearAmount : collar.WearAmount;
+                        float collarGunk = importedCollarUsesMaterialNode ? material!.GunkAmount : collar.GunkAmount;
+
                         _collarEnabledCheckBox.IsChecked = collar.Enabled;
                         CollarPresetOption collarOption = ResolveCollarPresetOptionForState(collar.Preset, collar.ImportedMeshPath);
                         _collarPresetCombo.SelectedItem = collarOption;
@@ -841,15 +856,15 @@ namespace KnobForge.App.Views
                         _collarOffsetYSlider.Value = collar.ImportedOffsetYRatio;
                         _collarElevationSlider.Value = collar.ElevationRatio;
                         _collarInflateSlider.Value = collar.ImportedInflateRatio;
-                        _collarMaterialBaseRSlider.Value = collar.BaseColor.X;
-                        _collarMaterialBaseGSlider.Value = collar.BaseColor.Y;
-                        _collarMaterialBaseBSlider.Value = collar.BaseColor.Z;
-                        _collarMaterialMetallicSlider.Value = collar.Metallic;
-                        _collarMaterialRoughnessSlider.Value = collar.Roughness;
-                        _collarMaterialPearlescenceSlider.Value = collar.Pearlescence;
-                        _collarMaterialRustSlider.Value = collar.RustAmount;
-                        _collarMaterialWearSlider.Value = collar.WearAmount;
-                        _collarMaterialGunkSlider.Value = collar.GunkAmount;
+                        _collarMaterialBaseRSlider.Value = collarBaseColor.X;
+                        _collarMaterialBaseGSlider.Value = collarBaseColor.Y;
+                        _collarMaterialBaseBSlider.Value = collarBaseColor.Z;
+                        _collarMaterialMetallicSlider.Value = collarMetallic;
+                        _collarMaterialRoughnessSlider.Value = collarRoughness;
+                        _collarMaterialPearlescenceSlider.Value = collarPearlescence;
+                        _collarMaterialRustSlider.Value = collarRust;
+                        _collarMaterialWearSlider.Value = collarWear;
+                        _collarMaterialGunkSlider.Value = collarGunk;
                     }
                     else
                     {
@@ -1786,6 +1801,8 @@ namespace KnobForge.App.Views
                 {
                     _clearPaintMaskButton.IsEnabled = hasModel;
                 }
+
+                RefreshMaterialInspectorUi(model, collar, materials);
 
                 if (material != null)
                 {

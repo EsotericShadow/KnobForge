@@ -1320,7 +1320,7 @@ namespace KnobForge.Core
         public MaterialNode EnsureMaterialNode()
         {
             ModelNode model = EnsureModelNode();
-            MaterialNode? material = model.Children.OfType<MaterialNode>().FirstOrDefault();
+            MaterialNode? material = model.GetMaterialByIndex(0);
             if (material != null)
             {
                 return material;
@@ -1329,6 +1329,43 @@ namespace KnobForge.Core
             material = new MaterialNode("DefaultMaterial");
             model.AddChild(material);
             return material;
+        }
+
+        public IReadOnlyList<MaterialNode> GetMaterialNodes()
+        {
+            return EnsureModelNode().GetMaterialNodes();
+        }
+
+        public void SetMaterialNodes(IEnumerable<MaterialNode> materials)
+        {
+            if (materials == null)
+            {
+                throw new ArgumentNullException(nameof(materials));
+            }
+
+            ModelNode model = EnsureModelNode();
+            MaterialNode[] existingMaterials = model.GetMaterialNodes();
+            for (int i = 0; i < existingMaterials.Length; i++)
+            {
+                model.RemoveChild(existingMaterials[i]);
+            }
+
+            bool addedAny = false;
+            foreach (MaterialNode material in materials)
+            {
+                if (material == null)
+                {
+                    continue;
+                }
+
+                model.AddChild(material);
+                addedAny = true;
+            }
+
+            if (!addedAny)
+            {
+                model.AddChild(new MaterialNode("DefaultMaterial"));
+            }
         }
 
         public CollarNode EnsureCollarNode()

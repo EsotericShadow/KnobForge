@@ -423,7 +423,11 @@ namespace KnobForge.App.Controls
                 ActiveLayerIndex = _activePaintLayerIndex,
                 FocusedLayerIndex = _focusedPaintLayerIndex,
                 PaintHistoryRevision = _paintHistoryRevision,
-                Strokes = strokes
+                Strokes = strokes,
+                // Newly saved paint history is already stored in canonical UV space.
+                // Legacy project files that predate this field will default to a Y mirror
+                // on import, but fresh saves must not be mirrored again.
+                LegacyMirrorYOnImport = false
             };
 
             return JsonSerializer.Serialize(state, ProjectStateJsonOptions);
@@ -472,6 +476,7 @@ namespace KnobForge.App.Controls
 
             EnsureDefaultPaintLayer();
             int layerCount = _paintLayers.Count;
+            bool mirrorLegacySavedPaintY = state.LegacyMirrorYOnImport ?? true;
 
             if (state.Strokes != null)
             {
@@ -488,8 +493,9 @@ namespace KnobForge.App.Controls
                     {
                         PaintStampPersisted persisted = stroke.Commands[c];
                         int commandLayer = Math.Clamp(persisted.LayerIndex, 0, Math.Max(0, layerCount - 1));
+                        float uvY = mirrorLegacySavedPaintY ? (1.0f - persisted.UvY) : persisted.UvY;
                         commands[c] = new PaintStampCommand(
-                            UvCenter: new Vector2(persisted.UvX, persisted.UvY),
+                            UvCenter: new Vector2(persisted.UvX, uvY),
                             UvRadius: MathF.Max(1e-6f, persisted.UvRadius),
                             Opacity: Math.Clamp(persisted.Opacity, 0f, 1f),
                             Spread: Math.Clamp(persisted.Spread, 0f, 1f),

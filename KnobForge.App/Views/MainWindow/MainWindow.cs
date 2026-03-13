@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using KnobForge.App.Controls;
@@ -307,6 +308,10 @@ namespace KnobForge.App.Views
         private readonly Slider? _materialBaseRSlider;
         private readonly Slider? _materialBaseGSlider;
         private readonly Slider? _materialBaseBSlider;
+        private readonly StackPanel? _materialListPanel;
+        private readonly ListBox? _materialListBox;
+        private readonly TextBox? _materialNameTextBox;
+        private readonly StackPanel? _materialRegionPanel;
         private readonly ComboBox? _materialRegionCombo;
         private readonly Slider? _materialMetallicSlider;
         private readonly Slider? _materialRoughnessSlider;
@@ -683,6 +688,7 @@ namespace KnobForge.App.Views
         private readonly TextBlock? _scratchExposeRoughnessValueText;
             private readonly Button? _centerLightButton;
             private readonly ObservableCollection<SceneNode> _sceneNodes;
+            private readonly ObservableCollection<MaterialInspectorListItem> _materialItems;
             private readonly List<UserReferenceProfile> _userReferenceProfiles = new();
             private readonly List<ReferenceStyleOption> _referenceStyleOptions = new();
             private readonly List<CollarPresetOption> _collarPresetOptions = new();
@@ -693,6 +699,7 @@ namespace KnobForge.App.Views
             private CollarPresetOption? _lastSelectableCollarPresetOption;
             private int _discoveredCollarLibraryCount;
             private readonly List<PaintLayerListItem> _paintLayerItems = new();
+            private int _selectedMaterialIndex;
             private string? _selectedUserReferenceProfileName;
             private string? _currentProjectFilePath;
             private int _uiRefreshDepth;
@@ -703,6 +710,13 @@ namespace KnobForge.App.Views
             {
                 PreserveCurrentTab = 0,
                 FollowSceneSelection = 1
+            }
+
+            private sealed class MaterialInspectorListItem
+            {
+                public required string Name { get; init; }
+                public required Guid MaterialId { get; init; }
+                public required IBrush SwatchBrush { get; init; }
             }
 
             private bool IsUiRefreshing => _uiRefreshDepth > 0;
@@ -740,6 +754,7 @@ namespace KnobForge.App.Views
             _project = new KnobProject();
             _project.ApplyInteractorProjectTypeDefaults(projectType);
             _sceneNodes = new ObservableCollection<SceneNode>();
+            _materialItems = new ObservableCollection<MaterialInspectorListItem>();
 
             _metalViewport = this.FindControl<MetalViewport>("MetalViewport");
             _viewportOverlay = this.FindControl<Control>("ViewportOverlay");
@@ -1025,6 +1040,10 @@ namespace KnobForge.App.Views
             _materialBaseRSlider = this.FindControl<Slider>("MaterialBaseRSlider");
             _materialBaseGSlider = this.FindControl<Slider>("MaterialBaseGSlider");
             _materialBaseBSlider = this.FindControl<Slider>("MaterialBaseBSlider");
+            _materialListPanel = this.FindControl<StackPanel>("MaterialListPanel");
+            _materialListBox = this.FindControl<ListBox>("MaterialListBox");
+            _materialNameTextBox = this.FindControl<TextBox>("MaterialNameTextBox");
+            _materialRegionPanel = this.FindControl<StackPanel>("MaterialRegionPanel");
             _materialRegionCombo = this.FindControl<ComboBox>("MaterialRegionCombo");
             _materialMetallicSlider = this.FindControl<Slider>("MaterialMetallicSlider");
             _materialRoughnessSlider = this.FindControl<Slider>("MaterialRoughnessSlider");

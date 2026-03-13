@@ -48,7 +48,8 @@ namespace KnobForge.App.Views
                 _indicatorPositionSlider == null ||
                 _indicatorThicknessSlider == null || _indicatorRoundnessSlider == null || _indicatorColorBlendSlider == null ||
                 _indicatorColorRSlider == null || _indicatorColorGSlider == null || _indicatorColorBSlider == null ||
-                _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null || _materialRegionCombo == null ||
+                _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null ||
+                _materialListPanel == null || _materialListBox == null || _materialNameTextBox == null || _materialRegionPanel == null || _materialRegionCombo == null ||
                 _materialMetallicSlider == null || _materialRoughnessSlider == null || _materialPearlescenceSlider == null ||
                 _materialRustSlider == null || _materialWearSlider == null || _materialGunkSlider == null ||
                 _materialAlbedoMapBrowseButton == null || _materialAlbedoMapClearButton == null ||
@@ -188,6 +189,7 @@ namespace KnobForge.App.Views
             }
             _materialRegionCombo.ItemsSource = Enum.GetValues<MaterialRegionTarget>().Cast<MaterialRegionTarget>().ToList();
             _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
+            _materialListBox.ItemsSource = _materialItems;
             _basisDebugModeCombo.ItemsSource = Enum.GetValues<BasisDebugMode>().Cast<BasisDebugMode>().ToList();
             if (_envTonemapCombo != null)
             {
@@ -224,6 +226,7 @@ namespace KnobForge.App.Views
                 }
             };
             _lightListBox.SelectionChanged += OnLightListSelectionChanged;
+            _materialListBox.SelectionChanged += OnMaterialListSelectionChanged;
         }
 
         private void WireButtonHandlers()
@@ -970,6 +973,7 @@ namespace KnobForge.App.Views
             _materialBaseRSlider.PropertyChanged += OnMaterialBaseColorChanged;
             _materialBaseGSlider.PropertyChanged += OnMaterialBaseColorChanged;
             _materialBaseBSlider.PropertyChanged += OnMaterialBaseColorChanged;
+            _materialNameTextBox.PropertyChanged += OnMaterialNameTextChanged;
             _materialRegionCombo.PropertyChanged += OnMaterialRegionChanged;
             _materialMetallicSlider.PropertyChanged += OnMaterialMetallicChanged;
             _materialRoughnessSlider.PropertyChanged += OnMaterialRoughnessChanged;

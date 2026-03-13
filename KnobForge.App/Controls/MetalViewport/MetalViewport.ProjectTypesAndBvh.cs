@@ -33,6 +33,7 @@ namespace KnobForge.App.Controls
             public int FocusedLayerIndex { get; set; } = -1;
             public int PaintHistoryRevision { get; set; }
             public List<PaintStrokePersisted>? Strokes { get; set; }
+            public bool? LegacyMirrorYOnImport { get; set; }
         }
 
         private sealed class PaintLayerPersisted
@@ -802,6 +803,7 @@ namespace KnobForge.App.Controls
             public required IMTLBuffer IndexBuffer { get; init; }
             public required int IndexCount { get; init; }
             public required MTLIndexType IndexType { get; init; }
+            public required SubMesh[] SubMeshes { get; init; }
             public required float ReferenceRadius { get; init; }
             public required Vector3[] Positions { get; init; }
             public required uint[] Indices { get; init; }

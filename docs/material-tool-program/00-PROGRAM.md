@@ -25,7 +25,7 @@ A tool where users can import PBR texture sets, paint directly on 3D models with
 | 1 | UV Infrastructure | None (foundation) | High | Complete |
 | 2 | Texture Map Import | Phase 1 | Medium | Complete |
 | 3 | Paint System Upgrades | Phase 1 | Low | Complete |
-| 4 | Multi-Material Support | Phase 2 | Medium | Not started |
+| 4 | Multi-Material Support | Phase 2 | Medium | Complete |
 | 5 | Texture Bake Pipeline | Phases 2, 3, 4 | Low | Not started |
 | 6 | Inspector Control Overhaul | None (independent) | Low | Not started |
 | 7 | Node-Based Material Graph | Phases 1-5 | High | Not started |

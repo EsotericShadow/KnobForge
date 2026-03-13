@@ -304,7 +304,7 @@ namespace KnobForge.App.Controls
                 {
                     ApplyImportedCollarMirrorToEnvironmentOrientation(ref postProcessUniforms, collarNode);
                 }
-                MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
+                MaterialNode? materialNode = modelNode?.GetMaterialByIndex(0);
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
                     ? BuildCollarUniforms(knobUniforms, collarNode!)
@@ -517,26 +517,7 @@ namespace KnobForge.App.Controls
                         Selectors.SetFragmentTextureAtIndex,
                         _environmentMapTexture,
                         3);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.SetFragmentTextureAtIndex,
-                        ResolveMaterialTexture(materialNode, TextureMapType.Albedo),
-                        4);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.SetFragmentTextureAtIndex,
-                        ResolveMaterialTexture(materialNode, TextureMapType.Normal),
-                        5);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.SetFragmentTextureAtIndex,
-                        ResolveMaterialTexture(materialNode, TextureMapType.Roughness),
-                        6);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.SetFragmentTextureAtIndex,
-                        ResolveMaterialTexture(materialNode, TextureMapType.Metallic),
-                        7);
+                    BindMaterialTextures(encoderPtr, materialNode);
                     ObjC.Void_objc_msgSend_IntPtr_UInt(
                         encoderPtr,
                         Selectors.SetFragmentTextureAtIndex,
@@ -835,24 +816,13 @@ namespace KnobForge.App.Controls
 
                 if (drawCollar)
                 {
-                    MetalPipelineManager.SetFrontFacingWinding(
-                        new MTLRenderCommandEncoderHandle(encoderPtr),
-                        frontFacingClockwiseCollar);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                    DrawMeshWithMaterials(
                         encoderPtr,
-                        Selectors.SetVertexBufferOffsetAtIndex,
-                        _collarResources!.VertexBuffer.Handle,
-                        0,
-                        0);
-                    UploadUniforms(encoderPtr, collarUniforms);
-                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
-                        3, // MTLPrimitiveTypeTriangle
-                        (nuint)_collarResources.IndexCount,
-                        (nuint)_collarResources.IndexType,
-                        _collarResources.IndexBuffer.Handle,
-                        0);
+                        _collarResources!,
+                        collarUniforms,
+                        modelNode,
+                        frontFacingClockwiseCollar,
+                        allowPartMaterials: false);
                     collarDrawExecuted = true;
                 }
 
@@ -867,24 +837,13 @@ namespace KnobForge.App.Controls
 
                 if (drawKnob)
                 {
-                    MetalPipelineManager.SetFrontFacingWinding(
-                            new MTLRenderCommandEncoderHandle(encoderPtr),
-                            frontFacingClockwiseAssembly);
-                    ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                    DrawMeshWithMaterials(
                         encoderPtr,
-                        Selectors.SetVertexBufferOffsetAtIndex,
-                        _meshResources!.VertexBuffer.Handle,
-                        0,
-                        0);
-                    UploadUniforms(encoderPtr, knobUniforms);
-                    ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
-                        encoderPtr,
-                        Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
-                        3, // MTLPrimitiveTypeTriangle
-                        (nuint)_meshResources!.IndexCount,
-                        (nuint)_meshResources!.IndexType,
-                        _meshResources!.IndexBuffer.Handle,
-                        0);
+                        _meshResources!,
+                        knobUniforms,
+                        modelNode,
+                        frontFacingClockwiseAssembly,
+                        allowPartMaterials: true);
                 }
 
                     if (shadowConfigs.Count > 0)

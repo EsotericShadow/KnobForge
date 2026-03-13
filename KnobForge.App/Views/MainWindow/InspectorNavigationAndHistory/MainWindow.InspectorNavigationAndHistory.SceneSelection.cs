@@ -213,6 +213,15 @@ namespace KnobForge.App.Views
                 ApplyUserReferenceProfileSnapshot(_project, model, material, CloneSnapshot(snapshot.ModelMaterialSnapshot));
             }
 
+            if (snapshot.MaterialSnapshots.Count > 0)
+            {
+                SetProjectMaterialNodes(snapshot.MaterialSnapshots
+                    .Select(CloneMaterialNodeSnapshot)
+                    .Select(CreateMaterialNodeFromSnapshot)
+                    .ToArray());
+                material = _project.EnsureMaterialNode();
+            }
+
             model.ReferenceStyle = snapshot.ModelReferenceStyle;
             _selectedUserReferenceProfileName = snapshot.SelectedUserReferenceProfileName;
 
@@ -224,6 +233,12 @@ namespace KnobForge.App.Views
             else
             {
                 _project.RemoveCollarNode();
+            }
+
+            if (snapshot.MaterialSnapshots.Count == 0)
+            {
+                SyncImportedCollarMaterialNodes();
+                material = _project.EnsureMaterialNode();
             }
 
             RebuildReferenceStyleOptions();
@@ -517,7 +532,11 @@ namespace KnobForge.App.Views
             {
                 SceneRootNode => new SceneSelectionSnapshot { Kind = SceneSelectionKind.SceneRoot },
                 ModelNode => new SceneSelectionSnapshot { Kind = SceneSelectionKind.Model },
-                MaterialNode => new SceneSelectionSnapshot { Kind = SceneSelectionKind.Material },
+                MaterialNode materialNode => new SceneSelectionSnapshot
+                {
+                    Kind = SceneSelectionKind.Material,
+                    MaterialIndex = GetMaterialNodeIndex(materialNode)
+                },
                 CollarNode => new SceneSelectionSnapshot { Kind = SceneSelectionKind.Collar },
                 _ => new SceneSelectionSnapshot { Kind = SceneSelectionKind.Unknown }
             };
@@ -539,13 +558,21 @@ namespace KnobForge.App.Views
                     .FirstOrDefault(node => ReferenceEquals(node.Light, light)) ?? _project.SceneRoot;
             }
 
+            MaterialNode[] materials = model.GetMaterialNodes();
             return selection.Kind switch
             {
                 SceneSelectionKind.Model => model,
+                SceneSelectionKind.Material when selection.MaterialIndex >= 0 && selection.MaterialIndex < materials.Length => materials[selection.MaterialIndex],
                 SceneSelectionKind.Material => material,
                 SceneSelectionKind.Collar when collar != null => collar,
                 _ => _project.SceneRoot
             };
+        }
+
+        private int GetMaterialNodeIndex(MaterialNode material)
+        {
+            MaterialNode[] materials = GetModelNode()?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
+            return Array.FindIndex(materials, candidate => ReferenceEquals(candidate, material));
         }
 
         private bool TryAdoptSceneSelectionFromInspectorContext()

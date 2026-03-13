@@ -284,7 +284,11 @@ public static partial class ImportedStlCollarMeshBuilder
             Positions = extractedPositions,
             Indices = extractedIndices,
             Normals = extractedNormals,
-            Texcoords = extractedTexcoords
+            Texcoords = extractedTexcoords,
+            SubMeshes = BuildExtractedSubMeshes(sourceMesh.SubMeshes, selectedTriangles),
+            Materials = sourceMesh.Materials is null ? null : new List<GlbMaterialDef>(sourceMesh.Materials),
+            EmbeddedImages = CloneEmbeddedImages(sourceMesh.EmbeddedImages),
+            TextureImageIndices = sourceMesh.TextureImageIndices is null ? null : new List<int>(sourceMesh.TextureImageIndices)
         };
 
         Console.WriteLine(
@@ -299,8 +303,95 @@ public static partial class ImportedStlCollarMeshBuilder
             Positions = new List<Vector3>(source.Positions),
             Indices = new List<uint>(source.Indices),
             Normals = source.Normals is null ? null : new List<Vector3>(source.Normals),
-            Texcoords = source.Texcoords is null ? null : new List<Vector2>(source.Texcoords)
+            Texcoords = source.Texcoords is null ? null : new List<Vector2>(source.Texcoords),
+            SubMeshes = source.SubMeshes is null ? null : new List<SubMesh>(source.SubMeshes),
+            Materials = source.Materials is null ? null : new List<GlbMaterialDef>(source.Materials),
+            EmbeddedImages = CloneEmbeddedImages(source.EmbeddedImages),
+            TextureImageIndices = source.TextureImageIndices is null ? null : new List<int>(source.TextureImageIndices)
         };
+    }
+
+    private static List<SubMesh>? BuildExtractedSubMeshes(
+        List<SubMesh>? sourceSubMeshes,
+        List<int> selectedTriangles)
+    {
+        if (sourceSubMeshes is null || sourceSubMeshes.Count == 0 || selectedTriangles.Count == 0)
+        {
+            return null;
+        }
+
+        var extractedSubMeshes = new List<SubMesh>();
+        int sourceSubMeshIndex = 0;
+        int? activeSourceSubMeshIndex = null;
+        int activeIndexOffset = 0;
+        int activeIndexCount = 0;
+
+        for (int i = 0; i < selectedTriangles.Count; i++)
+        {
+            int sourceIndexOffset = selectedTriangles[i] * 3;
+            while (sourceSubMeshIndex < sourceSubMeshes.Count &&
+                   sourceIndexOffset >= (sourceSubMeshes[sourceSubMeshIndex].IndexOffset + sourceSubMeshes[sourceSubMeshIndex].IndexCount))
+            {
+                sourceSubMeshIndex++;
+            }
+
+            if (sourceSubMeshIndex >= sourceSubMeshes.Count)
+            {
+                break;
+            }
+
+            if (sourceIndexOffset < sourceSubMeshes[sourceSubMeshIndex].IndexOffset)
+            {
+                continue;
+            }
+
+            if (activeSourceSubMeshIndex != sourceSubMeshIndex)
+            {
+                if (activeSourceSubMeshIndex is int previousSubMeshIndex && activeIndexCount > 0)
+                {
+                    extractedSubMeshes.Add(new SubMesh
+                    {
+                        IndexOffset = activeIndexOffset,
+                        IndexCount = activeIndexCount,
+                        MaterialIndex = sourceSubMeshes[previousSubMeshIndex].MaterialIndex
+                    });
+                }
+
+                activeSourceSubMeshIndex = sourceSubMeshIndex;
+                activeIndexOffset = i * 3;
+                activeIndexCount = 0;
+            }
+
+            activeIndexCount += 3;
+        }
+
+        if (activeSourceSubMeshIndex is int finalSubMeshIndex && activeIndexCount > 0)
+        {
+            extractedSubMeshes.Add(new SubMesh
+            {
+                IndexOffset = activeIndexOffset,
+                IndexCount = activeIndexCount,
+                MaterialIndex = sourceSubMeshes[finalSubMeshIndex].MaterialIndex
+            });
+        }
+
+        return extractedSubMeshes.Count > 0 ? extractedSubMeshes : null;
+    }
+
+    private static List<byte[]>? CloneEmbeddedImages(List<byte[]>? source)
+    {
+        if (source is null)
+        {
+            return null;
+        }
+
+        var clone = new List<byte[]>(source.Count);
+        for (int i = 0; i < source.Count; i++)
+        {
+            clone.Add(source[i].ToArray());
+        }
+
+        return clone;
     }
 
     private static bool IsVertexIndexValid(int index, int vertexCount)

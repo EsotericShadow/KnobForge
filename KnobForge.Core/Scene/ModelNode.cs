@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace KnobForge.Core.Scene
@@ -339,6 +340,24 @@ namespace KnobForge.Core.Scene
         public ModelNode(string name = "Model")
             : base(name)
         {
+        }
+
+        public MaterialNode[] GetMaterialNodes()
+        {
+            return Children.OfType<MaterialNode>().ToArray();
+        }
+
+        public MaterialNode? GetMaterialByIndex(int index)
+        {
+            MaterialNode[] materials = GetMaterialNodes();
+            if (materials.Length == 0)
+            {
+                return null;
+            }
+
+            return index >= 0 && index < materials.Length
+                ? materials[index]
+                : materials[0];
         }
     }
 }

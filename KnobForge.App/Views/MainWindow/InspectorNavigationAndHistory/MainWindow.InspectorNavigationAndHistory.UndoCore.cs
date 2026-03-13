@@ -183,7 +183,8 @@ namespace KnobForge.App.Views
         private InspectorUndoSnapshot CaptureInspectorUndoSnapshot()
         {
             ModelNode? model = GetModelNode();
-            MaterialNode? material = model?.Children.OfType<MaterialNode>().FirstOrDefault();
+            MaterialNode[] materials = model?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
+            MaterialNode? material = materials.FirstOrDefault();
             CollarNode? collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
 
             UserReferenceProfileSnapshot? modelMaterialSnapshot = null;
@@ -263,6 +264,7 @@ namespace KnobForge.App.Views
                 DynamicLightRig = CaptureDynamicLightRigSnapshot(_project.DynamicLightRig),
                 HasModelMaterialSnapshot = modelMaterialSnapshot != null,
                 ModelMaterialSnapshot = modelMaterialSnapshot != null ? CloneSnapshot(modelMaterialSnapshot) : null,
+                MaterialSnapshots = materials.Select(CaptureMaterialNodeSnapshot).Select(CloneMaterialNodeSnapshot).ToList(),
                 ModelReferenceStyle = model?.ReferenceStyle ?? ReferenceKnobStyle.Custom,
                 SelectedUserReferenceProfileName = _selectedUserReferenceProfileName,
                 CollarSnapshot = collar != null ? CaptureCollarStateSnapshot(collar) : null,

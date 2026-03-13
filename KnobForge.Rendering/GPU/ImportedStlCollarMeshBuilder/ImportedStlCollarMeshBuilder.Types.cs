@@ -95,6 +95,31 @@ public static partial class ImportedStlCollarMeshBuilder
         public List<Vector3>? Normals { get; init; }
 
         public List<Vector2>? Texcoords { get; init; }
+
+        public List<SubMesh>? SubMeshes { get; init; }
+
+        public List<GlbMaterialDef>? Materials { get; init; }
+
+        public List<byte[]>? EmbeddedImages { get; init; }
+
+        public List<int>? TextureImageIndices { get; init; }
+    }
+
+    private sealed class GlbMaterialDef
+    {
+        public string Name { get; init; } = "Material";
+
+        public Vector3 BaseColor { get; init; } = new(0.8f, 0.8f, 0.8f);
+
+        public float Metallic { get; init; } = 1.0f;
+
+        public float Roughness { get; init; } = 0.5f;
+
+        public int? BaseColorTextureIndex { get; init; }
+
+        public int? NormalTextureIndex { get; init; }
+
+        public int? MetallicRoughnessTextureIndex { get; init; }
     }
 
     private readonly record struct AxisOrientation(

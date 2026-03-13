@@ -20,6 +20,7 @@ public static partial class ImportedStlCollarMeshBuilder
         var indices = new List<uint>();
         var normals = new List<Vector3>();
         var texcoords = new List<Vector2>();
+        var subMeshes = new List<SubMesh>();
         bool haveNormalsForAllPrimitives = true;
         bool haveTexcoordsForAllPrimitives = true;
 
@@ -113,6 +114,10 @@ public static partial class ImportedStlCollarMeshBuilder
             return false;
         }
 
+        List<int>? textureImageIndices = ParseTextureImageIndices(root);
+        List<GlbMaterialDef>? materialDefs = ParseGlbMaterialDefs(root);
+        List<byte[]>? embeddedImages = ExtractEmbeddedImages(root, bufferViewsElement, binaryChunk);
+
         foreach (JsonElement mesh in meshesElement.EnumerateArray())
         {
             if (!mesh.TryGetProperty("primitives", out JsonElement primitivesElement) ||
@@ -123,6 +128,13 @@ public static partial class ImportedStlCollarMeshBuilder
 
             foreach (JsonElement primitive in primitivesElement.EnumerateArray())
             {
+                int primitiveMaterialIndex = 0;
+                if (primitive.TryGetProperty("material", out JsonElement materialElement) &&
+                    materialElement.TryGetInt32(out int parsedMaterialIndex))
+                {
+                    primitiveMaterialIndex = parsedMaterialIndex;
+                }
+
                 int mode = 4; // TRIANGLES
                 if (primitive.TryGetProperty("mode", out JsonElement modeElement) &&
                     modeElement.ValueKind == JsonValueKind.Number &&
@@ -206,6 +218,7 @@ public static partial class ImportedStlCollarMeshBuilder
                     }
                 }
 
+                int primitiveIndexOffset = indices.Count;
                 if (primitive.TryGetProperty("indices", out JsonElement indicesAccessorElement) &&
                     indicesAccessorElement.TryGetInt32(out int indicesAccessorIndex) &&
                     TryReadAccessorIndices(
@@ -243,6 +256,17 @@ public static partial class ImportedStlCollarMeshBuilder
                         indices.Add((uint)(baseVertex + i + 2));
                     }
                 }
+
+                int primitiveIndexCount = indices.Count - primitiveIndexOffset;
+                if (primitiveIndexCount > 0)
+                {
+                    subMeshes.Add(new SubMesh
+                    {
+                        IndexOffset = primitiveIndexOffset,
+                        IndexCount = primitiveIndexCount,
+                        MaterialIndex = primitiveMaterialIndex
+                    });
+                }
             }
         }
 
@@ -256,9 +280,226 @@ public static partial class ImportedStlCollarMeshBuilder
             Positions = positions,
             Indices = indices,
             Normals = haveNormalsForAllPrimitives && normals.Count == positions.Count ? normals : null,
-            Texcoords = haveTexcoordsForAllPrimitives && texcoords.Count == positions.Count ? texcoords : null
+            Texcoords = haveTexcoordsForAllPrimitives && texcoords.Count == positions.Count ? texcoords : null,
+            SubMeshes = subMeshes.Count > 0 ? subMeshes : null,
+            Materials = materialDefs is { Count: > 0 } ? materialDefs : null,
+            EmbeddedImages = embeddedImages is { Count: > 0 } ? embeddedImages : null,
+            TextureImageIndices = textureImageIndices is { Count: > 0 } ? textureImageIndices : null
         };
         return true;
+    }
+
+    private static List<GlbMaterialDef>? ParseGlbMaterialDefs(JsonElement root)
+    {
+        if (!root.TryGetProperty("materials", out JsonElement materialsElement) ||
+            materialsElement.ValueKind != JsonValueKind.Array ||
+            materialsElement.GetArrayLength() == 0)
+        {
+            return null;
+        }
+
+        var materialDefs = new List<GlbMaterialDef>(materialsElement.GetArrayLength());
+        int materialIndex = 0;
+        foreach (JsonElement materialElement in materialsElement.EnumerateArray())
+        {
+            string name = $"Material {materialIndex}";
+            if (materialElement.TryGetProperty("name", out JsonElement nameElement) &&
+                nameElement.ValueKind == JsonValueKind.String)
+            {
+                string? parsedName = nameElement.GetString();
+                if (!string.IsNullOrWhiteSpace(parsedName))
+                {
+                    name = parsedName;
+                }
+            }
+
+            Vector3 baseColor = Vector3.One;
+            float metallic = 1.0f;
+            float roughness = 1.0f;
+            int? baseColorTextureIndex = null;
+            int? metallicRoughnessTextureIndex = null;
+            if (materialElement.TryGetProperty("pbrMetallicRoughness", out JsonElement pbrElement) &&
+                pbrElement.ValueKind == JsonValueKind.Object)
+            {
+                if (pbrElement.TryGetProperty("baseColorFactor", out JsonElement baseColorFactorElement) &&
+                    baseColorFactorElement.ValueKind == JsonValueKind.Array)
+                {
+                    baseColor = ReadColorFactorRgb(baseColorFactorElement, Vector3.One);
+                }
+
+                if (pbrElement.TryGetProperty("metallicFactor", out JsonElement metallicFactorElement) &&
+                    metallicFactorElement.TryGetSingle(out float parsedMetallic))
+                {
+                    metallic = parsedMetallic;
+                }
+
+                if (pbrElement.TryGetProperty("roughnessFactor", out JsonElement roughnessFactorElement) &&
+                    roughnessFactorElement.TryGetSingle(out float parsedRoughness))
+                {
+                    roughness = parsedRoughness;
+                }
+
+                if (pbrElement.TryGetProperty("baseColorTexture", out JsonElement baseColorTextureElement) &&
+                    baseColorTextureElement.ValueKind == JsonValueKind.Object &&
+                    baseColorTextureElement.TryGetProperty("index", out JsonElement baseColorTextureIndexElement) &&
+                    baseColorTextureIndexElement.TryGetInt32(out int parsedBaseColorTextureIndex))
+                {
+                    baseColorTextureIndex = parsedBaseColorTextureIndex;
+                }
+
+                if (pbrElement.TryGetProperty("metallicRoughnessTexture", out JsonElement metallicRoughnessTextureElement) &&
+                    metallicRoughnessTextureElement.ValueKind == JsonValueKind.Object &&
+                    metallicRoughnessTextureElement.TryGetProperty("index", out JsonElement metallicRoughnessTextureIndexElement) &&
+                    metallicRoughnessTextureIndexElement.TryGetInt32(out int parsedMetallicRoughnessTextureIndex))
+                {
+                    metallicRoughnessTextureIndex = parsedMetallicRoughnessTextureIndex;
+                }
+            }
+
+            int? normalTextureIndex = null;
+            if (materialElement.TryGetProperty("normalTexture", out JsonElement normalTextureElement) &&
+                normalTextureElement.ValueKind == JsonValueKind.Object &&
+                normalTextureElement.TryGetProperty("index", out JsonElement normalTextureIndexElement) &&
+                normalTextureIndexElement.TryGetInt32(out int parsedNormalTextureIndex))
+            {
+                normalTextureIndex = parsedNormalTextureIndex;
+            }
+
+            materialDefs.Add(new GlbMaterialDef
+            {
+                Name = name,
+                BaseColor = baseColor,
+                Metallic = metallic,
+                Roughness = roughness,
+                BaseColorTextureIndex = baseColorTextureIndex,
+                NormalTextureIndex = normalTextureIndex,
+                MetallicRoughnessTextureIndex = metallicRoughnessTextureIndex
+            });
+            materialIndex++;
+        }
+
+        return materialDefs;
+    }
+
+    private static List<int>? ParseTextureImageIndices(JsonElement root)
+    {
+        if (!root.TryGetProperty("textures", out JsonElement texturesElement) ||
+            texturesElement.ValueKind != JsonValueKind.Array ||
+            texturesElement.GetArrayLength() == 0)
+        {
+            return null;
+        }
+
+        var textureImageIndices = new List<int>(texturesElement.GetArrayLength());
+        foreach (JsonElement textureElement in texturesElement.EnumerateArray())
+        {
+            int sourceImageIndex = -1;
+            if (textureElement.ValueKind == JsonValueKind.Object &&
+                textureElement.TryGetProperty("source", out JsonElement sourceElement) &&
+                sourceElement.TryGetInt32(out int parsedSourceImageIndex))
+            {
+                sourceImageIndex = parsedSourceImageIndex;
+            }
+
+            textureImageIndices.Add(sourceImageIndex);
+        }
+
+        return textureImageIndices;
+    }
+
+    private static List<byte[]>? ExtractEmbeddedImages(
+        JsonElement root,
+        JsonElement bufferViewsElement,
+        byte[] binaryChunk)
+    {
+        if (!root.TryGetProperty("images", out JsonElement imagesElement) ||
+            imagesElement.ValueKind != JsonValueKind.Array ||
+            imagesElement.GetArrayLength() == 0)
+        {
+            return null;
+        }
+
+        var embeddedImages = new List<byte[]>(imagesElement.GetArrayLength());
+        foreach (JsonElement imageElement in imagesElement.EnumerateArray())
+        {
+            byte[] imageBytes = Array.Empty<byte>();
+            if (imageElement.ValueKind == JsonValueKind.Object &&
+                imageElement.TryGetProperty("bufferView", out JsonElement bufferViewIndexElement) &&
+                bufferViewIndexElement.TryGetInt32(out int bufferViewIndex) &&
+                TryExtractBufferViewBytes(bufferViewsElement, binaryChunk, bufferViewIndex, out byte[] extractedBytes))
+            {
+                imageBytes = extractedBytes;
+            }
+
+            embeddedImages.Add(imageBytes);
+        }
+
+        return embeddedImages;
+    }
+
+    private static bool TryExtractBufferViewBytes(
+        JsonElement bufferViewsElement,
+        byte[] binaryChunk,
+        int bufferViewIndex,
+        out byte[] extractedBytes)
+    {
+        extractedBytes = Array.Empty<byte>();
+        if (!TryGetArrayElement(bufferViewsElement, bufferViewIndex, out JsonElement bufferViewElement) ||
+            bufferViewElement.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (bufferViewElement.TryGetProperty("buffer", out JsonElement bufferIndexElement) &&
+            bufferIndexElement.TryGetInt32(out int bufferIndex) &&
+            bufferIndex != 0)
+        {
+            return false;
+        }
+
+        int byteOffset = 0;
+        if (bufferViewElement.TryGetProperty("byteOffset", out JsonElement byteOffsetElement) &&
+            byteOffsetElement.TryGetInt32(out int parsedByteOffset))
+        {
+            byteOffset = parsedByteOffset;
+        }
+
+        if (!bufferViewElement.TryGetProperty("byteLength", out JsonElement byteLengthElement) ||
+            !byteLengthElement.TryGetInt32(out int byteLength) ||
+            byteLength <= 0)
+        {
+            return false;
+        }
+
+        if (byteOffset < 0 ||
+            byteLength < 0 ||
+            (byteOffset + byteLength) > binaryChunk.Length)
+        {
+            return false;
+        }
+
+        extractedBytes = binaryChunk.AsSpan(byteOffset, byteLength).ToArray();
+        return true;
+    }
+
+    private static Vector3 ReadColorFactorRgb(JsonElement factorArray, Vector3 fallback)
+    {
+        if (factorArray.ValueKind != JsonValueKind.Array)
+        {
+            return fallback;
+        }
+
+        float[] values = new float[3];
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (!TryGetArrayElement(factorArray, i, out JsonElement valueElement) ||
+                !valueElement.TryGetSingle(out values[i]))
+            {
+                return fallback;
+            }
+        }
+
+        return new Vector3(values[0], values[1], values[2]);
     }
 
     private static bool TryReadAccessorVector3(
