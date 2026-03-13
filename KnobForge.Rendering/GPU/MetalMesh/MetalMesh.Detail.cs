@@ -13,6 +13,7 @@ public static partial class MetalMeshBuilder
     private static void AppendIndicatorHardWalls(
         List<Vector3> positions,
         List<Vector3> normals,
+        List<Vector2> texcoords,
         List<uint> indices,
         float topRadius,
         float zFront,
@@ -74,6 +75,10 @@ public static partial class MetalMeshBuilder
             normals.Add(outward);
             normals.Add(outward);
             normals.Add(outward);
+            texcoords.Add(ComputePlanarCapUv(v0, topRadius));
+            texcoords.Add(ComputePlanarCapUv(v1, topRadius));
+            texcoords.Add(ComputePlanarCapUv(v2, topRadius));
+            texcoords.Add(ComputePlanarCapUv(v3, topRadius));
 
             Vector3 faceNormal = Vector3.Normalize(Vector3.Cross(v1 - v0, v2 - v0));
             bool aligned = Vector3.Dot(faceNormal, outward) >= 0f;

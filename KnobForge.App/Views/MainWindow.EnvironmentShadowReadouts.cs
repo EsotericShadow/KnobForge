@@ -1033,6 +1033,11 @@ namespace KnobForge.App.Views
                 _materialGunkValueText.Text = $"{_materialGunkSlider.Value:0.00}";
             }
 
+            if (_materialNormalMapStrengthSlider != null && _materialNormalMapStrengthValueText != null)
+            {
+                _materialNormalMapStrengthValueText.Text = $"{_materialNormalMapStrengthSlider.Value:0.00}x";
+            }
+
             if (_materialBrushStrengthSlider != null && _materialBrushStrengthValueText != null)
             {
                 _materialBrushStrengthValueText.Text = $"{_materialBrushStrengthSlider.Value:0.00}";

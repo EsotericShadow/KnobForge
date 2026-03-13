@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KnobForge.Core;
@@ -34,20 +35,22 @@ namespace KnobForge.Rendering
         private const int MaxSpritesheetDimension = 16384;
         private const long MaxSpritesheetPixels = 16384L * 16384L;
         private const int MaxSupersampleScale = 4;
+        private const long MaxTransparentNormalizationBytes = 256L * 1024L * 1024L;
 
         private readonly KnobProject _project;
         private readonly OrientationDebug _orientation;
         private readonly ViewportCameraState? _cameraState;
         private readonly Func<int, int, ViewportCameraState, double?, SKBitmap?> _gpuFrameProvider;
         private readonly Action<int, int>? _frameStateApplier;
-        private readonly PreviewRenderer _renderer;
+        private readonly float? _referenceRadiusOverride;
 
         public KnobExporter(
             KnobProject project,
             OrientationDebug orientation,
             ViewportCameraState? cameraState = null,
             Func<int, int, ViewportCameraState, double?, SKBitmap?>? gpuFrameProvider = null,
-            Action<int, int>? frameStateApplier = null)
+            Action<int, int>? frameStateApplier = null,
+            float? referenceRadiusOverride = null)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _orientation = orientation ?? throw new ArgumentNullException(nameof(orientation));
@@ -55,11 +58,7 @@ namespace KnobForge.Rendering
             _gpuFrameProvider = gpuFrameProvider
                 ?? throw new ArgumentNullException(nameof(gpuFrameProvider), "GPU-only export requires an offscreen GPU frame provider.");
             _frameStateApplier = frameStateApplier;
-            _renderer = new PreviewRenderer(_project);
-            _renderer.Orientation.InvertX = _orientation.InvertX;
-            _renderer.Orientation.InvertY = _orientation.InvertY;
-            _renderer.Orientation.InvertZ = _orientation.InvertZ;
-            _renderer.Orientation.FlipCamera180 = _orientation.FlipCamera180;
+            _referenceRadiusOverride = referenceRadiusOverride;
         }
 
         public Task<KnobExportResult> ExportAsync(
@@ -110,6 +109,8 @@ namespace KnobForge.Rendering
             int supersampleScale = Math.Clamp(settings.SupersampleScale, 1, MaxSupersampleScale);
             int renderResolution = checked(resolution * supersampleScale);
             int paddingPx = Math.Max(0, (int)MathF.Round(settings.Padding));
+            string frameOutputExtension = GetOutputExtension(settings.ImageFormat);
+            const string spritesheetOutputExtension = "png";
 
             if (_project.ProjectType == InteractorProjectType.IndicatorLight && frameCount < 2)
             {
@@ -122,7 +123,9 @@ namespace KnobForge.Rendering
                 baseName,
                 exportFrames,
                 exportSpritesheet,
-                frameDigits);
+                frameDigits,
+                frameOutputExtension,
+                spritesheetOutputExtension);
 
             string outputDirectory = paths.OutputDirectory;
             Directory.CreateDirectory(outputDirectory);
@@ -286,10 +289,10 @@ namespace KnobForge.Rendering
                             if (exportFrames)
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
-                                string framePath = ResolveFramePath(outputDirectory, baseName, viewVariant.FileTag, i, frameDigits);
-                                using SKData framePng = frameBitmap.Encode(SKEncodedImageFormat.Png, 100);
-                                using FileStream frameOutput = File.Create(framePath);
-                                framePng.SaveTo(frameOutput);
+                                string framePath = settings.ImageFormat == ExportImageFormat.AutoLossless
+                                    ? ResolveFrameBasePath(outputDirectory, baseName, viewVariant.FileTag, i, frameDigits)
+                                    : ResolveFramePath(outputDirectory, baseName, viewVariant.FileTag, i, frameDigits, frameOutputExtension);
+                                framePath = SaveBitmap(frameBitmap, framePath, settings);
                                 firstFramePath ??= framePath;
                             }
 
@@ -315,10 +318,21 @@ namespace KnobForge.Rendering
                                 $"Writing spritesheet ({viewVariant.Name})"));
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            string spritesheetPath = ResolveSpritesheetPath(outputDirectory, baseName, viewVariant.FileTag);
-                            using SKData sheetPng = spritesheetBitmap.Encode(SKEncodedImageFormat.Png, 100);
-                            using FileStream sheetOutput = File.Create(spritesheetPath);
-                            sheetPng.SaveTo(sheetOutput);
+                            string spritesheetPath = ResolveSpritesheetPath(
+                                outputDirectory,
+                                baseName,
+                                viewVariant.FileTag,
+                                spritesheetOutputExtension);
+                            using SKBitmap? normalizedSpritesheetBitmap = CreateCompressionNormalizedBitmap(spritesheetBitmap);
+                            SKBitmap spritesheetToWrite = normalizedSpritesheetBitmap ?? spritesheetBitmap;
+                            if (settings.OptimizeSpritesheetPng)
+                            {
+                                SavePngOptimized(spritesheetToWrite, spritesheetPath, settings);
+                            }
+                            else
+                            {
+                                SavePngWithCompression(spritesheetToWrite, spritesheetPath, settings.PngCompressionLevel);
+                            }
                             firstSpritesheetPath ??= spritesheetPath;
                         }
                     }
@@ -332,8 +346,11 @@ namespace KnobForge.Rendering
 
                 progress?.Report(new KnobExportProgress(totalFrames, totalFrames, "Writing files"));
 
-                string primaryFirstFramePath = ResolveFramePath(outputDirectory, baseName, 0, frameDigits);
-                string primarySpritesheetPath = ResolveSpritesheetPath(outputDirectory, baseName);
+                string primaryFirstFramePath = firstFramePath
+                    ?? firstSpritesheetPath
+                    ?? ResolveFramePath(outputDirectory, baseName, 0, frameDigits, frameOutputExtension);
+                string primarySpritesheetPath = firstSpritesheetPath
+                    ?? ResolveSpritesheetPath(outputDirectory, baseName, spritesheetOutputExtension);
 
                 return new KnobExportResult
                 {
@@ -510,5 +527,448 @@ namespace KnobForge.Rendering
 
         private readonly record struct FrameAlphaMetrics(bool HasOpaque, float NormalizedLuma);
 
+        private static string GetOutputExtension(ExportImageFormat imageFormat)
+        {
+            return imageFormat switch
+            {
+                ExportImageFormat.AutoLossless => "png",
+                ExportImageFormat.PngOptimized => "png",
+                ExportImageFormat.PngLossless => "png",
+                ExportImageFormat.WebpLossless => "webp",
+                ExportImageFormat.WebpLossy => "webp",
+                _ => "png"
+            };
+        }
+
+        private static string SaveBitmap(SKBitmap bitmap, string outputPath, KnobExportSettings settings)
+        {
+            using SKBitmap? normalizedBitmap = CreateCompressionNormalizedBitmap(bitmap);
+            SKBitmap sourceBitmap = normalizedBitmap ?? bitmap;
+
+            switch (settings.ImageFormat)
+            {
+                case ExportImageFormat.AutoLossless:
+                    return SaveAutoLossless(sourceBitmap, outputPath, settings.PngCompressionLevel);
+                case ExportImageFormat.WebpLossless:
+                    SaveWebp(sourceBitmap, outputPath, lossless: true, settings.WebpLossyQuality);
+                    return outputPath;
+                case ExportImageFormat.WebpLossy:
+                    SaveWebp(sourceBitmap, outputPath, lossless: false, settings.WebpLossyQuality);
+                    return outputPath;
+                case ExportImageFormat.PngOptimized:
+                    SavePngOptimized(sourceBitmap, outputPath, settings);
+                    return outputPath;
+                case ExportImageFormat.PngLossless:
+                default:
+                    SavePngWithCompression(sourceBitmap, outputPath, settings.PngCompressionLevel);
+                    return outputPath;
+            }
+        }
+
+        private static string SaveAutoLossless(SKBitmap bitmap, string outputBasePath, int pngCompressionLevel)
+        {
+            using SKData pngData = EncodePng(bitmap, pngCompressionLevel);
+            using SKData webpData = EncodeWebp(bitmap, lossless: true, quality: 100f);
+
+            bool choosePng = pngData.Size <= webpData.Size;
+            string chosenExtension = choosePng ? "png" : "webp";
+            DeleteAlternateFormatOutputs(outputBasePath, chosenExtension);
+            string outputPath = $"{outputBasePath}.{chosenExtension}";
+            using FileStream output = File.Create(outputPath);
+            (choosePng ? pngData : webpData).SaveTo(output);
+            return outputPath;
+        }
+
+        private static void SavePngWithCompression(SKBitmap bitmap, string outputPath, int zlibLevel)
+        {
+            string outputBasePath = Path.Combine(
+                Path.GetDirectoryName(outputPath) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(outputPath));
+            DeleteAlternateFormatOutputs(outputBasePath, "png");
+            using SKData pngData = EncodePng(bitmap, zlibLevel);
+            using FileStream output = File.Create(outputPath);
+            pngData.SaveTo(output);
+        }
+
+        public static SKData EncodePreviewSpritesheetPng(SKBitmap bitmap, KnobExportSettings settings, bool allowOptimization)
+        {
+            using SKBitmap? normalizedBitmap = CreateCompressionNormalizedBitmap(bitmap);
+            SKBitmap sourceBitmap = normalizedBitmap ?? bitmap;
+            return allowOptimization
+                ? EncodeOptimizedPng(sourceBitmap, settings)
+                : EncodePng(sourceBitmap, settings.PngCompressionLevel);
+        }
+
+        private static void SavePngOptimized(SKBitmap bitmap, string outputPath, KnobExportSettings settings)
+        {
+            string outputBasePath = Path.Combine(
+                Path.GetDirectoryName(outputPath) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(outputPath));
+            DeleteAlternateFormatOutputs(outputBasePath, "png");
+            using SKData pngData = EncodeOptimizedPng(bitmap, settings);
+            using FileStream output = File.Create(outputPath);
+            pngData.SaveTo(output);
+        }
+
+        private static void SaveWebp(SKBitmap bitmap, string outputPath, bool lossless, float quality)
+        {
+            string outputBasePath = Path.Combine(
+                Path.GetDirectoryName(outputPath) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(outputPath));
+            DeleteAlternateFormatOutputs(outputBasePath, "webp");
+            using SKData webpData = EncodeWebp(bitmap, lossless, quality);
+            using FileStream output = File.Create(outputPath);
+            webpData.SaveTo(output);
+        }
+
+        private static SKData EncodePng(SKBitmap bitmap, int zlibLevel)
+        {
+            int clampedLevel = Math.Clamp(zlibLevel, 0, 9);
+            var options = new SKPngEncoderOptions(SKPngEncoderFilterFlags.AllFilters, clampedLevel);
+            using MemoryStream output = new();
+            using SKPixmap? pixmap = bitmap.PeekPixels();
+            if (pixmap != null && pixmap.Encode(output, options))
+            {
+                return SKData.CreateCopy(output.ToArray());
+            }
+
+            return bitmap.Encode(SKEncodedImageFormat.Png, quality: 100);
+        }
+
+        private static SKData EncodeWebp(SKBitmap bitmap, bool lossless, float quality)
+        {
+            float clampedQuality = Math.Clamp(quality, 0f, 100f);
+            var options = new SKWebpEncoderOptions(
+                lossless ? SKWebpEncoderCompression.Lossless : SKWebpEncoderCompression.Lossy,
+                clampedQuality);
+            using MemoryStream output = new();
+            using SKPixmap? pixmap = bitmap.PeekPixels();
+            if (pixmap != null && pixmap.Encode(output, options))
+            {
+                return SKData.CreateCopy(output.ToArray());
+            }
+
+            return bitmap.Encode(SKEncodedImageFormat.Webp, quality: (int)MathF.Round(clampedQuality));
+        }
+
+        private static SKData EncodeOptimizedPng(SKBitmap bitmap, KnobExportSettings settings)
+        {
+            SKData bestData = EncodePng(bitmap, settings.PngCompressionLevel);
+            long bestSize = (long)bestData.Size;
+
+            using SKBitmap? candidateBitmap = CreateNearLosslessQuantizedBitmap(bitmap, settings);
+            if (candidateBitmap == null || !IsVisuallySafePngCandidate(bitmap, candidateBitmap, settings))
+            {
+                return bestData;
+            }
+
+            SKData candidateData = EncodePng(candidateBitmap, settings.PngCompressionLevel);
+            long candidateSize = (long)candidateData.Size;
+            if ((bestSize - candidateSize) < settings.PngOptimizationMinimumSavingsBytes)
+            {
+                candidateData.Dispose();
+                return bestData;
+            }
+
+            bestData.Dispose();
+            bestData = candidateData;
+            bestSize = candidateSize;
+            return bestData;
+        }
+
+        private static void DeleteAlternateFormatOutputs(string outputBasePath, string keepExtension)
+        {
+            string[] knownExtensions = { "png", "webp" };
+            for (int i = 0; i < knownExtensions.Length; i++)
+            {
+                string extension = knownExtensions[i];
+                if (string.Equals(extension, keepExtension, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string candidate = $"{outputBasePath}.{extension}";
+                if (File.Exists(candidate))
+                {
+                    File.Delete(candidate);
+                }
+            }
+        }
+
+        private static SKBitmap? CreateNearLosslessQuantizedBitmap(SKBitmap bitmap, KnobExportSettings settings)
+        {
+            if (!TryCopyBitmapBytes(bitmap, MaxTransparentNormalizationBytes, out byte[]? bytes) || bytes == null)
+            {
+                return null;
+            }
+
+            bool changed = false;
+            int rowBytes = bitmap.RowBytes;
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+
+            for (int y = 0; y < height; y++)
+            {
+                int rowOffset = y * rowBytes;
+                for (int x = 0; x < width; x++)
+                {
+                    int pixelOffset = rowOffset + (x * 4);
+                    if (pixelOffset + 3 >= bytes.Length)
+                    {
+                        break;
+                    }
+
+                    byte alpha = bytes[pixelOffset + 3];
+                    if (alpha == 0)
+                    {
+                        continue;
+                    }
+
+                    bool lowAlpha = alpha <= settings.PngTranslucentAlphaThreshold;
+                    int rgbStep = lowAlpha ? settings.PngTranslucentRgbStep : settings.PngOpaqueRgbStep;
+                    int alphaStep = lowAlpha ? settings.PngTranslucentAlphaStep : settings.PngOpaqueAlphaStep;
+
+                    byte quantizedAlpha = QuantizeByte(alpha, alphaStep);
+                    byte quantizedBlue = QuantizeByte(bytes[pixelOffset], rgbStep);
+                    byte quantizedGreen = QuantizeByte(bytes[pixelOffset + 1], rgbStep);
+                    byte quantizedRed = QuantizeByte(bytes[pixelOffset + 2], rgbStep);
+
+                    if (quantizedBlue > quantizedAlpha)
+                    {
+                        quantizedBlue = quantizedAlpha;
+                    }
+
+                    if (quantizedGreen > quantizedAlpha)
+                    {
+                        quantizedGreen = quantizedAlpha;
+                    }
+
+                    if (quantizedRed > quantizedAlpha)
+                    {
+                        quantizedRed = quantizedAlpha;
+                    }
+
+                    if (quantizedBlue == bytes[pixelOffset] &&
+                        quantizedGreen == bytes[pixelOffset + 1] &&
+                        quantizedRed == bytes[pixelOffset + 2] &&
+                        quantizedAlpha == bytes[pixelOffset + 3])
+                    {
+                        continue;
+                    }
+
+                    bytes[pixelOffset] = quantizedBlue;
+                    bytes[pixelOffset + 1] = quantizedGreen;
+                    bytes[pixelOffset + 2] = quantizedRed;
+                    bytes[pixelOffset + 3] = quantizedAlpha;
+                    changed = true;
+                }
+            }
+
+            if (!changed)
+            {
+                return null;
+            }
+
+            return CreateBitmapFromBytes(bitmap, bytes);
+        }
+
+        private static bool IsVisuallySafePngCandidate(SKBitmap sourceBitmap, SKBitmap candidateBitmap, KnobExportSettings settings)
+        {
+            if (sourceBitmap.Width != candidateBitmap.Width || sourceBitmap.Height != candidateBitmap.Height)
+            {
+                return false;
+            }
+
+            if (!TryCopyBitmapBytes(sourceBitmap, MaxTransparentNormalizationBytes, out byte[]? sourceBytes) || sourceBytes == null ||
+                !TryCopyBitmapBytes(candidateBitmap, MaxTransparentNormalizationBytes, out byte[]? candidateBytes) || candidateBytes == null)
+            {
+                return false;
+            }
+
+            if (sourceBytes.Length != candidateBytes.Length)
+            {
+                return false;
+            }
+
+            byte maxOpaqueRgbDelta = 0;
+            byte maxVisibleRgbDelta = 0;
+            byte maxVisibleAlphaDelta = 0;
+            double weightedLumaDelta = 0d;
+            double weightedAlphaDelta = 0d;
+            double visibleWeight = 0d;
+
+            int rowBytes = sourceBitmap.RowBytes;
+            int width = sourceBitmap.Width;
+            int height = sourceBitmap.Height;
+
+            for (int y = 0; y < height; y++)
+            {
+                int rowOffset = y * rowBytes;
+                for (int x = 0; x < width; x++)
+                {
+                    int pixelOffset = rowOffset + (x * 4);
+                    if (pixelOffset + 3 >= sourceBytes.Length || pixelOffset + 3 >= candidateBytes.Length)
+                    {
+                        break;
+                    }
+
+                    byte sourceAlpha = sourceBytes[pixelOffset + 3];
+                    byte candidateAlpha = candidateBytes[pixelOffset + 3];
+                    byte visibleAlpha = Math.Max(sourceAlpha, candidateAlpha);
+
+                    int alphaDelta = Math.Abs(sourceAlpha - candidateAlpha);
+                    if (alphaDelta > maxVisibleAlphaDelta)
+                    {
+                        maxVisibleAlphaDelta = (byte)alphaDelta;
+                    }
+
+                    if (visibleAlpha == 0)
+                    {
+                        continue;
+                    }
+
+                    int blueDelta = Math.Abs(sourceBytes[pixelOffset] - candidateBytes[pixelOffset]);
+                    int greenDelta = Math.Abs(sourceBytes[pixelOffset + 1] - candidateBytes[pixelOffset + 1]);
+                    int redDelta = Math.Abs(sourceBytes[pixelOffset + 2] - candidateBytes[pixelOffset + 2]);
+                    int visibleRgbDelta = Math.Max(redDelta, Math.Max(greenDelta, blueDelta));
+
+                    if (visibleRgbDelta > maxVisibleRgbDelta)
+                    {
+                        maxVisibleRgbDelta = (byte)visibleRgbDelta;
+                    }
+
+                    if (sourceAlpha >= 224 && candidateAlpha >= 224 && visibleRgbDelta > maxOpaqueRgbDelta)
+                    {
+                        maxOpaqueRgbDelta = (byte)visibleRgbDelta;
+                    }
+
+                    double alphaWeight = visibleAlpha / 255d;
+                    weightedLumaDelta += ((0.2126d * redDelta) + (0.7152d * greenDelta) + (0.0722d * blueDelta)) * alphaWeight;
+                    weightedAlphaDelta += alphaDelta * alphaWeight;
+                    visibleWeight += alphaWeight;
+                }
+            }
+
+            if (visibleWeight <= double.Epsilon)
+            {
+                return true;
+            }
+
+            double meanVisibleLumaDelta = weightedLumaDelta / visibleWeight;
+            double meanVisibleAlphaDelta = weightedAlphaDelta / visibleWeight;
+            return maxOpaqueRgbDelta <= settings.PngMaxOpaqueRgbDelta &&
+                maxVisibleRgbDelta <= settings.PngMaxVisibleRgbDelta &&
+                maxVisibleAlphaDelta <= settings.PngMaxVisibleAlphaDelta &&
+                meanVisibleLumaDelta <= settings.PngMeanVisibleLumaDelta &&
+                meanVisibleAlphaDelta <= settings.PngMeanVisibleAlphaDelta;
+        }
+
+        private static byte QuantizeByte(byte value, int step)
+        {
+            if (step <= 1)
+            {
+                return value;
+            }
+
+            int quantized = ((value + (step / 2)) / step) * step;
+            return (byte)Math.Clamp(quantized, 0, 255);
+        }
+
+        private static bool TryCopyBitmapBytes(SKBitmap bitmap, long maxBytes, out byte[]? bytes)
+        {
+            bytes = null;
+            if (bitmap == null)
+            {
+                return false;
+            }
+
+            long byteCount = bitmap.ByteCount;
+            if (byteCount <= 0 || byteCount > maxBytes || byteCount > int.MaxValue)
+            {
+                return false;
+            }
+
+            IntPtr sourcePixels = bitmap.GetPixels();
+            if (sourcePixels == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            bytes = new byte[byteCount];
+            Marshal.Copy(sourcePixels, bytes, 0, (int)byteCount);
+            return true;
+        }
+
+        private static SKBitmap? CreateBitmapFromBytes(SKBitmap referenceBitmap, byte[] bytes)
+        {
+            if (referenceBitmap == null || bytes == null)
+            {
+                return null;
+            }
+
+            var copy = new SKBitmap(referenceBitmap.Info);
+            IntPtr targetPixels = copy.GetPixels();
+            if (targetPixels == IntPtr.Zero ||
+                copy.RowBytes != referenceBitmap.RowBytes ||
+                copy.ByteCount != referenceBitmap.ByteCount)
+            {
+                copy.Dispose();
+                return null;
+            }
+
+            Marshal.Copy(bytes, 0, targetPixels, bytes.Length);
+            copy.NotifyPixelsChanged();
+            return copy;
+        }
+
+        private static SKBitmap? CreateCompressionNormalizedBitmap(SKBitmap bitmap)
+        {
+            if (!TryCopyBitmapBytes(bitmap, MaxTransparentNormalizationBytes, out byte[]? bytes) || bytes == null)
+            {
+                return null;
+            }
+
+            bool changed = false;
+            int rowBytes = bitmap.RowBytes;
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+
+            for (int y = 0; y < height; y++)
+            {
+                int rowOffset = y * rowBytes;
+                for (int x = 0; x < width; x++)
+                {
+                    int pixelOffset = rowOffset + (x * 4);
+                    if (pixelOffset + 3 >= bytes.Length)
+                    {
+                        break;
+                    }
+
+                    if (bytes[pixelOffset + 3] != 0)
+                    {
+                        continue;
+                    }
+
+                    if (bytes[pixelOffset] == 0 &&
+                        bytes[pixelOffset + 1] == 0 &&
+                        bytes[pixelOffset + 2] == 0)
+                    {
+                        continue;
+                    }
+
+                    bytes[pixelOffset] = 0;
+                    bytes[pixelOffset + 1] = 0;
+                    bytes[pixelOffset + 2] = 0;
+                    changed = true;
+                }
+            }
+
+            if (!changed)
+            {
+                return null;
+            }
+
+            return CreateBitmapFromBytes(bitmap, bytes);
+        }
     }
 }

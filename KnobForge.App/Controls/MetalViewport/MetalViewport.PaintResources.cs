@@ -353,6 +353,16 @@ namespace KnobForge.App.Controls
             }
 
             int size = project.PaintMaskSize;
+            if (_paintMaskTexture != IntPtr.Zero)
+            {
+                nuint textureWidth = ObjC.UInt_objc_msgSend(_paintMaskTexture, Selectors.Width);
+                nuint textureHeight = ObjC.UInt_objc_msgSend(_paintMaskTexture, Selectors.Height);
+                if (textureWidth != (nuint)size || textureHeight != (nuint)size)
+                {
+                    ReleasePaintMaskTexture();
+                }
+            }
+
             if (_paintMaskTexture == IntPtr.Zero)
             {
                 IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
@@ -378,57 +388,21 @@ namespace KnobForge.App.Controls
                 _paintMaskTextureVersion = -1;
             }
 
-            if (_paintMaskTextureVersion == project.PaintMaskVersion)
+            if (_paintMaskTextureVersion == project.PaintMaskVersion &&
+                _paintTextureFocusedLayerIndex == _focusedPaintLayerIndex)
             {
                 return;
             }
 
-            byte[] pixelBytes = project.GetPaintMaskRgba8();
+            byte[] pixelBytes = ResolvePaintMaskBytesForDisplay(project);
             if (pixelBytes.Length < size * size * 4)
             {
                 return;
             }
 
-            GCHandle pinned = GCHandle.Alloc(pixelBytes, GCHandleType.Pinned);
-            try
-            {
-                MTLRegion region = new MTLRegion(
-                    new MTLOrigin(0, 0, 0),
-                    new MTLSize((nuint)size, (nuint)size, 1));
-                ObjC.Void_objc_msgSend_MTLRegion_UInt_IntPtr_UInt(
-                    _paintMaskTexture,
-                    Selectors.ReplaceRegionMipmapLevelWithBytesBytesPerRow,
-                    region,
-                    0,
-                    pinned.AddrOfPinnedObject(),
-                    (nuint)(size * 4));
-            }
-            finally
-            {
-                pinned.Free();
-            }
-
-            IntPtr commandBuffer = _context.CreateCommandBuffer().Handle;
-            if (commandBuffer != IntPtr.Zero)
-            {
-                IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
-                if (blitEncoder != IntPtr.Zero)
-                {
-                    try
-                    {
-                        ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, _paintMaskTexture);
-                    }
-                    finally
-                    {
-                        ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
-                    }
-                }
-
-                ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
-                ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
-            }
-
+            UploadPaintTextureBytes(_paintMaskTexture, pixelBytes, size);
             _paintMaskTextureVersion = project.PaintMaskVersion;
+            _paintTextureFocusedLayerIndex = _focusedPaintLayerIndex;
         }
 
         private void EnsurePaintColorTexture(KnobProject? project)
@@ -451,30 +425,109 @@ namespace KnobForge.App.Controls
 
             if (_paintColorTexture != IntPtr.Zero)
             {
-                return;
+                if (_paintColorTextureVersion == project.PaintColorVersion &&
+                    _paintTextureFocusedLayerIndex == _focusedPaintLayerIndex &&
+                    !_paintColorTextureNeedsClear)
+                {
+                    return;
+                }
             }
 
-            IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
-                ObjCClasses.MTLTextureDescriptor,
-                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
-                PaintMaskPixelFormat,
-                (nuint)size,
-                (nuint)size,
-                true);
-            if (descriptor == IntPtr.Zero)
+            if (_paintColorTexture == IntPtr.Zero)
+            {
+                IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                    ObjCClasses.MTLTextureDescriptor,
+                    Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                    PaintMaskPixelFormat,
+                    (nuint)size,
+                    (nuint)size,
+                    true);
+                if (descriptor == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, PaintMaskTextureUsage);
+                IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+                if (texture == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                _paintColorTexture = texture;
+                _paintColorTextureVersion = -1;
+            }
+
+            byte[] pixelBytes = ResolvePaintColorBytesForDisplay(project);
+            if (pixelBytes.Length < size * size * 4)
             {
                 return;
             }
 
-            ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, PaintMaskTextureUsage);
-            IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
-            if (texture == IntPtr.Zero)
+            UploadPaintTextureBytes(_paintColorTexture, pixelBytes, size);
+            _paintColorTextureVersion = project.PaintColorVersion;
+            _paintTextureFocusedLayerIndex = _focusedPaintLayerIndex;
+            _paintColorTextureNeedsClear = false;
+        }
+
+        private void EnsurePaintMask2Texture(KnobProject? project)
+        {
+            if (_context is null || _context.Device.Handle == IntPtr.Zero || project is null)
             {
                 return;
             }
 
-            _paintColorTexture = texture;
-            _paintColorTextureNeedsClear = true;
+            int size = project.PaintMaskSize;
+            if (_paintMask2Texture != IntPtr.Zero)
+            {
+                nuint textureWidth = ObjC.UInt_objc_msgSend(_paintMask2Texture, Selectors.Width);
+                nuint textureHeight = ObjC.UInt_objc_msgSend(_paintMask2Texture, Selectors.Height);
+                if (textureWidth != (nuint)size || textureHeight != (nuint)size)
+                {
+                    ReleasePaintMask2Texture();
+                }
+            }
+
+            if (_paintMask2Texture == IntPtr.Zero)
+            {
+                IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                    ObjCClasses.MTLTextureDescriptor,
+                    Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                    PaintMaskPixelFormat,
+                    (nuint)size,
+                    (nuint)size,
+                    true);
+                if (descriptor == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, PaintMaskTextureUsage);
+                IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+                if (texture == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                _paintMask2Texture = texture;
+                _paintMask2TextureVersion = -1;
+            }
+
+            if (_paintMask2TextureVersion == project.PaintMask2Version &&
+                _paintTextureFocusedLayerIndex == _focusedPaintLayerIndex)
+            {
+                return;
+            }
+
+            byte[] pixelBytes = ResolvePaintMask2BytesForDisplay(project);
+            if (pixelBytes.Length < size * size * 4)
+            {
+                return;
+            }
+
+            UploadPaintTextureBytes(_paintMask2Texture, pixelBytes, size);
+            _paintMask2TextureVersion = project.PaintMask2Version;
+            _paintTextureFocusedLayerIndex = _focusedPaintLayerIndex;
         }
 
         private void ReleasePaintMaskTexture()
@@ -486,6 +539,7 @@ namespace KnobForge.App.Controls
             }
 
             _paintMaskTextureVersion = -1;
+            _paintTextureFocusedLayerIndex = int.MinValue;
         }
 
         private void ReleasePaintColorTexture()
@@ -496,7 +550,140 @@ namespace KnobForge.App.Controls
                 _paintColorTexture = IntPtr.Zero;
             }
 
+            _paintColorTextureVersion = -1;
+            _paintTextureFocusedLayerIndex = int.MinValue;
             _paintColorTextureNeedsClear = true;
+        }
+
+        private void ReleasePaintMask2Texture()
+        {
+            if (_paintMask2Texture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_paintMask2Texture, Selectors.Release);
+                _paintMask2Texture = IntPtr.Zero;
+            }
+
+            _paintMask2TextureVersion = -1;
+            _paintTextureFocusedLayerIndex = int.MinValue;
+        }
+
+        private byte[] ResolvePaintMaskBytesForDisplay(KnobProject project)
+        {
+            if (_focusedPaintLayerIndex < 0)
+            {
+                return project.GetPaintMaskRgba8();
+            }
+
+            EnsurePaintDisplayScratchCapacity(project.PaintMaskSize);
+            PaintLayerCompositor.CompositeMask(
+                project.PaintLayers,
+                _paintMaskDisplayScratch,
+                project.PaintMaskSize,
+                _focusedPaintLayerIndex,
+                0.75f);
+            return _paintMaskDisplayScratch;
+        }
+
+        private byte[] ResolvePaintColorBytesForDisplay(KnobProject project)
+        {
+            if (_focusedPaintLayerIndex < 0)
+            {
+                return project.GetPaintColorRgba8();
+            }
+
+            EnsurePaintDisplayScratchCapacity(project.PaintMaskSize);
+            PaintLayerCompositor.CompositeColor(
+                project.PaintLayers,
+                _paintColorDisplayScratch,
+                project.PaintMaskSize,
+                _focusedPaintLayerIndex,
+                0.75f);
+            return _paintColorDisplayScratch;
+        }
+
+        private byte[] ResolvePaintMask2BytesForDisplay(KnobProject project)
+        {
+            if (_focusedPaintLayerIndex < 0)
+            {
+                return project.GetPaintMask2Rgba8();
+            }
+
+            EnsurePaintDisplayScratchCapacity(project.PaintMaskSize);
+            PaintLayerCompositor.CompositeMask2(
+                project.PaintLayers,
+                _paintMask2DisplayScratch,
+                project.PaintMaskSize,
+                _focusedPaintLayerIndex,
+                0.75f);
+            return _paintMask2DisplayScratch;
+        }
+
+        private void EnsurePaintDisplayScratchCapacity(int size)
+        {
+            int expectedLength = size * size * 4;
+            if (_paintMaskDisplayScratch.Length != expectedLength)
+            {
+                _paintMaskDisplayScratch = new byte[expectedLength];
+            }
+
+            if (_paintColorDisplayScratch.Length != expectedLength)
+            {
+                _paintColorDisplayScratch = new byte[expectedLength];
+            }
+
+            if (_paintMask2DisplayScratch.Length != expectedLength)
+            {
+                _paintMask2DisplayScratch = new byte[expectedLength];
+            }
+        }
+
+        private void UploadPaintTextureBytes(IntPtr texture, byte[] pixelBytes, int size)
+        {
+            if (_context is null || texture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            GCHandle pinned = GCHandle.Alloc(pixelBytes, GCHandleType.Pinned);
+            try
+            {
+                MTLRegion region = new MTLRegion(
+                    new MTLOrigin(0, 0, 0),
+                    new MTLSize((nuint)size, (nuint)size, 1));
+                ObjC.Void_objc_msgSend_MTLRegion_UInt_IntPtr_UInt(
+                    texture,
+                    Selectors.ReplaceRegionMipmapLevelWithBytesBytesPerRow,
+                    region,
+                    0,
+                    pinned.AddrOfPinnedObject(),
+                    (nuint)(size * 4));
+            }
+            finally
+            {
+                pinned.Free();
+            }
+
+            IntPtr commandBuffer = _context.CreateCommandBuffer().Handle;
+            if (commandBuffer == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr blitEncoder = ObjC.IntPtr_objc_msgSend(commandBuffer, Selectors.BlitCommandEncoder);
+            if (blitEncoder != IntPtr.Zero)
+            {
+                try
+                {
+                    ObjC.Void_objc_msgSend_IntPtr(blitEncoder, Selectors.GenerateMipmapsForTexture, texture);
+                }
+                finally
+                {
+                    ObjC.Void_objc_msgSend(blitEncoder, Selectors.EndEncoding);
+                }
+            }
+
+            ObjC.Void_objc_msgSend(commandBuffer, Selectors.Commit);
+            ObjC.Void_objc_msgSend(commandBuffer, Selectors.WaitUntilCompleted);
         }
 
         private static byte[] BuildSpiralNormalMapRgba8(

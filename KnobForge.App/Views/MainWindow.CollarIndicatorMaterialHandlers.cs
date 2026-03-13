@@ -639,6 +639,7 @@ namespace KnobForge.App.Views
                 _materialBaseBSlider.Value = color.Z;
                 _materialMetallicSlider.Value = GetPartMetallic(material, region);
                 _materialRoughnessSlider.Value = GetPartRoughness(material, region);
+                ApplyMaterialTextureValuesToUi(material);
             }
             finally
             {

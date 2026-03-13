@@ -13,8 +13,6 @@ public sealed class CollarMesh
 
     public uint[] Indices { get; init; } = Array.Empty<uint>();
 
-    public Vector2[] UVs { get; init; } = Array.Empty<Vector2>();
-
     public Vector4[] Tangents { get; init; } = Array.Empty<Vector4>();
 
     public float ReferenceRadius { get; init; }
@@ -494,7 +492,8 @@ public static partial class OuroborosCollarMeshBuilder
             {
                 Position = finalPositions[i],
                 Normal = finalNormals[i],
-                Tangent = finalTangents[i]
+                Tangent = finalTangents[i],
+                Texcoord = finalUVs[i]
             };
         }
 
@@ -502,7 +501,6 @@ public static partial class OuroborosCollarMeshBuilder
         {
             Vertices = vertices,
             Indices = indices.ToArray(),
-            UVs = finalUVs,
             Tangents = finalTangents,
             ReferenceRadius = MathF.Max(knobRadius, centerlineRadius + (bodyRadiusBase * 1.2f))
         };

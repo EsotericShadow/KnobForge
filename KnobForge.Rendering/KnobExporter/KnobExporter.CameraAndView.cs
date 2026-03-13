@@ -129,7 +129,14 @@ public sealed partial class KnobExporter
 
         private float GetSceneReferenceRadius()
         {
-            float maxReferenceRadius = MathF.Max(1f, _renderer.GetMaxModelReferenceRadius());
+            if (_referenceRadiusOverride.HasValue)
+            {
+                return MathF.Max(1f, _referenceRadiusOverride.Value);
+            }
+
+            float maxReferenceRadius = 1f;
+            ModelNode? modelNode = _project.SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            maxReferenceRadius = MathF.Max(maxReferenceRadius, modelNode?.Radius ?? 1f);
 
             MetalMesh? mesh = MetalMeshBuilder.TryBuildFromProject(_project);
             if (mesh != null)

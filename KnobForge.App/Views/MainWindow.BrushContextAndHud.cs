@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.Primitives;
 using KnobForge.App.Controls;
 using KnobForge.Core;
+using System;
 
 namespace KnobForge.App.Views
 {
@@ -29,6 +30,7 @@ namespace KnobForge.App.Views
             }
 
             InitializePaintLayerUx();
+            InitializePaintResolutionUx();
             UpdateBrushContextUi();
             _metalViewport?.RefreshPaintHud();
         }
@@ -51,6 +53,9 @@ namespace KnobForge.App.Views
                 : _project.BrushChannel;
             bool scratchMode = channel == PaintChannel.Scratch;
             bool colorMode = channel == PaintChannel.Color;
+            bool roughnessMode = channel == PaintChannel.Roughness;
+            bool metallicMode = channel == PaintChannel.Metallic;
+            bool materialTargetMode = roughnessMode || metallicMode;
             bool hasModel = GetModelNode() != null;
 
             if (_scratchContextBannerBorder != null)
@@ -83,6 +88,43 @@ namespace KnobForge.App.Views
                 _colorChannelPanel.IsVisible = true;
                 _colorChannelPanel.Opacity = colorMode ? 1d : 0.88d;
                 _colorChannelPanel.IsEnabled = hasModel;
+            }
+
+            if (_paintChannelTargetValuePanel != null)
+            {
+                _paintChannelTargetValuePanel.IsVisible = materialTargetMode;
+                _paintChannelTargetValuePanel.IsEnabled = hasModel;
+            }
+
+            if (_paintChannelTargetValueLabel != null)
+            {
+                _paintChannelTargetValueLabel.Text = roughnessMode
+                    ? "Target Roughness"
+                    : metallicMode
+                        ? "Target Metallic"
+                        : "Target Value";
+            }
+
+            float targetValue = roughnessMode
+                ? _project.RoughnessPaintTarget
+                : metallicMode
+                    ? _project.MetallicPaintTarget
+                    : 0f;
+
+            if (_paintChannelTargetValueSlider != null && materialTargetMode)
+            {
+                double sliderValue = targetValue;
+                if (Math.Abs(_paintChannelTargetValueSlider.Value - sliderValue) > 0.0001d)
+                {
+                    _paintChannelTargetValueSlider.Value = sliderValue;
+                }
+            }
+
+            if (_paintChannelTargetValueText != null)
+            {
+                _paintChannelTargetValueText.Text = materialTargetMode
+                    ? $"{targetValue:0.00}"
+                    : string.Empty;
             }
 
             if (_brushPaintColorPicker != null)

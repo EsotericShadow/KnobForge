@@ -46,11 +46,11 @@ namespace KnobForge.App.Views
         {
             return _project.ProjectType switch
             {
-                InteractorProjectType.RotaryKnob => "Choose perspective, then click Create Rotary Preview. Drag to spin through output frames.",
-                InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames.",
-                InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames.",
-                InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames.",
-                InteractorProjectType.IndicatorLight => "Choose perspective, then click Create Indicator Preview. Drag to scrub the loop and validate emissive timing/framing.",
+                InteractorProjectType.RotaryKnob => "Choose perspective, then click Create Rotary Preview. Drag to spin through output frames and inspect the current compression result.",
+                InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames and inspect the current compression result.",
+                InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames and inspect the current compression result.",
+                InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames and inspect the current compression result.",
+                InteractorProjectType.IndicatorLight => "Choose perspective, then click Create Indicator Preview. Drag to scrub the loop, validate emissive timing/framing, and inspect the current compression result.",
                 _ => "Interactive preview is unavailable for this project type."
             };
         }
@@ -80,6 +80,9 @@ namespace KnobForge.App.Views
             {
                 return;
             }
+
+            _lastPreviewEncodedSheetBytes = null;
+            UpdateCompressionEstimateText();
 
             if (_isBuildingRotaryPreview || !string.IsNullOrWhiteSpace(_rotaryPreviewTempPath))
             {
@@ -127,6 +130,12 @@ namespace KnobForge.App.Views
                 return;
             }
 
+            if (!TryBuildCompressionSettings(out CompressionSettingsSnapshot compressionSettings, out string compressionError))
+            {
+                _rotaryPreviewInfoTextBlock.Text = $"Cannot build interactive preview: {compressionError}";
+                return;
+            }
+
             var variant = _rotaryPreviewVariantComboBox.SelectedItem as PreviewVariantOption
                 ?? _previewVariantOptions[0];
 
@@ -138,10 +147,13 @@ namespace KnobForge.App.Views
 
             try
             {
-                RotaryPreviewSheet previewSheet = await BuildRotaryPreviewSheetAsync(request, variant, _rotaryPreviewCts.Token);
+                RotaryPreviewSheet previewSheet = await BuildRotaryPreviewSheetAsync(request, variant, compressionSettings, _rotaryPreviewCts.Token);
                 CleanupRotaryPreviewTempPath();
                 _rotaryPreviewTempPath = previewSheet.SpriteSheetPath;
                 ApplyRotaryPreviewSheet(previewSheet);
+                _lastPreviewEncodedSheetBytes = previewSheet.EncodedBytes;
+                UpdateCompressionEstimateText();
+                UpdateStartRenderAvailability(preserveCurrentNonErrorStatus: true);
                 _rotaryPreviewInfoTextBlock.Text = $"Ready: {variant.DisplayName}, {previewSheet.FrameCount} frames at {previewSheet.FrameSizePx}px. Drag to scrub frames.";
             }
             catch (OperationCanceledException)
@@ -150,6 +162,8 @@ namespace KnobForge.App.Views
             }
             catch (Exception ex)
             {
+                _lastPreviewEncodedSheetBytes = null;
+                UpdateCompressionEstimateText();
                 _rotaryPreviewInfoTextBlock.Text = $"Interactive preview failed: {ex.Message}";
             }
             finally
@@ -177,6 +191,7 @@ namespace KnobForge.App.Views
         private async Task<RotaryPreviewSheet> BuildRotaryPreviewSheetAsync(
             PreviewRenderRequest request,
             PreviewVariantOption variant,
+            CompressionSettingsSnapshot compressionSettings,
             CancellationToken cancellationToken)
         {
             if (_gpuViewport == null)
@@ -355,11 +370,16 @@ namespace KnobForge.App.Views
             }
 
             string outputPath = CreateRotaryPreviewTempPath();
-            using SKData pngData = sheetBitmap.Encode(SKEncodedImageFormat.Png, 100);
+            var previewEncodingSettings = new KnobExportSettings();
+            compressionSettings.ApplyTo(previewEncodingSettings);
+            using SKData pngData = KnobExporter.EncodePreviewSpritesheetPng(
+                sheetBitmap,
+                previewEncodingSettings,
+                previewEncodingSettings.OptimizeSpritesheetPng);
             using FileStream outputStream = File.Create(outputPath);
             pngData.SaveTo(outputStream);
 
-            return new RotaryPreviewSheet(outputPath, frameCount, columns, resolution);
+            return new RotaryPreviewSheet(outputPath, frameCount, columns, resolution, (long)pngData.Size);
         }
 
         private async Task<ViewportCameraState> FitRotaryPreviewCameraAsync(
@@ -657,6 +677,7 @@ namespace KnobForge.App.Views
             _rotaryPreviewKnob.FramePadding = 0;
             _rotaryPreviewKnob.FrameStartX = 0;
             _rotaryPreviewKnob.FrameStartY = 0;
+            _rotaryPreviewKnob.ReverseFrameOrder = false;
             _rotaryPreviewKnob.Minimum = 0d;
             _rotaryPreviewKnob.Maximum = Math.Max(1d, sheet.FrameCount - 1d);
             _rotaryPreviewKnob.KnobDiameter = sheet.FrameSizePx;

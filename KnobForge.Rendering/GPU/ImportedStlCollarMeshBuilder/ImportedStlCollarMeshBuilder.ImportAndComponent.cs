@@ -13,10 +13,9 @@ namespace KnobForge.Rendering.GPU;
 
 public static partial class ImportedStlCollarMeshBuilder
 {
-    private static bool TryReadImportedMesh(string path, out List<Vector3> positions, out List<uint> indices)
+    private static bool TryReadImportedMesh(string path, out ImportedMeshData meshData)
     {
-        positions = new List<Vector3>();
-        indices = new List<uint>();
+        meshData = new ImportedMeshData();
         long fileTicks;
         try
         {
@@ -29,55 +28,74 @@ public static partial class ImportedStlCollarMeshBuilder
 
         lock (ImportedMeshCacheLock)
         {
-            if (_cachedImportedMeshPositions is not null &&
-                _cachedImportedMeshIndices is not null &&
+            if (_cachedImportedMeshData is not null &&
                 string.Equals(_cachedImportedMeshPath, path, StringComparison.Ordinal) &&
                 _cachedImportedMeshTicks == fileTicks)
             {
-                positions = new List<Vector3>(_cachedImportedMeshPositions);
-                indices = new List<uint>(_cachedImportedMeshIndices);
+                meshData = CloneImportedMeshData(_cachedImportedMeshData);
                 return true;
             }
         }
 
         string extension = Path.GetExtension(path);
-        bool readOk = string.Equals(extension, ".glb", StringComparison.OrdinalIgnoreCase)
-            ? TryReadBinaryGlb(path, out positions, out indices)
-            : string.Equals(extension, ".stl", StringComparison.OrdinalIgnoreCase) &&
-              TryReadBinaryStl(path, out positions, out indices);
-
-        if (!readOk || positions.Count == 0 || indices.Count < 3)
+        bool readOk;
+        if (string.Equals(extension, ".glb", StringComparison.OrdinalIgnoreCase))
         {
-            positions = new List<Vector3>();
-            indices = new List<uint>();
+            readOk = TryReadBinaryGlb(path, out meshData);
+        }
+        else if (string.Equals(extension, ".stl", StringComparison.OrdinalIgnoreCase) &&
+                 TryReadBinaryStl(path, out List<Vector3> positions, out List<uint> indices))
+        {
+            meshData = new ImportedMeshData
+            {
+                Positions = positions,
+                Indices = indices
+            };
+            readOk = true;
+        }
+        else
+        {
+            readOk = false;
+        }
+
+        if (!readOk || meshData.Positions.Count == 0 || meshData.Indices.Count < 3)
+        {
+            meshData = new ImportedMeshData();
             return false;
         }
 
-        if (TryExtractLikelyCollarComponent(positions, indices, out List<Vector3> extractedPositions, out List<uint> extractedIndices))
+        if (TryExtractLikelyCollarComponent(meshData, out ImportedMeshData extractedMesh))
         {
-            positions = extractedPositions;
-            indices = extractedIndices;
+            meshData = extractedMesh;
         }
 
         lock (ImportedMeshCacheLock)
         {
             _cachedImportedMeshPath = path;
             _cachedImportedMeshTicks = fileTicks;
-            _cachedImportedMeshPositions = new List<Vector3>(positions);
-            _cachedImportedMeshIndices = new List<uint>(indices);
+            _cachedImportedMeshData = CloneImportedMeshData(meshData);
         }
 
         return true;
     }
 
     private static bool TryExtractLikelyCollarComponent(
-        IReadOnlyList<Vector3> sourcePositions,
-        IReadOnlyList<uint> sourceIndices,
-        out List<Vector3> extractedPositions,
-        out List<uint> extractedIndices)
+        ImportedMeshData sourceMesh,
+        out ImportedMeshData extractedMesh)
     {
-        extractedPositions = new List<Vector3>();
-        extractedIndices = new List<uint>();
+        extractedMesh = new ImportedMeshData();
+
+        IReadOnlyList<Vector3> sourcePositions = sourceMesh.Positions;
+        IReadOnlyList<uint> sourceIndices = sourceMesh.Indices;
+        IReadOnlyList<Vector3>? sourceNormals = sourceMesh.Normals;
+        IReadOnlyList<Vector2>? sourceTexcoords = sourceMesh.Texcoords;
+        bool hasNormals = sourceNormals is not null && sourceNormals.Count == sourcePositions.Count;
+        bool hasTexcoords = sourceTexcoords is not null && sourceTexcoords.Count == sourcePositions.Count;
+
+        var extractedPositions = new List<Vector3>();
+        var extractedIndices = new List<uint>();
+        List<Vector3>? extractedNormals = hasNormals ? new List<Vector3>() : null;
+        List<Vector2>? extractedTexcoords = hasTexcoords ? new List<Vector2>() : null;
 
         int vertexCount = sourcePositions.Count;
         int triangleCount = sourceIndices.Count / 3;
@@ -220,8 +238,18 @@ public static partial class ImportedStlCollarMeshBuilder
         for (int i = 0; i < selectedVertices.Count; i++)
         {
             int oldIndex = selectedVertices[i];
-            oldToNew[oldIndex] = (uint)extractedPositions.Count;
+            uint newIndex = (uint)extractedPositions.Count;
+            oldToNew[oldIndex] = newIndex;
             extractedPositions.Add(sourcePositions[oldIndex]);
+            if (extractedNormals is not null)
+            {
+                extractedNormals.Add(sourceNormals![oldIndex]);
+            }
+
+            if (extractedTexcoords is not null)
+            {
+                extractedTexcoords.Add(sourceTexcoords![oldIndex]);
+            }
         }
 
         extractedIndices.Capacity = selectedTriangles.Count * 3;
@@ -247,14 +275,32 @@ public static partial class ImportedStlCollarMeshBuilder
 
         if (extractedPositions.Count == 0 || extractedIndices.Count < 3)
         {
-            extractedPositions = new List<Vector3>();
-            extractedIndices = new List<uint>();
+            extractedMesh = new ImportedMeshData();
             return false;
         }
+
+        extractedMesh = new ImportedMeshData
+        {
+            Positions = extractedPositions,
+            Indices = extractedIndices,
+            Normals = extractedNormals,
+            Texcoords = extractedTexcoords
+        };
 
         Console.WriteLine(
             $"[ImportedMesh] Extracted outer component for collar: components={verticesByRoot.Count}, selectedTriangles={selectedTriangles.Count}/{triangleCount}, selectedVertices={extractedPositions.Count}/{vertexCount}");
         return true;
+    }
+
+    private static ImportedMeshData CloneImportedMeshData(ImportedMeshData source)
+    {
+        return new ImportedMeshData
+        {
+            Positions = new List<Vector3>(source.Positions),
+            Indices = new List<uint>(source.Indices),
+            Normals = source.Normals is null ? null : new List<Vector3>(source.Normals),
+            Texcoords = source.Texcoords is null ? null : new List<Vector2>(source.Texcoords)
+        };
     }
 
     private static bool IsVertexIndexValid(int index, int vertexCount)

@@ -267,3 +267,6 @@ Model.consumption.cs
 Model.training.cs
 Model.zip
 .DS_Store
+
+# Devlog app
+devlog/

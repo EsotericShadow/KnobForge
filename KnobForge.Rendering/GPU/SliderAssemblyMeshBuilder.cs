@@ -189,7 +189,8 @@ public static class SliderAssemblyMeshBuilder
                 {
                     Position = vertices[i].Position + offset,
                     Normal = vertices[i].Normal,
-                    Tangent = vertices[i].Tangent
+                    Tangent = vertices[i].Tangent,
+                    Texcoord = vertices[i].Texcoord
                 };
             }
         }
@@ -262,10 +263,10 @@ public static class SliderAssemblyMeshBuilder
         uint start = (uint)vertices.Count;
         Vector3 tangent = Vector3.Normalize(tangentDirection);
         Vector4 packedTangent = new(tangent, 1f);
-        vertices.Add(new MetalVertex { Position = p0, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p1, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p2, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p3, Normal = normal, Tangent = packedTangent });
+        vertices.Add(new MetalVertex { Position = p0, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(0f, 0f) });
+        vertices.Add(new MetalVertex { Position = p1, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(1f, 0f) });
+        vertices.Add(new MetalVertex { Position = p2, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(1f, 1f) });
+        vertices.Add(new MetalVertex { Position = p3, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(0f, 1f) });
 
         indices.Add(start + 0);
         indices.Add(start + 1);

@@ -560,7 +560,8 @@ public static class ToggleAssemblyMeshBuilder
             {
                 Position = position,
                 Normal = normal,
-                Tangent = tangent
+                Tangent = tangent,
+                Texcoord = vertices[i].Texcoord
             };
             referenceRadius = MathF.Max(referenceRadius, position.Length());
         }
@@ -1072,7 +1073,8 @@ public static class ToggleAssemblyMeshBuilder
                 {
                     Position = position,
                     Normal = normal,
-                    Tangent = new Vector4(tangent, 1f)
+                    Tangent = new Vector4(tangent, 1f),
+                    Texcoord = new Vector2(j / (float)sideCount, i / (float)segmentCount)
                 });
             }
         }
@@ -1131,7 +1133,8 @@ public static class ToggleAssemblyMeshBuilder
                 {
                     Position = position,
                     Normal = normal,
-                    Tangent = new Vector4(tangent, 1f)
+                    Tangent = new Vector4(tangent, 1f),
+                    Texcoord = new Vector2(u, v)
                 });
             }
         }
@@ -1222,19 +1225,22 @@ public static class ToggleAssemblyMeshBuilder
                     {
                         Position = center,
                         Normal = normal,
-                        Tangent = new Vector4(centerTangent, 1f)
+                        Tangent = new Vector4(centerTangent, 1f),
+                        Texcoord = new Vector2(0.5f, 0.5f)
                     });
                     vertices.Add(new MetalVertex
                     {
                         Position = nextPosition,
                         Normal = normal,
-                        Tangent = new Vector4(nextTangent, 1f)
+                        Tangent = new Vector4(nextTangent, 1f),
+                        Texcoord = new Vector2((MathF.Cos(angleNext) * 0.5f) + 0.5f, (MathF.Sin(angleNext) * 0.5f) + 0.5f)
                     });
                     vertices.Add(new MetalVertex
                     {
                         Position = currentPosition,
                         Normal = normal,
-                        Tangent = new Vector4(currentTangent, 1f)
+                        Tangent = new Vector4(currentTangent, 1f),
+                        Texcoord = new Vector2((MathF.Cos(angleCurrent) * 0.5f) + 0.5f, (MathF.Sin(angleCurrent) * 0.5f) + 0.5f)
                     });
                 }
                 else
@@ -1243,19 +1249,22 @@ public static class ToggleAssemblyMeshBuilder
                     {
                         Position = center,
                         Normal = normal,
-                        Tangent = new Vector4(centerTangent, 1f)
+                        Tangent = new Vector4(centerTangent, 1f),
+                        Texcoord = new Vector2(0.5f, 0.5f)
                     });
                     vertices.Add(new MetalVertex
                     {
                         Position = currentPosition,
                         Normal = normal,
-                        Tangent = new Vector4(currentTangent, 1f)
+                        Tangent = new Vector4(currentTangent, 1f),
+                        Texcoord = new Vector2((MathF.Cos(angleCurrent) * 0.5f) + 0.5f, (MathF.Sin(angleCurrent) * 0.5f) + 0.5f)
                     });
                     vertices.Add(new MetalVertex
                     {
                         Position = nextPosition,
                         Normal = normal,
-                        Tangent = new Vector4(nextTangent, 1f)
+                        Tangent = new Vector4(nextTangent, 1f),
+                        Texcoord = new Vector2((MathF.Cos(angleNext) * 0.5f) + 0.5f, (MathF.Sin(angleNext) * 0.5f) + 0.5f)
                     });
                 }
 
@@ -1272,7 +1281,8 @@ public static class ToggleAssemblyMeshBuilder
         {
             Position = center,
             Normal = normal,
-            Tangent = new Vector4(SafeNormalize(tangentA, BuildTangentFromNormal(normal)), 1f)
+            Tangent = new Vector4(SafeNormalize(tangentA, BuildTangentFromNormal(normal)), 1f),
+            Texcoord = new Vector2(0.5f, 0.5f)
         });
 
         uint ringStart = (uint)vertices.Count;
@@ -1293,7 +1303,8 @@ public static class ToggleAssemblyMeshBuilder
             {
                 Position = position,
                 Normal = normal,
-                Tangent = new Vector4(tangentDirection, 1f)
+                Tangent = new Vector4(tangentDirection, 1f),
+                Texcoord = new Vector2((MathF.Cos(angle) * 0.5f) + 0.5f, (MathF.Sin(angle) * 0.5f) + 0.5f)
             });
         }
 
@@ -1356,10 +1367,10 @@ public static class ToggleAssemblyMeshBuilder
         Vector4 packedTangent = new(tangent, 1f);
         Vector3 safeNormal = SafeNormalize(normal, Vector3.UnitZ);
 
-        vertices.Add(new MetalVertex { Position = p0, Normal = safeNormal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p1, Normal = safeNormal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p2, Normal = safeNormal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p3, Normal = safeNormal, Tangent = packedTangent });
+        vertices.Add(new MetalVertex { Position = p0, Normal = safeNormal, Tangent = packedTangent, Texcoord = new Vector2(0f, 0f) });
+        vertices.Add(new MetalVertex { Position = p1, Normal = safeNormal, Tangent = packedTangent, Texcoord = new Vector2(1f, 0f) });
+        vertices.Add(new MetalVertex { Position = p2, Normal = safeNormal, Tangent = packedTangent, Texcoord = new Vector2(1f, 1f) });
+        vertices.Add(new MetalVertex { Position = p3, Normal = safeNormal, Tangent = packedTangent, Texcoord = new Vector2(0f, 1f) });
 
         indices.Add(start + 0);
         indices.Add(start + 1);

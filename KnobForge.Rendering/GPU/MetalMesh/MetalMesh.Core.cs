@@ -11,9 +11,12 @@ namespace KnobForge.Rendering.GPU;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct MetalVertex
 {
+    public const int ExpectedSizeInBytes = 48;
+
     public Vector3 Position { get; init; }
     public Vector3 Normal { get; init; }
     public Vector4 Tangent { get; init; }
+    public Vector2 Texcoord { get; init; }
 }
 
 public sealed class MetalMesh
@@ -120,7 +123,10 @@ public static partial class MetalMeshBuilder
 
         var positions = new Vector3[totalVertices];
         var normals = new Vector3[totalVertices];
+        var texcoords = new Vector2[totalVertices];
         var indices = new List<uint>(radialSegments * (ringCount - 1) * 6 + radialSegments * frontCapRings * 6 + radialSegments * 6);
+        int bevelStartRing = sideDetailSegments + 1;
+        int bevelEndRing = ringCount - 1;
 
         for (int i = 0; i < ringCount; i++)
         {
@@ -149,8 +155,21 @@ public static partial class MetalMeshBuilder
                 float r = baseRadius + gripOffset;
 
                 int vi = ringStart + s;
-                positions[vi] = new Vector3(r * c, r * si, z);
+                Vector3 position = new(r * c, r * si, z);
+                positions[vi] = position;
                 normals[vi] = Vector3.UnitX;
+
+                Vector2 sideUv = ComputeCylindricalUv(position, zBack, zFront);
+                if (i >= bevelStartRing)
+                {
+                    float bevelFactor = (float)(i - bevelStartRing) / Math.Max(1, bevelEndRing - bevelStartRing);
+                    Vector2 capUv = ComputePlanarCapUv(position, topRadius);
+                    texcoords[vi] = BlendBevelUv(sideUv, capUv, bevelFactor);
+                }
+                else
+                {
+                    texcoords[vi] = sideUv;
+                }
             }
         }
         RecomputeSideNormals(positions, normals, ringCount, radialSegments);
@@ -215,6 +234,7 @@ public static partial class MetalMeshBuilder
 
                 positions[ringStart + s] = new Vector3(x, y, z);
                 normals[ringStart + s] = Vector3.UnitZ;
+                texcoords[ringStart + s] = ComputePlanarCapUv(positions[ringStart + s], topRadius);
             }
         }
 
@@ -232,6 +252,7 @@ public static partial class MetalMeshBuilder
             indicatorThicknessRatio,
             indicatorRoundness));
         normals[frontCenter] = Vector3.UnitZ;
+        texcoords[frontCenter] = ComputePlanarCapUv(positions[frontCenter], topRadius);
 
         for (int ring = 1; ring <= frontCapRings; ring++)
         {
@@ -308,10 +329,12 @@ public static partial class MetalMeshBuilder
             float si = MathF.Sin(angle);
             positions[backRingStart + s] = new Vector3(backRadius * c, backRadius * si, zBack);
             normals[backRingStart + s] = -Vector3.UnitZ;
+            texcoords[backRingStart + s] = ComputePlanarCapUv(positions[backRingStart + s], radius);
         }
 
         positions[backCenter] = new Vector3(0f, 0f, zBack);
         normals[backCenter] = -Vector3.UnitZ;
+        texcoords[backCenter] = ComputePlanarCapUv(positions[backCenter], radius);
         for (int s = 0; s < radialSegments; s++)
         {
             int sn = (s + 1) % radialSegments;
@@ -322,6 +345,7 @@ public static partial class MetalMeshBuilder
 
         var positionList = new List<Vector3>(positions);
         var normalList = new List<Vector3>(normals);
+        var texcoordList = new List<Vector2>(texcoords);
         if (indicatorEnabled &&
             indicatorCadWallsEnabled &&
             indicatorProfile == IndicatorProfile.Straight &&
@@ -330,6 +354,7 @@ public static partial class MetalMeshBuilder
             AppendIndicatorHardWalls(
                 positionList,
                 normalList,
+                texcoordList,
                 indices,
                 topRadius,
                 zFront,
@@ -355,7 +380,8 @@ public static partial class MetalMeshBuilder
             {
                 Position = positionList[i],
                 Normal = normalList[i],
-                Tangent = new Vector4(tangent, 1f)
+                Tangent = new Vector4(tangent, 1f),
+                Texcoord = texcoordList[i]
             };
         }
 
@@ -452,5 +478,49 @@ public static partial class MetalMeshBuilder
         }
 
         return MathF.Max(1f, best);
+    }
+
+    private static Vector2 ComputePlanarCapUv(Vector3 position, float capRadius)
+    {
+        // Surface/material UVs must match the original cap projection used by the GPU shader.
+        float diameter = MathF.Max(capRadius * 2f, 1e-4f);
+        return new Vector2((position.X / diameter) + 0.5f, (position.Y / diameter) + 0.5f);
+    }
+
+    private static Vector2 ComputeCylindricalUv(Vector3 position, float minZ, float maxZ)
+    {
+        float angle = MathF.Atan2(position.Y, position.X);
+        float u = Wrap01((angle / (MathF.PI * 2f)) + 0.5f);
+        float v = (position.Z - minZ) / MathF.Max(maxZ - minZ, 1e-6f);
+        return new Vector2(u, v);
+    }
+
+    private static Vector2 BlendBevelUv(Vector2 sideUv, Vector2 capUv, float blend)
+    {
+        float t = Math.Clamp(blend, 0f, 1f);
+        return new Vector2(
+            LerpWrapped01(sideUv.X, capUv.X, t),
+            sideUv.Y + ((capUv.Y - sideUv.Y) * t));
+    }
+
+    private static float LerpWrapped01(float from, float to, float blend)
+    {
+        float delta = to - from;
+        if (delta > 0.5f)
+        {
+            delta -= 1f;
+        }
+        else if (delta < -0.5f)
+        {
+            delta += 1f;
+        }
+
+        return Wrap01(from + (delta * blend));
+    }
+
+    private static float Wrap01(float value)
+    {
+        float wrapped = value - MathF.Floor(value);
+        return wrapped < 0f ? wrapped + 1f : wrapped;
     }
 }

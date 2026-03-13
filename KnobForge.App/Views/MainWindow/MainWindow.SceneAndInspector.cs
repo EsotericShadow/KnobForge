@@ -370,7 +370,9 @@ namespace KnobForge.App.Views
                 _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthSlider == null || _shadowSoftnessSlider == null ||
                 _shadowDistanceSlider == null || _shadowScaleSlider == null || _shadowQualitySlider == null ||
                 _shadowGraySlider == null || _shadowDiffuseInfluenceSlider == null ||
-                _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _scratchAbrasionTypeCombo == null ||
+                _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _paintChannelTargetValueSlider == null || _scratchAbrasionTypeCombo == null ||
+                _paintLayerVisibleCheckBox == null || _paintLayerBlendModeCombo == null || _paintLayerOpacitySlider == null || _paintLayerOpacityValueText == null ||
+                _paintMaskResolutionCombo == null || _paintMaskResolutionMemoryText == null ||
                 _brushSizeSlider == null || _brushOpacitySlider == null || _brushDarknessSlider == null || _brushSpreadSlider == null ||
                 _paintCoatMetallicSlider == null || _paintCoatRoughnessSlider == null ||
                 _clearCoatAmountSlider == null || _clearCoatRoughnessSlider == null || _anisotropyAngleSlider == null ||
@@ -1283,6 +1285,15 @@ namespace KnobForge.App.Views
                 _materialRustSlider.IsEnabled = hasMaterial;
                 _materialWearSlider.IsEnabled = hasMaterial;
                 _materialGunkSlider.IsEnabled = hasMaterial;
+                _materialAlbedoMapBrowseButton!.IsEnabled = hasMaterial;
+                _materialAlbedoMapClearButton!.IsEnabled = hasMaterial;
+                _materialNormalMapBrowseButton!.IsEnabled = hasMaterial;
+                _materialNormalMapClearButton!.IsEnabled = hasMaterial;
+                _materialRoughnessMapBrowseButton!.IsEnabled = hasMaterial;
+                _materialRoughnessMapClearButton!.IsEnabled = hasMaterial;
+                _materialMetallicMapBrowseButton!.IsEnabled = hasMaterial;
+                _materialMetallicMapClearButton!.IsEnabled = hasMaterial;
+                _materialNormalMapStrengthSlider!.IsEnabled = hasMaterial && material?.HasNormalMap == true;
                 _materialBrushStrengthSlider.IsEnabled = hasMaterial;
                 _materialBrushDensitySlider.IsEnabled = hasMaterial;
                 _materialCharacterSlider.IsEnabled = hasMaterial;
@@ -1844,9 +1855,15 @@ namespace KnobForge.App.Views
                 _shadowGraySlider.Value = project.ShadowGray;
                 _shadowDiffuseInfluenceSlider.Value = project.ShadowDiffuseInfluence;
                 _brushPaintEnabledCheckBox.IsChecked = project.BrushPaintingEnabled;
+                _paintMaskResolutionCombo.SelectedItem = project.PaintMaskSize;
                 _brushPaintChannelCombo.SelectedItem = project.BrushChannel;
                 _brushTypeCombo.SelectedItem = project.BrushType;
                 _brushPaintColorPicker.Color = ToAvaloniaColor(project.PaintColor);
+                _paintChannelTargetValueSlider.Value = project.BrushChannel == PaintChannel.Roughness
+                    ? project.RoughnessPaintTarget
+                    : project.BrushChannel == PaintChannel.Metallic
+                        ? project.MetallicPaintTarget
+                        : 0d;
                 _scratchAbrasionTypeCombo.SelectedItem = project.ScratchAbrasionType;
                 _brushSizeSlider.Value = project.BrushSizePx;
                 _brushOpacitySlider.Value = project.BrushOpacity;
@@ -1866,6 +1883,7 @@ namespace KnobForge.App.Views
                 _scratchExposeColorBSlider.Value = project.ScratchExposeColor.Z;
                 _scratchExposeMetallicSlider.Value = project.ScratchExposeMetallic;
                 _scratchExposeRoughnessSlider.Value = project.ScratchExposeRoughness;
+                UpdatePaintResolutionUi();
                 UpdateBrushContextUi();
                 _metalViewport?.RefreshPaintHud();
 

@@ -492,7 +492,8 @@ public static class IndicatorAssemblyMeshBuilder
                 {
                     Position = center + (normal * r),
                     Normal = normal,
-                    Tangent = new Vector4(tangentDir, 1f)
+                    Tangent = new Vector4(tangentDir, 1f),
+                    Texcoord = new Vector2(u, v)
                 });
             }
         }
@@ -538,7 +539,8 @@ public static class IndicatorAssemblyMeshBuilder
         {
             Position = center,
             Normal = normal,
-            Tangent = discTangent
+            Tangent = discTangent,
+            Texcoord = new Vector2(0.5f, 0.5f)
         });
 
         float step = (MathF.PI * 2f) / segmentCount;
@@ -551,7 +553,8 @@ public static class IndicatorAssemblyMeshBuilder
             {
                 Position = center + (radial * r),
                 Normal = normal,
-                Tangent = discTangent
+                Tangent = discTangent,
+                Texcoord = new Vector2((MathF.Cos(angle) * 0.5f) + 0.5f, (MathF.Sin(angle) * 0.5f) + 0.5f)
             });
         }
 
@@ -581,10 +584,10 @@ public static class IndicatorAssemblyMeshBuilder
         Vector3 tangent = SafeNormalize(tangentDirection, Vector3.UnitX);
         Vector4 tangent4 = new(tangent, 1f);
 
-        vertices.Add(new MetalVertex { Position = p0, Normal = n, Tangent = tangent4 });
-        vertices.Add(new MetalVertex { Position = p1, Normal = n, Tangent = tangent4 });
-        vertices.Add(new MetalVertex { Position = p2, Normal = n, Tangent = tangent4 });
-        vertices.Add(new MetalVertex { Position = p3, Normal = n, Tangent = tangent4 });
+        vertices.Add(new MetalVertex { Position = p0, Normal = n, Tangent = tangent4, Texcoord = new Vector2(0f, 0f) });
+        vertices.Add(new MetalVertex { Position = p1, Normal = n, Tangent = tangent4, Texcoord = new Vector2(1f, 0f) });
+        vertices.Add(new MetalVertex { Position = p2, Normal = n, Tangent = tangent4, Texcoord = new Vector2(1f, 1f) });
+        vertices.Add(new MetalVertex { Position = p3, Normal = n, Tangent = tangent4, Texcoord = new Vector2(0f, 1f) });
 
         indices.Add(baseIndex + 0u);
         indices.Add(baseIndex + 1u);
@@ -615,10 +618,10 @@ public static class IndicatorAssemblyMeshBuilder
         Vector4 tangent0 = new(tangent0Vec, 1f);
         Vector4 tangent1 = new(tangent1Vec, 1f);
 
-        vertices.Add(new MetalVertex { Position = p0, Normal = normal0, Tangent = tangent0 });
-        vertices.Add(new MetalVertex { Position = p1, Normal = normal1, Tangent = tangent1 });
-        vertices.Add(new MetalVertex { Position = p2, Normal = normal1, Tangent = tangent1 });
-        vertices.Add(new MetalVertex { Position = p3, Normal = normal0, Tangent = tangent0 });
+        vertices.Add(new MetalVertex { Position = p0, Normal = normal0, Tangent = tangent0, Texcoord = new Vector2(0f, 0f) });
+        vertices.Add(new MetalVertex { Position = p1, Normal = normal1, Tangent = tangent1, Texcoord = new Vector2(1f, 0f) });
+        vertices.Add(new MetalVertex { Position = p2, Normal = normal1, Tangent = tangent1, Texcoord = new Vector2(1f, 1f) });
+        vertices.Add(new MetalVertex { Position = p3, Normal = normal0, Tangent = tangent0, Texcoord = new Vector2(0f, 1f) });
 
         indices.Add(baseIndex + 0u);
         indices.Add(baseIndex + 1u);

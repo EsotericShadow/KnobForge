@@ -13,6 +13,7 @@ struct MetalVertex
     packed_float3 position;
     packed_float3 normal;
     packed_float4 tangent;
+    packed_float2 texcoord;
 };
 
 struct GpuLight
@@ -58,6 +59,8 @@ struct GpuUniforms
     float4 postProcessParams;
     float4 postProcessParams2;
     float4 tonemapParams;
+    float4 textureMapFlags;
+    float4 textureMapParams;
     GpuLight lights[MAX_LIGHTS];
     float4 dynamicLightParams;
     GpuLight dynamicLights[MAX_LIGHTS];
@@ -69,6 +72,7 @@ struct VertexOut
     float3 worldPos;
     float3 worldNormal;
     float4 worldTangentSign;
+    float2 texcoord;
 };
 
 static inline float3 Hadamard(float3 a, float3 b)
@@ -160,14 +164,6 @@ static inline float3 EvaluateEnvironmentLighting(
     constexpr sampler envSampler(filter::linear, mip_filter::linear, address::repeat);
     float3 sampled = environmentMap.sample(envSampler, float2(u, v)).xyz;
     return mix(gradient, sampled, clamp(envMapBlend, 0.0, 1.0));
-}
-
-static inline float3 ApplyModelRotationInverse(float3 direction, float cosA, float sinA)
-{
-    return float3(
-        direction.x * cosA + direction.y * sinA,
-        -direction.x * sinA + direction.y * cosA,
-        direction.z);
 }
 
 static inline float Hash21(float2 p)
@@ -353,6 +349,8 @@ vertex VertexOut vertex_main(
     float scratchDepth = clamp(uniforms.debugBasisParams.y, 0.0, 1.0);
     if (scratchDepth > 1e-4)
     {
+        // Paint/scratch stay in the legacy planar object-space projection so
+        // existing saved paint layers keep matching procedural knob projects.
         float referenceRadius = max(1.0, uniforms.cameraPosAndReferenceRadius.w);
         float2 paintUv = localPos.xy / max(referenceRadius * 2.0, 1e-4) + 0.5;
         if (all(paintUv >= float2(0.0)) && all(paintUv <= float2(1.0)))
@@ -388,6 +386,7 @@ vertex VertexOut vertex_main(
     outVertex.worldPos = worldPos;
     outVertex.worldNormal = worldNormal;
     outVertex.worldTangentSign = float4(worldTangent, tangentSign);
+    outVertex.texcoord = float2(v.texcoord);
     return outVertex;
 }
 
@@ -397,7 +396,12 @@ fragment float4 fragment_main(
     texture2d<float> spiralNormalMap [[texture(0)]],
     texture2d<float> paintMask [[texture(1)]],
     texture2d<float> paintColor [[texture(2)]],
-    texture2d<float> environmentMap [[texture(3)]])
+    texture2d<float> environmentMap [[texture(3)]],
+    texture2d<float> albedoMap [[texture(4)]],
+    texture2d<float> normalMap [[texture(5)]],
+    texture2d<float> roughnessMap [[texture(6)]],
+    texture2d<float> metallicMap [[texture(7)]],
+    texture2d<float> paintMask2 [[texture(8)]])
 {
     if (uniforms.shadowParams.x > 0.5)
     {
@@ -521,6 +525,44 @@ fragment float4 fragment_main(
         normal = -normal;
     }
 
+    // Material maps sample authored mesh UVs. Do not use the legacy planar
+    // paint UV space here; that remains below for paint/weathering layers.
+    float2 matUV = inVertex.texcoord;
+    constexpr sampler materialSampler(filter::linear, mip_filter::linear, address::repeat);
+    if (uniforms.textureMapFlags.x > 0.5)
+    {
+        float4 albedoSample = albedoMap.sample(materialSampler, matUV);
+        baseColor = Clamp01(albedoSample.rgb);
+    }
+
+    if (uniforms.textureMapFlags.z > 0.5)
+    {
+        float roughSample = roughnessMap.sample(materialSampler, matUV).r;
+        roughness = clamp(roughSample, 0.04, 1.0);
+    }
+
+    if (uniforms.textureMapFlags.w > 0.5)
+    {
+        float metallicSample = metallicMap.sample(materialSampler, matUV).r;
+        metallic = clamp(metallicSample, 0.0, 1.0);
+    }
+
+    if (uniforms.textureMapFlags.y > 0.5)
+    {
+        float3 tangent = normalize(inVertex.worldTangentSign.xyz);
+        float3 bitangent = normalize(cross(normal, tangent)) * (inVertex.worldTangentSign.w >= 0.0 ? 1.0 : -1.0);
+        float3x3 tbn = float3x3(tangent, bitangent, normal);
+        float3 normalSample = normalMap.sample(materialSampler, matUV).rgb * 2.0 - 1.0;
+        float normalStrength = max(0.0, uniforms.textureMapParams.x);
+        normalSample.xy *= normalStrength;
+        normalSample = normalize(normalSample);
+        normal = normalize(tbn * normalSample);
+        if (dot(normal, viewDir) < 0.0)
+        {
+            normal = -normal;
+        }
+    }
+
     float3 topTangent = float3(1.0, 0.0, 0.0) - normal * normal.x;
     float topTangentLenSq = dot(topTangent, topTangent);
     if (topTangentLenSq <= 1e-8)
@@ -551,7 +593,8 @@ fragment float4 fragment_main(
     }
 
     float3 topBitangent = normalize(cross(normal, topTangent));
-    float2 uv = inVertex.worldPos.xy / (topRadius * 2.0) + 0.5;
+    float2 uv = inVertex.texcoord;
+    // OLD: float2 uv = inVertex.worldPos.xy / (topRadius * 2.0) + 0.5;
     float2 uvClamped = clamp(uv, float2(0.0), float2(1.0));
     bool uvInside = all(uv >= float2(0.0)) && all(uv <= float2(1.0));
     float topMask = smoothstep(0.55, 0.95, abs(normal.z));
@@ -598,6 +641,8 @@ fragment float4 fragment_main(
         baseColor = mix(baseColor, indicatorColor, clamp(indicatorBlend, 0.0, 1.0));
 
         // Literal paint-mask weathering (R=rust, G=wear, B=gunk, A=scratch) in local object space.
+        // Paint layers stay on the legacy planar object-space projection to preserve
+        // existing knob projects. Material/detail UVs use inVertex.texcoord above.
         float2 paintUv = localXY / max(referenceRadius * 2.0, 1e-4) + 0.5;
         float4 paintSample = float4(0.0);
         float4 colorPaintSample = float4(0.0);
@@ -661,6 +706,19 @@ fragment float4 fragment_main(
         metallic = clamp(metallic - rustMask * 0.62 - gunkMask * 0.30, 0.0, 1.0);
         roughness = mix(roughness, scratchExposeRoughness, scratchReveal);
         metallic = mix(metallic, scratchExposeMetallic, scratchReveal);
+
+        float4 paintMask2Sample = float4(0.0);
+        if (all(paintUv >= float2(0.0)) && all(paintUv <= float2(1.0)))
+        {
+            paintMask2Sample = paintMask2.sample(paintSampler, clamp(paintUv, float2(0.0), float2(1.0)));
+        }
+
+        float roughnessTarget = clamp(paintMask2Sample.x, 0.0, 1.0);
+        float metallicTarget = clamp(paintMask2Sample.y, 0.0, 1.0);
+        float roughnessAlpha = clamp(paintMask2Sample.z, 0.0, 1.0);
+        float metallicAlpha = clamp(paintMask2Sample.w, 0.0, 1.0);
+        roughness = mix(roughness, roughnessTarget, roughnessAlpha);
+        metallic = mix(metallic, metallicTarget, metallicAlpha);
     }
 
     float shininess = 4.0 + ((128.0 - 4.0) * (1.0 - roughness));
@@ -851,7 +909,7 @@ fragment float4 fragment_main(
     float envRoughMix = clamp(uniforms.environmentBottomColorAndRoughnessMix.w, 0.0, 1.0);
 
     float3 R = reflect(-viewDir, normal);
-    float3 envDir = ApplyModelRotationInverse(R, cosA, sinA);
+    float3 envDir = R;
     float3 envColor = EvaluateEnvironmentLighting(
         environmentMap,
         envDir,
@@ -912,7 +970,7 @@ fragment float4 fragment_main(
         float3 absorptionFilter = exp(-lensAbsorption * opticalPath * (1.0 - lensTint));
         float3 refractedEnv = EvaluateEnvironmentLighting(
             environmentMap,
-            ApplyModelRotationInverse(refractedDir, cosA, sinA),
+            refractedDir,
             envBottom,
             envTop,
             envMapBlend,
@@ -922,7 +980,7 @@ fragment float4 fragment_main(
         float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
         float3 refractedEnvWide = EvaluateEnvironmentLighting(
             environmentMap,
-            ApplyModelRotationInverse(refractedDirWide, cosA, sinA),
+            refractedDirWide,
             envBottom,
             envTop,
             envMapBlend,
@@ -965,14 +1023,6 @@ fragment float4 fragment_main(
 
     accum = max(float3(0.0), accum);
     accum *= exposure;
-
-    float luminance = dot(accum, float3(0.2126, 0.7152, 0.0722));
-    float kneeStart = max(0.0, bloomThreshold - bloomKnee);
-    float highlightMask = smoothstep(kneeStart, bloomThreshold + bloomKnee, luminance);
-    float highlightExcess = max(0.0, luminance - bloomThreshold);
-    float bloomEnergy = (highlightExcess + (highlightMask * bloomKnee)) * bloomStrength;
-    float3 bloomColor = normalize(max(accum, float3(1e-4))) * bloomEnergy;
-    accum += bloomColor;
 
     accum = ApplyTonemap(tonemapMode, accum);
     return float4(accum, outputAlpha);
@@ -1044,11 +1094,23 @@ fragment float4 fragment_bloom_blur(
 fragment float4 fragment_bloom_composite(
     FullscreenVertexOut inVertex [[stage_in]],
     texture2d<float> sourceTexture [[texture(0)]],
-    texture2d<float> bloomTexture [[texture(1)]])
+    texture2d<float> bloomTexture [[texture(1)]],
+    constant GpuUniforms& uniforms [[buffer(1)]])
 {
     constexpr sampler blitSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
+    float2 bloomUv = inVertex.uv;
+    if (uniforms.environmentMapParams2.x < 0.0)
+    {
+        bloomUv.x = 1.0 - bloomUv.x;
+    }
+
+    if (uniforms.environmentMapParams2.y < 0.0)
+    {
+        bloomUv.y = 1.0 - bloomUv.y;
+    }
+
     float4 baseColor = sourceTexture.sample(blitSampler, inVertex.uv);
-    float3 bloom = bloomTexture.sample(blitSampler, inVertex.uv).rgb;
+    float3 bloom = bloomTexture.sample(blitSampler, bloomUv).rgb;
     float bloomAlpha = clamp(max(bloom.r, max(bloom.g, bloom.b)), 0.0, 1.0);
     float outAlpha = clamp(max(baseColor.a, bloomAlpha), 0.0, 1.0);
     return float4(baseColor.rgb + bloom, outAlpha);

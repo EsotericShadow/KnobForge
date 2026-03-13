@@ -28,7 +28,10 @@ namespace KnobForge.App.Controls
                     i,
                     layer.Name,
                     i == _activePaintLayerIndex,
-                    i == _focusedPaintLayerIndex);
+                    i == _focusedPaintLayerIndex,
+                    layer.Opacity,
+                    layer.BlendMode,
+                    layer.Visible);
             }
 
             return result;
@@ -44,8 +47,8 @@ namespace KnobForge.App.Controls
             }
 
             _paintLayers.Add(new PaintLayerState(layerName));
+            SyncProjectPaintLayersFromViewport();
             _activePaintLayerIndex = _paintLayers.Count - 1;
-            _paintRebuildRequested = true;
             InvalidateGpu();
             RaisePaintLayersChanged();
             return true;
@@ -66,6 +69,7 @@ namespace KnobForge.App.Controls
             }
 
             _paintLayers[index].Name = normalized;
+            SyncProjectPaintLayerMetadata(index);
             RaisePaintLayersChanged();
             return true;
         }
@@ -79,6 +83,7 @@ namespace KnobForge.App.Controls
             }
 
             _paintLayers.RemoveAt(index);
+            SyncProjectPaintLayersFromViewport();
             _activePaintLayerIndex = Math.Clamp(_activePaintLayerIndex, 0, _paintLayers.Count - 1);
             if (_focusedPaintLayerIndex == index)
             {
@@ -132,7 +137,72 @@ namespace KnobForge.App.Controls
                 RaisePaintHistoryRevisionChanged();
             }
 
-            _paintRebuildRequested = true;
+            RebuildProjectPaintStateFromHistory();
+            InvalidatePaintTexturesForDisplayState();
+            InvalidateGpu();
+            RaisePaintLayersChanged();
+            return true;
+        }
+
+        public bool SetPaintLayerOpacity(int index, float opacity)
+        {
+            EnsureDefaultPaintLayer();
+            if (index < 0 || index >= _paintLayers.Count)
+            {
+                return false;
+            }
+
+            float clamped = Math.Clamp(opacity, 0f, 1f);
+            if (MathF.Abs(_paintLayers[index].Opacity - clamped) <= 1e-6f)
+            {
+                return false;
+            }
+
+            _paintLayers[index].Opacity = clamped;
+            SyncProjectPaintLayerMetadata(index);
+            InvalidatePaintTexturesForDisplayState();
+            InvalidateGpu();
+            RaisePaintLayersChanged();
+            return true;
+        }
+
+        public bool SetPaintLayerBlendMode(int index, PaintBlendMode blendMode)
+        {
+            EnsureDefaultPaintLayer();
+            if (index < 0 || index >= _paintLayers.Count)
+            {
+                return false;
+            }
+
+            if (_paintLayers[index].BlendMode == blendMode)
+            {
+                return false;
+            }
+
+            _paintLayers[index].BlendMode = blendMode;
+            SyncProjectPaintLayerMetadata(index);
+            InvalidatePaintTexturesForDisplayState();
+            InvalidateGpu();
+            RaisePaintLayersChanged();
+            return true;
+        }
+
+        public bool SetPaintLayerVisible(int index, bool visible)
+        {
+            EnsureDefaultPaintLayer();
+            if (index < 0 || index >= _paintLayers.Count)
+            {
+                return false;
+            }
+
+            if (_paintLayers[index].Visible == visible)
+            {
+                return false;
+            }
+
+            _paintLayers[index].Visible = visible;
+            SyncProjectPaintLayerMetadata(index);
+            InvalidatePaintTexturesForDisplayState();
             InvalidateGpu();
             RaisePaintLayersChanged();
             return true;
@@ -162,7 +232,7 @@ namespace KnobForge.App.Controls
             }
 
             _focusedPaintLayerIndex = clamped;
-            _paintRebuildRequested = true;
+            InvalidatePaintTexturesForDisplayState();
             InvalidateGpu();
             RaisePaintLayersChanged();
             return true;
@@ -178,7 +248,8 @@ namespace KnobForge.App.Controls
             _pendingPaintStampCommands.Clear();
             _activeStrokeCommands.Clear();
             _paintHistoryRevision = 0;
-            _paintRebuildRequested = true;
+            _project?.ClearPaintMask();
+            InvalidatePaintTexturesForDisplayState();
             _paintColorTextureNeedsClear = true;
             InvalidateGpu();
             RaisePaintHistoryRevisionChanged();
@@ -196,10 +267,36 @@ namespace KnobForge.App.Controls
             _pendingPaintStampCommands.Clear();
             _activeStrokeCommands.Clear();
             _paintHistoryRevision = clamped;
-            _paintRebuildRequested = true;
+            RebuildProjectPaintStateFromHistory();
+            InvalidatePaintTexturesForDisplayState();
             _paintColorTextureNeedsClear = true;
             InvalidateGpu();
             RaisePaintHistoryRevisionChanged();
+            return true;
+        }
+
+        public bool ResetPaintStateForMaskResize()
+        {
+            bool hadData = _paintHistoryRevision > 0 ||
+                _pendingPaintStampCommands.Count > 0 ||
+                _activeStrokeCommands.Count > 0 ||
+                _committedPaintStrokes.Count > 0;
+            if (!hadData)
+            {
+                return false;
+            }
+
+            _pendingPaintStampCommands.Clear();
+            _activeStrokeCommands.Clear();
+            _committedPaintStrokes.Clear();
+            _paintHistoryRevision = 0;
+            _project?.ClearPaintMask();
+            InvalidatePaintTexturesForDisplayState();
+            _paintColorTextureNeedsClear = true;
+            _activeStrokeLayerIndex = _activePaintLayerIndex;
+            InvalidateGpu();
+            RaisePaintHistoryRevisionChanged();
+            PublishPaintHudSnapshot();
             return true;
         }
 
@@ -217,6 +314,7 @@ namespace KnobForge.App.Controls
             }
 
             _paintLayers.Add(new PaintLayerState("Layer 1"));
+            SyncProjectPaintLayersFromViewport();
             _activePaintLayerIndex = 0;
             if (_focusedPaintLayerIndex >= 0)
             {
@@ -279,7 +377,10 @@ namespace KnobForge.App.Controls
             {
                 layers.Add(new PaintLayerPersisted
                 {
-                    Name = layer.Name
+                    Name = layer.Name,
+                    Opacity = layer.Opacity,
+                    BlendMode = layer.BlendMode,
+                    Visible = layer.Visible
                 });
             }
 
@@ -303,6 +404,7 @@ namespace KnobForge.App.Controls
                         PaintColorX = command.PaintColor.X,
                         PaintColorY = command.PaintColor.Y,
                         PaintColorZ = command.PaintColor.Z,
+                        TargetValue = command.TargetValue,
                         Seed = command.Seed,
                         LayerIndex = command.LayerIndex
                     });
@@ -359,7 +461,12 @@ namespace KnobForge.App.Controls
                 for (int i = 0; i < state.Layers.Count; i++)
                 {
                     string name = NormalizePaintLayerName(state.Layers[i].Name);
-                    _paintLayers.Add(new PaintLayerState(string.IsNullOrWhiteSpace(name) ? $"Layer {i + 1}" : name));
+                    _paintLayers.Add(new PaintLayerState(string.IsNullOrWhiteSpace(name) ? $"Layer {i + 1}" : name)
+                    {
+                        Opacity = Math.Clamp(state.Layers[i].Opacity, 0f, 1f),
+                        BlendMode = state.Layers[i].BlendMode,
+                        Visible = state.Layers[i].Visible
+                    });
                 }
             }
 
@@ -393,6 +500,7 @@ namespace KnobForge.App.Controls
                                 Math.Clamp(persisted.PaintColorX, 0f, 1f),
                                 Math.Clamp(persisted.PaintColorY, 0f, 1f),
                                 Math.Clamp(persisted.PaintColorZ, 0f, 1f)),
+                            TargetValue: Math.Clamp(persisted.TargetValue, 0f, 1f),
                             Seed: persisted.Seed,
                             LayerIndex: commandLayer);
                     }
@@ -408,14 +516,136 @@ namespace KnobForge.App.Controls
                 : Math.Clamp(state.FocusedLayerIndex, 0, Math.Max(0, _paintLayers.Count - 1));
             _paintHistoryRevision = Math.Clamp(state.PaintHistoryRevision, 0, _committedPaintStrokes.Count);
             _activeStrokeLayerIndex = _activePaintLayerIndex;
-            _paintRebuildRequested = true;
             _paintColorTextureNeedsClear = true;
+            RebuildProjectPaintStateFromHistory();
+            InvalidatePaintTexturesForDisplayState();
 
             RaisePaintLayersChanged();
             RaisePaintHistoryRevisionChanged();
             PublishPaintHudSnapshot();
             InvalidateGpu();
             return true;
+        }
+
+        private void SyncProjectPaintLayersFromViewport()
+        {
+            if (_project is null)
+            {
+                return;
+            }
+
+            _project.EnsurePaintLayerCount(_paintLayers.Count);
+            for (int i = 0; i < _paintLayers.Count; i++)
+            {
+                SyncProjectPaintLayerMetadata(i);
+            }
+        }
+
+        private void SyncProjectPaintLayerMetadata(int index)
+        {
+            if (_project is null || index < 0 || index >= _paintLayers.Count)
+            {
+                return;
+            }
+
+            PaintLayerState layer = _paintLayers[index];
+            _project.SetPaintLayerProperties(index, layer.Name, layer.Opacity, layer.BlendMode, layer.Visible);
+        }
+
+        private void RebuildProjectPaintStateFromHistory()
+        {
+            if (_project is null)
+            {
+                return;
+            }
+
+            _project.BeginPaintRecomposeBatch();
+            try
+            {
+                SyncProjectPaintLayersFromViewport();
+                _project.ClearPaintMask();
+                int clampedRevision = Math.Clamp(_paintHistoryRevision, 0, _committedPaintStrokes.Count);
+                for (int strokeIndex = 0; strokeIndex < clampedRevision; strokeIndex++)
+                {
+                    PaintStrokeRecord stroke = _committedPaintStrokes[strokeIndex];
+                    for (int commandIndex = 0; commandIndex < stroke.Commands.Length; commandIndex++)
+                    {
+                        ApplyPaintCommandToProject(stroke.Commands[commandIndex]);
+                    }
+                }
+            }
+            finally
+            {
+                _project.EndPaintRecomposeBatch();
+            }
+        }
+
+        private void ApplyPaintCommandToProject(PaintStampCommand command)
+        {
+            _project?.StampPaintMaskUv(
+                command.LayerIndex,
+                command.UvCenter,
+                command.UvRadius,
+                command.BrushType,
+                command.ScratchAbrasionType,
+                command.Channel,
+                command.Opacity,
+                command.Spread,
+                command.Seed,
+                command.PaintColor,
+                command.TargetValue);
+        }
+
+        /// <summary>
+        /// Mirrors all stored stroke UVs on the specified axis, then rebuilds
+        /// the paint mask from scratch. Use this to repair legacy projects
+        /// whose paint history was recorded with a flipped brush mapping.
+        /// </summary>
+        public void MirrorPaintHistoryUvs(bool mirrorX, bool mirrorY)
+        {
+            if (!mirrorX && !mirrorY)
+            {
+                return;
+            }
+
+            for (int s = 0; s < _committedPaintStrokes.Count; s++)
+            {
+                PaintStrokeRecord stroke = _committedPaintStrokes[s];
+                PaintStampCommand[] mirrored = new PaintStampCommand[stroke.Commands.Length];
+                for (int c = 0; c < stroke.Commands.Length; c++)
+                {
+                    PaintStampCommand cmd = stroke.Commands[c];
+                    float uvX = mirrorX ? (1.0f - cmd.UvCenter.X) : cmd.UvCenter.X;
+                    float uvY = mirrorY ? (1.0f - cmd.UvCenter.Y) : cmd.UvCenter.Y;
+                    mirrored[c] = new PaintStampCommand(
+                        UvCenter: new Vector2(uvX, uvY),
+                        UvRadius: cmd.UvRadius,
+                        Opacity: cmd.Opacity,
+                        Spread: cmd.Spread,
+                        Channel: cmd.Channel,
+                        BrushType: cmd.BrushType,
+                        ScratchAbrasionType: cmd.ScratchAbrasionType,
+                        PaintColor: cmd.PaintColor,
+                        TargetValue: cmd.TargetValue,
+                        Seed: cmd.Seed,
+                        LayerIndex: cmd.LayerIndex);
+                }
+
+                _committedPaintStrokes[s] = new PaintStrokeRecord(stroke.LayerIndex, mirrored);
+            }
+
+            _paintColorTextureNeedsClear = true;
+            RebuildProjectPaintStateFromHistory();
+            InvalidatePaintTexturesForDisplayState();
+            InvalidateGpu();
+        }
+
+        private void InvalidatePaintTexturesForDisplayState()
+        {
+            _paintMaskTextureVersion = -1;
+            _paintColorTextureVersion = -1;
+            _paintMask2TextureVersion = -1;
+            _paintTextureFocusedLayerIndex = int.MinValue;
         }
 
         public string ExportViewportStateJson()
@@ -443,7 +673,12 @@ namespace KnobForge.App.Controls
                 LightEffectInvertX = _lightEffectInvertX,
                 LightEffectInvertY = _lightEffectInvertY,
                 LightEffectInvertZ = _lightEffectInvertZ,
-                InvertImportedCollarOrbit = _invertImportedCollarOrbit,
+                CollarCompensationInvertX = _collarCompensationInvertX,
+                CollarCompensationInvertY = _collarCompensationInvertY,
+                CollarCompensationInvertZ = _collarCompensationInvertZ,
+                BloomCompositeInvertX = _bloomCompositeInvertX,
+                BloomCompositeInvertY = _bloomCompositeInvertY,
+                InvertImportedCollarOrbit = false,
                 InvertKnobFrontFaceWinding = _invertKnobFrontFaceWinding,
                 InvertImportedStlFrontFaceWinding = _invertImportedStlFrontFaceWinding
             };
@@ -480,25 +715,44 @@ namespace KnobForge.App.Controls
 
             if (state.Orientation != null)
             {
+                bool migrateLegacyDefaultInvertY =
+                    state.Orientation.InvertX &&
+                    state.Orientation.InvertY &&
+                    state.Orientation.InvertZ &&
+                    state.Orientation.FlipCamera180;
                 _orientation = new OrientationDebug
                 {
                     InvertX = state.Orientation.InvertX,
-                    InvertY = state.Orientation.InvertY,
+                    InvertY = migrateLegacyDefaultInvertY ? false : state.Orientation.InvertY,
                     InvertZ = state.Orientation.InvertZ,
                     FlipCamera180 = state.Orientation.FlipCamera180
                 };
             }
 
+            bool migrateLegacyGizmoDefaults =
+                !state.GizmoInvertX &&
+                state.GizmoInvertY &&
+                !state.GizmoInvertZ;
+            bool migrateBrokenBrushDefaults =
+                !state.BrushInvertX &&
+                !state.BrushInvertY &&
+                !state.BrushInvertZ;
+
             _gizmoInvertX = state.GizmoInvertX;
-            _gizmoInvertY = state.GizmoInvertY;
+            _gizmoInvertY = migrateLegacyGizmoDefaults ? false : state.GizmoInvertY;
             _gizmoInvertZ = state.GizmoInvertZ;
             _brushInvertX = state.BrushInvertX;
-            _brushInvertY = state.BrushInvertY;
+            _brushInvertY = migrateBrokenBrushDefaults ? true : state.BrushInvertY;
             _brushInvertZ = state.BrushInvertZ;
-            _lightEffectInvertX = state.LightEffectInvertX;
-            _lightEffectInvertY = state.LightEffectInvertY;
-            _lightEffectInvertZ = state.LightEffectInvertZ;
-            _invertImportedCollarOrbit = state.InvertImportedCollarOrbit;
+            _lightEffectInvertX = state.LightEffectInvertX ?? true;
+            _lightEffectInvertY = state.LightEffectInvertY ?? true;
+            _lightEffectInvertZ = state.LightEffectInvertZ ?? false;
+            _collarCompensationInvertX = state.CollarCompensationInvertX;
+            _collarCompensationInvertY = state.CollarCompensationInvertY;
+            _collarCompensationInvertZ = state.CollarCompensationInvertZ;
+            _bloomCompositeInvertX = state.BloomCompositeInvertX;
+            _bloomCompositeInvertY = state.BloomCompositeInvertY;
+            _invertImportedCollarOrbit = false;
             _invertKnobFrontFaceWinding = state.InvertKnobFrontFaceWinding;
             _invertImportedStlFrontFaceWinding = state.InvertImportedStlFrontFaceWinding;
             InvalidateGpu();
@@ -514,78 +768,7 @@ namespace KnobForge.App.Controls
             }
 
             GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
-
-            ModelNode? modelNode = _project.SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
-            float referenceRadius = MathF.Max(1f, modelNode?.Radius ?? 220f);
-            if (_meshResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _meshResources.ReferenceRadius);
-            }
-
-            if (_collarResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _collarResources.ReferenceRadius);
-            }
-
-            if (_sliderBackplateResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _sliderBackplateResources.ReferenceRadius);
-            }
-
-            if (_sliderThumbResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _sliderThumbResources.ReferenceRadius);
-            }
-
-            if (_toggleBaseResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _toggleBaseResources.ReferenceRadius);
-            }
-
-            if (_toggleLeverResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _toggleLeverResources.ReferenceRadius);
-            }
-
-            if (_toggleSleeveResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _toggleSleeveResources.ReferenceRadius);
-            }
-
-            if (_pushButtonBaseResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _pushButtonBaseResources.ReferenceRadius);
-            }
-
-            if (_pushButtonCapResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _pushButtonCapResources.ReferenceRadius);
-            }
-
-            if (_indicatorBaseResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _indicatorBaseResources.ReferenceRadius);
-            }
-
-            if (_indicatorHousingResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _indicatorHousingResources.ReferenceRadius);
-            }
-
-            if (_indicatorLensResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _indicatorLensResources.ReferenceRadius);
-            }
-
-            if (_indicatorReflectorResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _indicatorReflectorResources.ReferenceRadius);
-            }
-
-            if (_indicatorEmitterResources is not null)
-            {
-                referenceRadius = MathF.Max(referenceRadius, _indicatorEmitterResources.ReferenceRadius);
-            }
+            float referenceRadius = GetCurrentSceneReferenceRadius();
 
             float cameraDistance = MathF.Max(1f, referenceRadius * 6f);
             Vector3 cameraPos = -forward * cameraDistance;
@@ -652,6 +835,43 @@ namespace KnobForge.App.Controls
             }
 
             return _lightGizmoSnapshots;
+        }
+
+        public float GetCurrentSceneReferenceRadius()
+        {
+            if (_project is null)
+            {
+                return 1f;
+            }
+
+            ModelNode? modelNode = _project.SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            if (modelNode is null)
+            {
+                return 1f;
+            }
+
+            if (_context is not null)
+            {
+                RefreshMeshResources(_project, modelNode);
+            }
+
+            float referenceRadius = MathF.Max(1f, modelNode.Radius);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _meshResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _collarResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _sliderBackplateResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _sliderThumbResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _toggleBaseResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _toggleLeverResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _toggleSleeveResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _pushButtonBaseResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _pushButtonCapResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorBaseResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorHousingResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorLensResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorReflectorResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorEmitterResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorAuraResources);
+            return referenceRadius;
         }
 
         private void PublishPaintHudSnapshot()

@@ -225,7 +225,8 @@ public static class PushButtonAssemblyMeshBuilder
         {
             Position = center,
             Normal = normal,
-            Tangent = discTangent
+            Tangent = discTangent,
+            Texcoord = new Vector2(0.5f, 0.5f)
         });
 
         float step = (MathF.PI * 2f) / sides;
@@ -238,7 +239,8 @@ public static class PushButtonAssemblyMeshBuilder
             {
                 Position = center + (radial * r),
                 Normal = normal,
-                Tangent = discTangent
+                Tangent = discTangent,
+                Texcoord = new Vector2((MathF.Cos(angle) * 0.5f) + 0.5f, (MathF.Sin(angle) * 0.5f) + 0.5f)
             });
         }
 
@@ -267,10 +269,10 @@ public static class PushButtonAssemblyMeshBuilder
         Vector3 tangent = SafeNormalize(tangentDirection, Vector3.UnitX);
         Vector4 packedTangent = new(tangent, 1f);
 
-        vertices.Add(new MetalVertex { Position = p0, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p1, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p2, Normal = normal, Tangent = packedTangent });
-        vertices.Add(new MetalVertex { Position = p3, Normal = normal, Tangent = packedTangent });
+        vertices.Add(new MetalVertex { Position = p0, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(0f, 0f) });
+        vertices.Add(new MetalVertex { Position = p1, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(1f, 0f) });
+        vertices.Add(new MetalVertex { Position = p2, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(1f, 1f) });
+        vertices.Add(new MetalVertex { Position = p3, Normal = normal, Tangent = packedTangent, Texcoord = new Vector2(0f, 1f) });
 
         indices.Add(start + 0);
         indices.Add(start + 1);

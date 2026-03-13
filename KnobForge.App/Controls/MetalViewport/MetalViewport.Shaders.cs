@@ -11,6 +11,7 @@ struct MetalVertex
     packed_float3 position;
     packed_float3 normal;
     packed_float4 tangent;
+    packed_float2 texcoord;
 };
 
 struct PaintPickUniform
@@ -53,6 +54,8 @@ vertex PaintPickVertexOut vertex_paint_pick(
     float depth01 = clamp((cameraDepth - nearPlane) / (farPlane - nearPlane), 0.0, 1.0);
     float clipZ = clamp(depth01, 0.001, 0.999);
 
+    // Preserve the legacy planar paint projection for paint picking so existing
+    // saved paint layers and brush interaction stay aligned on knob projects.
     float referenceRadius = max(1.0, uniforms.cameraPosAndReferenceRadius.w);
     float2 uv = localPos.xy / max(referenceRadius * 2.0, 1e-4) + 0.5;
 

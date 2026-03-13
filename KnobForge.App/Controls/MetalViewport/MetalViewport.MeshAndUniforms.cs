@@ -342,6 +342,12 @@ namespace KnobForge.App.Controls
                 return null;
             }
 
+            int metalVertexSize = Marshal.SizeOf<MetalVertex>();
+            if (metalVertexSize != MetalVertex.ExpectedSizeInBytes)
+            {
+                throw new InvalidOperationException($"MetalVertex size mismatch. Expected {MetalVertex.ExpectedSizeInBytes} bytes but got {metalVertexSize}.");
+            }
+
             IMTLBuffer vertexBuffer = _context.CreateBuffer<MetalVertex>(vertices);
             IMTLBuffer indexBuffer = _context.CreateBuffer<uint>(indices);
             if (vertexBuffer.Handle == IntPtr.Zero || indexBuffer.Handle == IntPtr.Zero)
@@ -762,13 +768,26 @@ namespace KnobForge.App.Controls
             uniforms.LensMaterialParams0 = Vector4.Zero;
             uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
             uniforms.EnvironmentMapParams = Vector4.Zero;
-            float lightEffectX = _orientation.InvertX ^ _lightEffectInvertX ? -1f : 1f;
-            float lightEffectY = _orientation.InvertY ^ _lightEffectInvertY ? -1f : 1f;
-            float lightEffectZ = _orientation.InvertZ ^ _lightEffectInvertZ ? -1f : 1f;
+            // Keep glare/reflection orientation controlled only by the dedicated
+            // light-effect inversion toggles. Do not couple to camera/debug orientation
+            // flags, which can introduce hidden double-flips.
+            float lightEffectX = _lightEffectInvertX ? -1f : 1f;
+            float lightEffectY = _lightEffectInvertY ? -1f : 1f;
+            float lightEffectZ = _lightEffectInvertZ ? -1f : 1f;
             uniforms.EnvironmentMapParams2 = new Vector4(lightEffectX, lightEffectY, lightEffectZ, 0f);
             uniforms.PostProcessParams = new Vector4(1f, 1.10f, 0.55f, 0.40f);
             uniforms.PostProcessParams2 = Vector4.Zero;
             uniforms.TonemapParams = new Vector4((float)TonemapOperator.Aces, 1f, 0f, 0f);
+            uniforms.TextureMapFlags = new Vector4(
+                materialNode?.HasAlbedoMap == true ? 1f : 0f,
+                materialNode?.HasNormalMap == true ? 1f : 0f,
+                materialNode?.HasRoughnessMap == true ? 1f : 0f,
+                materialNode?.HasMetallicMap == true ? 1f : 0f);
+            uniforms.TextureMapParams = new Vector4(
+                Math.Clamp(materialNode?.NormalMapStrength ?? 1f, 0f, 2f),
+                0f,
+                0f,
+                0f);
 
             if (project != null)
             {
@@ -833,7 +852,7 @@ namespace KnobForge.App.Controls
             return uniforms;
         }
 
-        private static GpuUniforms BuildCollarUniforms(in GpuUniforms baseUniforms, CollarNode collarNode)
+        private GpuUniforms BuildCollarUniforms(in GpuUniforms baseUniforms, CollarNode collarNode)
         {
             GpuUniforms uniforms = baseUniforms;
             uniforms.MaterialBaseColorAndMetallic = new Vector4(collarNode.BaseColor, collarNode.Metallic);
@@ -856,20 +875,59 @@ namespace KnobForge.App.Controls
             uniforms.IndicatorParams2 = Vector4.Zero;
             uniforms.MicroDetailParams.X = 0f;
             uniforms.MicroDetailParams.W = 0f;
+            uniforms.TextureMapFlags = Vector4.Zero;
+            uniforms.TextureMapParams = new Vector4(1f, 0f, 0f, 0f);
             uniforms.LensMaterialParams0 = Vector4.Zero;
             uniforms.LensMaterialTintAndAbsorption = Vector4.Zero;
-            if (IsImportedCollarPreset(collarNode))
-            {
-                float envX = collarNode.ImportedMirrorX ? -1f : 1f;
-                float envY = collarNode.ImportedMirrorY ? -1f : 1f;
-                float envZ = collarNode.ImportedMirrorZ ? -1f : 1f;
-                uniforms.EnvironmentMapParams2 = new Vector4(
-                    uniforms.EnvironmentMapParams2.X * envX,
-                    uniforms.EnvironmentMapParams2.Y * envY,
-                    uniforms.EnvironmentMapParams2.Z * envZ,
-                    uniforms.EnvironmentMapParams2.W);
-            }
+            // Imported collar mirrors are baked into geometry. Keep glare/light-effect
+            // orientation aligned by applying the same mirror parity to env lookup basis.
+            ApplyImportedCollarMirrorToEnvironmentOrientation(ref uniforms, collarNode);
             return uniforms;
+        }
+
+        private void ApplyImportedCollarMirrorToEnvironmentOrientation(ref GpuUniforms uniforms, CollarNode? collarNode)
+        {
+            if (!IsImportedCollarPreset(collarNode) || collarNode is null)
+            {
+                return;
+            }
+
+            float envX = collarNode.ImportedMirrorX ? -1f : 1f;
+            float envY = collarNode.ImportedMirrorY ? -1f : 1f;
+            float envZ = collarNode.ImportedMirrorZ ? -1f : 1f;
+            if (_collarCompensationInvertX)
+            {
+                envX *= -1f;
+            }
+
+            if (_collarCompensationInvertY)
+            {
+                envY *= -1f;
+            }
+
+            if (_collarCompensationInvertZ)
+            {
+                envZ *= -1f;
+            }
+
+            uniforms.EnvironmentMapParams2 = new Vector4(
+                uniforms.EnvironmentMapParams2.X * envX,
+                uniforms.EnvironmentMapParams2.Y * envY,
+                uniforms.EnvironmentMapParams2.Z * envZ,
+                uniforms.EnvironmentMapParams2.W);
+        }
+
+        private void ApplyBloomCompositeDebugOrientation(ref GpuUniforms uniforms)
+        {
+            if (_bloomCompositeInvertX)
+            {
+                uniforms.EnvironmentMapParams2.X *= -1f;
+            }
+
+            if (_bloomCompositeInvertY)
+            {
+                uniforms.EnvironmentMapParams2.Y *= -1f;
+            }
         }
 
         private static GpuUniforms BuildIndicatorLensUniforms(
@@ -987,7 +1045,32 @@ namespace KnobForge.App.Controls
             uniforms.IndicatorParams2 = Vector4.Zero;
             uniforms.MicroDetailParams.X = 0f;
             uniforms.MicroDetailParams.W = 0f;
+            uniforms.TextureMapFlags = Vector4.Zero;
+            uniforms.TextureMapParams = new Vector4(1f, 0f, 0f, 0f);
             return uniforms;
+        }
+
+        private IntPtr ResolveMaterialTexture(MaterialNode? materialNode, TextureMapType mapType)
+        {
+            TextureManager? manager = _textureManager;
+            if (manager == null)
+            {
+                return IntPtr.Zero;
+            }
+
+            return mapType switch
+            {
+                TextureMapType.Albedo => manager.GetOrLoadTexture(materialNode?.AlbedoMapPath, mapType),
+                TextureMapType.Normal => manager.GetOrLoadTexture(materialNode?.NormalMapPath, mapType),
+                TextureMapType.Roughness => manager.GetOrLoadTexture(materialNode?.RoughnessMapPath, mapType),
+                TextureMapType.Metallic => manager.GetOrLoadTexture(materialNode?.MetallicMapPath, mapType),
+                _ => manager.FallbackAlbedo
+            };
+        }
+
+        public void InvalidateMaterialTexturePath(string? filePath)
+        {
+            _textureManager?.InvalidatePath(filePath);
         }
 
         private static AssemblyPartMaterialPalette ResolveAssemblyPartMaterialPalette(MaterialNode? materialNode)

@@ -15,6 +15,11 @@ public static partial class ImportedStlCollarMeshBuilder
 {
     private static Vector3[] AutoOrientToKnobPlane(IReadOnlyList<Vector3> input)
     {
+        return AutoOrientToKnobPlane(input, out _);
+    }
+
+    private static Vector3[] AutoOrientToKnobPlane(IReadOnlyList<Vector3> input, out AxisOrientation orientation)
+    {
         int[] perm = { 0, 1, 2 };
         int[][] perms =
         {
@@ -67,8 +72,8 @@ public static partial class ImportedStlCollarMeshBuilder
             }
         }
 
-        var output = new Vector3[input.Count];
         int permutationParity = PermutationParity(bestPerm); // +1 even, -1 odd
+        var output = new Vector3[input.Count];
         for (int i = 0; i < input.Count; i++)
         {
             Vector3 v = input[i];
@@ -94,27 +99,23 @@ public static partial class ImportedStlCollarMeshBuilder
             }
         }
 
-        if (above > below)
-        {
-            for (int i = 0; i < output.Length; i++)
-            {
-                Vector3 p = output[i];
-                output[i] = new Vector3(p.X, p.Y, -p.Z);
-            }
-        }
+        int signZ = above > below ? -1 : 1;
+        int handedness = permutationParity * signZ;
+        int signX = handedness < 0 ? -1 : 1;
 
         // Enforce right-handed basis after permutation/sign normalization.
         // Without this, imported meshes can become mirrored and appear to rotate/orbit
         // opposite to native knob geometry under shared transforms.
-        int signZ = above > below ? -1 : 1;
-        int handedness = permutationParity * signZ;
-        if (handedness < 0)
+        orientation = new AxisOrientation(
+            XAxis: bestPerm[0],
+            YAxis: bestPerm[1],
+            ZAxis: bestPerm[2],
+            SignX: signX,
+            SignY: 1,
+            SignZ: signZ);
+        for (int i = 0; i < input.Count; i++)
         {
-            for (int i = 0; i < output.Length; i++)
-            {
-                Vector3 p = output[i];
-                output[i] = new Vector3(-p.X, p.Y, p.Z);
-            }
+            output[i] = orientation.Apply(input[i]);
         }
 
         return output;

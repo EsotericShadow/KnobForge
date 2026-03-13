@@ -602,88 +602,18 @@ namespace KnobForge.App.Controls
         public void RequestClearPaintColorTexture()
         {
             _paintColorTextureNeedsClear = true;
+            _paintColorTextureVersion = -1;
             _dirty = true;
         }
 
         private void ApplyPendingPaintStamps(IntPtr commandBuffer)
         {
-            if (commandBuffer == IntPtr.Zero || _paintMaskTexture == IntPtr.Zero)
+            if (commandBuffer == IntPtr.Zero)
             {
                 return;
             }
-
-            EnsureDefaultPaintLayer();
-
-            if (_paintColorTexture != IntPtr.Zero && _paintColorTextureNeedsClear)
-            {
-                ClearTextureToTransparent(commandBuffer, _paintColorTexture);
-                GenerateTextureMipmaps(commandBuffer, _paintColorTexture);
-                _paintColorTextureNeedsClear = false;
-            }
-
-            if (!EnsurePaintStampResources())
-            {
-                _pendingPaintStampCommands.Clear();
-                return;
-            }
-
-            bool stampedMask = false;
-            bool stampedColor = false;
-
-            if (_paintRebuildRequested)
-            {
-                ClearTextureToTransparent(commandBuffer, _paintMaskTexture);
-                if (_paintColorTexture != IntPtr.Zero)
-                {
-                    ClearTextureToTransparent(commandBuffer, _paintColorTexture);
-                }
-
-                if (_paintHistoryRevision > 0 && _committedPaintStrokes.Count > 0)
-                {
-                    var replayCommands = BuildReplayPaintCommands(_paintHistoryRevision);
-                    if (replayCommands.Count > 0)
-                    {
-                        stampedMask |= ApplyPaintStampsToTexture(
-                            commandBuffer,
-                            _paintMaskTexture,
-                            includeColorChannel: false,
-                            replayCommands);
-                        stampedColor |= _paintColorTexture != IntPtr.Zero && ApplyPaintStampsToTexture(
-                            commandBuffer,
-                            _paintColorTexture,
-                            includeColorChannel: true,
-                            replayCommands);
-                    }
-                }
-
-                _paintRebuildRequested = false;
-            }
-
-            if (_pendingPaintStampCommands.Count > 0)
-            {
-                stampedMask |= ApplyPaintStampsToTexture(
-                    commandBuffer,
-                    _paintMaskTexture,
-                    includeColorChannel: false,
-                    _pendingPaintStampCommands);
-                stampedColor |= _paintColorTexture != IntPtr.Zero && ApplyPaintStampsToTexture(
-                    commandBuffer,
-                    _paintColorTexture,
-                    includeColorChannel: true,
-                    _pendingPaintStampCommands);
-            }
-
-            if (stampedMask)
-            {
-                GenerateTextureMipmaps(commandBuffer, _paintMaskTexture);
-            }
-
-            if (stampedColor)
-            {
-                GenerateTextureMipmaps(commandBuffer, _paintColorTexture);
-            }
-
             _pendingPaintStampCommands.Clear();
+            _paintColorTextureNeedsClear = false;
         }
 
         private bool ApplyPaintStampsToTexture(

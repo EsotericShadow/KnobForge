@@ -37,7 +37,47 @@ namespace KnobForge.App.Views
             string SpriteSheetPath,
             int FrameCount,
             int ColumnCount,
-            int FrameSizePx);
+            int FrameSizePx,
+            long EncodedBytes);
+
+        private readonly record struct CompressionSettingsSnapshot(
+            ExportImageFormat ImageFormat,
+            int PngCompressionLevel,
+            PngOptimizationPreset PngOptimizationPreset,
+            int PngOptimizationMinimumSavingsBytes,
+            int PngOpaqueRgbStep,
+            int PngOpaqueAlphaStep,
+            int PngTranslucentRgbStep,
+            int PngTranslucentAlphaStep,
+            byte PngTranslucentAlphaThreshold,
+            byte PngMaxOpaqueRgbDelta,
+            byte PngMaxVisibleRgbDelta,
+            byte PngMaxVisibleAlphaDelta,
+            float PngMeanVisibleLumaDelta,
+            float PngMeanVisibleAlphaDelta,
+            float WebpLossyQuality,
+            bool OptimizeSpritesheetPng)
+        {
+            public void ApplyTo(KnobExportSettings settings)
+            {
+                settings.ImageFormat = ImageFormat;
+                settings.PngCompressionLevel = PngCompressionLevel;
+                settings.PngOptimizationPreset = PngOptimizationPreset;
+                settings.PngOptimizationMinimumSavingsBytes = PngOptimizationMinimumSavingsBytes;
+                settings.PngOpaqueRgbStep = PngOpaqueRgbStep;
+                settings.PngOpaqueAlphaStep = PngOpaqueAlphaStep;
+                settings.PngTranslucentRgbStep = PngTranslucentRgbStep;
+                settings.PngTranslucentAlphaStep = PngTranslucentAlphaStep;
+                settings.PngTranslucentAlphaThreshold = PngTranslucentAlphaThreshold;
+                settings.PngMaxOpaqueRgbDelta = PngMaxOpaqueRgbDelta;
+                settings.PngMaxVisibleRgbDelta = PngMaxVisibleRgbDelta;
+                settings.PngMaxVisibleAlphaDelta = PngMaxVisibleAlphaDelta;
+                settings.PngMeanVisibleLumaDelta = PngMeanVisibleLumaDelta;
+                settings.PngMeanVisibleAlphaDelta = PngMeanVisibleAlphaDelta;
+                settings.WebpLossyQuality = WebpLossyQuality;
+                settings.OptimizeSpritesheetPng = OptimizeSpritesheetPng;
+            }
+        }
 
         private readonly record struct ModelRotationSnapshot(
             ModelNode Model,

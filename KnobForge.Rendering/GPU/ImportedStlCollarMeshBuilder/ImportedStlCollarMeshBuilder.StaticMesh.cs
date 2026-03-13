@@ -29,9 +29,15 @@ public static partial class ImportedStlCollarMeshBuilder
         bool readOk;
         List<Vector3> sourcePositions;
         List<uint> sourceIndices;
+        List<Vector3>? sourceNormals = null;
+        List<Vector2>? sourceTexcoords = null;
         if (string.Equals(extension, ".glb", StringComparison.OrdinalIgnoreCase))
         {
-            readOk = TryReadBinaryGlb(path, out sourcePositions, out sourceIndices);
+            readOk = TryReadBinaryGlb(path, out ImportedMeshData sourceMesh);
+            sourcePositions = readOk ? sourceMesh.Positions : new List<Vector3>();
+            sourceIndices = readOk ? sourceMesh.Indices : new List<uint>();
+            sourceNormals = readOk ? sourceMesh.Normals : null;
+            sourceTexcoords = readOk ? sourceMesh.Texcoords : null;
         }
         else if (string.Equals(extension, ".stl", StringComparison.OrdinalIgnoreCase))
         {
@@ -78,7 +84,18 @@ public static partial class ImportedStlCollarMeshBuilder
 
         var mutableIndices = new List<uint>(sourceIndices);
         NormalizeTriangleWinding(positions, mutableIndices);
-        Vector3[] normals = ComputeVertexNormals(positions, mutableIndices);
+        Vector3[] normals = sourceNormals is not null && sourceNormals.Count == positions.Length
+            ? sourceNormals.Select(n => n.LengthSquared() > 1e-8f ? Vector3.Normalize(n) : Vector3.UnitZ).ToArray()
+            : ComputeVertexNormals(positions, mutableIndices);
+        float minZ = float.MaxValue;
+        float maxZ = float.MinValue;
+        for (int i = 0; i < positions.Length; i++)
+        {
+            minZ = MathF.Min(minZ, positions[i].Z);
+            maxZ = MathF.Max(maxZ, positions[i].Z);
+        }
+
+        float zSpan = MathF.Max(1e-6f, maxZ - minZ);
 
         vertices = new MetalVertex[positions.Length];
         for (int i = 0; i < positions.Length; i++)
@@ -94,11 +111,25 @@ public static partial class ImportedStlCollarMeshBuilder
                 ? Vector3.Normalize(tangent)
                 : Vector3.UnitX;
 
+            Vector2 uv;
+            if (sourceTexcoords is not null && sourceTexcoords.Count == positions.Length)
+            {
+                uv = sourceTexcoords[i];
+            }
+            else
+            {
+                float angle = MathF.Atan2(positions[i].Y, positions[i].X);
+                float u = Wrap01((angle / (MathF.PI * 2f)) + 0.5f);
+                float v = (positions[i].Z - minZ) / zSpan;
+                uv = new Vector2(u, v);
+            }
+
             vertices[i] = new MetalVertex
             {
                 Position = positions[i],
                 Normal = n,
-                Tangent = new Vector4(tangent, 1f)
+                Tangent = new Vector4(tangent, 1f),
+                Texcoord = uv
             };
         }
 

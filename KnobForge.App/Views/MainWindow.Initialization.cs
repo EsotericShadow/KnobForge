@@ -51,6 +51,14 @@ namespace KnobForge.App.Views
                 _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null || _materialRegionCombo == null ||
                 _materialMetallicSlider == null || _materialRoughnessSlider == null || _materialPearlescenceSlider == null ||
                 _materialRustSlider == null || _materialWearSlider == null || _materialGunkSlider == null ||
+                _materialAlbedoMapBrowseButton == null || _materialAlbedoMapClearButton == null ||
+                _materialNormalMapBrowseButton == null || _materialNormalMapClearButton == null ||
+                _materialRoughnessMapBrowseButton == null || _materialRoughnessMapClearButton == null ||
+                _materialMetallicMapBrowseButton == null || _materialMetallicMapClearButton == null ||
+                _materialNormalMapStrengthSlider == null || _materialNormalMapStrengthPanel == null ||
+                _materialAlbedoMapPathText == null || _materialNormalMapPathText == null ||
+                _materialRoughnessMapPathText == null || _materialMetallicMapPathText == null ||
+                _materialNormalMapStrengthValueText == null ||
                 _materialBrushStrengthSlider == null || _materialBrushDensitySlider == null || _materialCharacterSlider == null ||
                 _spiralNormalInfluenceCheckBox == null || _basisDebugModeCombo == null || _microLodFadeStartSlider == null || _microLodFadeEndSlider == null || _microRoughnessLodBoostSlider == null ||
                 _envIntensitySlider == null || _envRoughnessMixSlider == null ||
@@ -324,6 +332,38 @@ namespace KnobForge.App.Views
             if (_envHdriClearButton != null)
             {
                 _envHdriClearButton.Click += (_, _) => ClearEnvironmentHdriPathFromUi();
+            }
+            if (_materialAlbedoMapBrowseButton != null)
+            {
+                _materialAlbedoMapBrowseButton.Click += OnMaterialAlbedoMapBrowseClicked;
+            }
+            if (_materialAlbedoMapClearButton != null)
+            {
+                _materialAlbedoMapClearButton.Click += OnMaterialAlbedoMapClearClicked;
+            }
+            if (_materialNormalMapBrowseButton != null)
+            {
+                _materialNormalMapBrowseButton.Click += OnMaterialNormalMapBrowseClicked;
+            }
+            if (_materialNormalMapClearButton != null)
+            {
+                _materialNormalMapClearButton.Click += OnMaterialNormalMapClearClicked;
+            }
+            if (_materialRoughnessMapBrowseButton != null)
+            {
+                _materialRoughnessMapBrowseButton.Click += OnMaterialRoughnessMapBrowseClicked;
+            }
+            if (_materialRoughnessMapClearButton != null)
+            {
+                _materialRoughnessMapClearButton.Click += OnMaterialRoughnessMapClearClicked;
+            }
+            if (_materialMetallicMapBrowseButton != null)
+            {
+                _materialMetallicMapBrowseButton.Click += OnMaterialMetallicMapBrowseClicked;
+            }
+            if (_materialMetallicMapClearButton != null)
+            {
+                _materialMetallicMapClearButton.Click += OnMaterialMetallicMapClearClicked;
             }
             _resetViewButton.Click += (_, _) => _metalViewport?.ResetCamera();
             _clearPaintMaskButton.Click += (_, _) => OnClearPaintMask();
@@ -937,6 +977,7 @@ namespace KnobForge.App.Views
             _materialRustSlider.PropertyChanged += OnMaterialAgingChanged;
             _materialWearSlider.PropertyChanged += OnMaterialAgingChanged;
             _materialGunkSlider.PropertyChanged += OnMaterialAgingChanged;
+            _materialNormalMapStrengthSlider.PropertyChanged += OnMaterialNormalMapStrengthChanged;
             _materialBrushStrengthSlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
             _materialBrushDensitySlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
             _materialCharacterSlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
@@ -994,6 +1035,10 @@ namespace KnobForge.App.Views
             _brushPaintChannelCombo.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushTypeCombo.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushPaintColorPicker.PropertyChanged += OnPaintBrushSettingsChanged;
+            if (_paintChannelTargetValueSlider != null)
+            {
+                _paintChannelTargetValueSlider.PropertyChanged += OnPaintBrushSettingsChanged;
+            }
             _scratchAbrasionTypeCombo.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushSizeSlider.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushOpacitySlider.PropertyChanged += OnPaintBrushSettingsChanged;

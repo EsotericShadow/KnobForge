@@ -86,6 +86,34 @@ public static partial class ImportedStlCollarMeshBuilder
         }
     }
 
+    private sealed class ImportedMeshData
+    {
+        public List<Vector3> Positions { get; init; } = new();
+
+        public List<uint> Indices { get; init; } = new();
+
+        public List<Vector3>? Normals { get; init; }
+
+        public List<Vector2>? Texcoords { get; init; }
+    }
+
+    private readonly record struct AxisOrientation(
+        int XAxis,
+        int YAxis,
+        int ZAxis,
+        int SignX,
+        int SignY,
+        int SignZ)
+    {
+        public Vector3 Apply(in Vector3 value)
+        {
+            return new Vector3(
+                SignX * Axis(value, XAxis),
+                SignY * Axis(value, YAxis),
+                SignZ * Axis(value, ZAxis));
+        }
+    }
+
     private readonly record struct AccessorView(
         int DataOffset,
         int Count,

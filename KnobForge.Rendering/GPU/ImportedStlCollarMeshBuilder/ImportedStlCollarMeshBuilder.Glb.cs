@@ -13,10 +13,15 @@ namespace KnobForge.Rendering.GPU;
 
 public static partial class ImportedStlCollarMeshBuilder
 {
-    private static bool TryReadBinaryGlb(string path, out List<Vector3> positions, out List<uint> indices)
+    private static bool TryReadBinaryGlb(string path, out ImportedMeshData meshData)
     {
-        positions = new List<Vector3>();
-        indices = new List<uint>();
+        meshData = new ImportedMeshData();
+        var positions = new List<Vector3>();
+        var indices = new List<uint>();
+        var normals = new List<Vector3>();
+        var texcoords = new List<Vector2>();
+        bool haveNormalsForAllPrimitives = true;
+        bool haveTexcoordsForAllPrimitives = true;
 
         byte[] fileBytes;
         try
@@ -150,10 +155,55 @@ public static partial class ImportedStlCollarMeshBuilder
                     continue;
                 }
 
+                Vector3[]? primitiveNormals = null;
+                if (attributesElement.TryGetProperty("NORMAL", out JsonElement normalAccessorElement) &&
+                    normalAccessorElement.TryGetInt32(out int normalAccessorIndex) &&
+                    TryReadAccessorVector3(
+                        accessorsElement,
+                        bufferViewsElement,
+                        binaryChunk,
+                        normalAccessorIndex,
+                        out Vector3[] readNormals) &&
+                    readNormals.Length == primitivePositions.Length)
+                {
+                    primitiveNormals = readNormals;
+                }
+                else
+                {
+                    haveNormalsForAllPrimitives = false;
+                }
+
+                Vector2[]? primitiveTexcoords = null;
+                if (attributesElement.TryGetProperty("TEXCOORD_0", out JsonElement texcoordAccessorElement) &&
+                    texcoordAccessorElement.TryGetInt32(out int texcoordAccessorIndex) &&
+                    TryReadAccessorVector2(
+                        accessorsElement,
+                        bufferViewsElement,
+                        binaryChunk,
+                        texcoordAccessorIndex,
+                        out Vector2[] readTexcoords) &&
+                    readTexcoords.Length == primitivePositions.Length)
+                {
+                    primitiveTexcoords = readTexcoords;
+                }
+                else
+                {
+                    haveTexcoordsForAllPrimitives = false;
+                }
+
                 int baseVertex = positions.Count;
                 for (int i = 0; i < primitivePositions.Length; i++)
                 {
                     positions.Add(primitivePositions[i]);
+                    if (primitiveNormals is not null)
+                    {
+                        normals.Add(primitiveNormals[i]);
+                    }
+
+                    if (primitiveTexcoords is not null)
+                    {
+                        texcoords.Add(primitiveTexcoords[i]);
+                    }
                 }
 
                 if (primitive.TryGetProperty("indices", out JsonElement indicesAccessorElement) &&
@@ -196,7 +246,19 @@ public static partial class ImportedStlCollarMeshBuilder
             }
         }
 
-        return positions.Count > 0 && indices.Count >= 3;
+        if (positions.Count == 0 || indices.Count < 3)
+        {
+            return false;
+        }
+
+        meshData = new ImportedMeshData
+        {
+            Positions = positions,
+            Indices = indices,
+            Normals = haveNormalsForAllPrimitives && normals.Count == positions.Count ? normals : null,
+            Texcoords = haveTexcoordsForAllPrimitives && texcoords.Count == positions.Count ? texcoords : null
+        };
+        return true;
     }
 
     private static bool TryReadAccessorVector3(
@@ -241,6 +303,52 @@ public static partial class ImportedStlCollarMeshBuilder
             float y = BitConverter.ToSingle(bufferBytes, offset + 4);
             float z = BitConverter.ToSingle(bufferBytes, offset + 8);
             vectors[i] = new Vector3(x, y, z);
+        }
+
+        return true;
+    }
+
+    private static bool TryReadAccessorVector2(
+        JsonElement accessorsElement,
+        JsonElement bufferViewsElement,
+        byte[] bufferBytes,
+        int accessorIndex,
+        out Vector2[] vectors)
+    {
+        vectors = Array.Empty<Vector2>();
+        if (!TryResolveAccessorView(accessorsElement, bufferViewsElement, bufferBytes.Length, accessorIndex, out AccessorView view))
+        {
+            return false;
+        }
+
+        if (!string.Equals(view.Type, "VEC2", StringComparison.Ordinal) ||
+            view.ComponentType != 5126)
+        {
+            return false;
+        }
+
+        int stride = view.ByteStride > 0 ? view.ByteStride : 8;
+        if (stride < 8)
+        {
+            return false;
+        }
+
+        long lastVectorStart = view.DataOffset + ((long)(view.Count - 1) * stride);
+        long accessorEnd = view.DataOffset + view.ByteLength;
+        if (lastVectorStart < 0 ||
+            (lastVectorStart + 8) > bufferBytes.Length ||
+            (lastVectorStart + 8) > accessorEnd)
+        {
+            return false;
+        }
+
+        vectors = new Vector2[view.Count];
+        for (int i = 0; i < view.Count; i++)
+        {
+            int offset = view.DataOffset + (i * stride);
+            float x = BitConverter.ToSingle(bufferBytes, offset + 0);
+            float y = BitConverter.ToSingle(bufferBytes, offset + 4);
+            vectors[i] = new Vector2(x, y);
         }
 
         return true;

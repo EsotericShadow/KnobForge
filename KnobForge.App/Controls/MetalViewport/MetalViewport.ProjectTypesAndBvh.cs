@@ -18,6 +18,7 @@ namespace KnobForge.App.Controls
             PaintBrushType BrushType,
             ScratchAbrasionType ScratchAbrasionType,
             Vector3 PaintColor,
+            float TargetValue,
             uint Seed,
             int LayerIndex);
 
@@ -37,6 +38,9 @@ namespace KnobForge.App.Controls
         private sealed class PaintLayerPersisted
         {
             public string? Name { get; set; }
+            public float Opacity { get; set; } = 1f;
+            public PaintBlendMode BlendMode { get; set; } = PaintBlendMode.Normal;
+            public bool Visible { get; set; } = true;
         }
 
         private sealed class PaintStrokePersisted
@@ -58,6 +62,7 @@ namespace KnobForge.App.Controls
             public float PaintColorX { get; set; }
             public float PaintColorY { get; set; }
             public float PaintColorZ { get; set; }
+            public float TargetValue { get; set; } = 1f;
             public uint Seed { get; set; }
             public int LayerIndex { get; set; }
         }
@@ -76,9 +81,14 @@ namespace KnobForge.App.Controls
             public bool BrushInvertX { get; set; }
             public bool BrushInvertY { get; set; }
             public bool BrushInvertZ { get; set; }
-            public bool LightEffectInvertX { get; set; }
-            public bool LightEffectInvertY { get; set; }
-            public bool LightEffectInvertZ { get; set; }
+            public bool? LightEffectInvertX { get; set; }
+            public bool? LightEffectInvertY { get; set; }
+            public bool? LightEffectInvertZ { get; set; }
+            public bool CollarCompensationInvertX { get; set; }
+            public bool CollarCompensationInvertY { get; set; }
+            public bool CollarCompensationInvertZ { get; set; }
+            public bool BloomCompositeInvertX { get; set; }
+            public bool BloomCompositeInvertY { get; set; }
             public bool InvertImportedCollarOrbit { get; set; }
             public bool InvertKnobFrontFaceWinding { get; set; }
             public bool InvertImportedStlFrontFaceWinding { get; set; }
@@ -137,6 +147,8 @@ namespace KnobForge.App.Controls
             public Vector4 PostProcessParams;
             public Vector4 PostProcessParams2;
             public Vector4 TonemapParams;
+            public Vector4 TextureMapFlags;
+            public Vector4 TextureMapParams;
             public GpuLight Light0;
             public GpuLight Light1;
             public GpuLight Light2;

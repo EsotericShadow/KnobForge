@@ -360,14 +360,14 @@ namespace KnobForge.App.Controls
                 return;
             }
 
-            if (_pendingPaintStampCommands.Count >= MaxPendingPaintStamps)
-            {
-                int dropCount = Math.Max(1, _pendingPaintStampCommands.Count - MaxPendingPaintStamps + 1);
-                _pendingPaintStampCommands.RemoveRange(0, dropCount);
-            }
-
             EnsureDefaultPaintLayer();
             int targetLayer = Math.Clamp(_isPainting ? _activeStrokeLayerIndex : _activePaintLayerIndex, 0, _paintLayers.Count - 1);
+            float targetValue = _project.BrushChannel switch
+            {
+                PaintChannel.Roughness => _project.RoughnessPaintTarget,
+                PaintChannel.Metallic => _project.MetallicPaintTarget,
+                _ => 1f
+            };
             var command = new PaintStampCommand(
                 UvCenter: uvCenter,
                 UvRadius: MathF.Max(1e-6f, uvRadius),
@@ -380,9 +380,11 @@ namespace KnobForge.App.Controls
                     Math.Clamp(paintColor.X, 0f, 1f),
                     Math.Clamp(paintColor.Y, 0f, 1f),
                     Math.Clamp(paintColor.Z, 0f, 1f)),
+                TargetValue: Math.Clamp(targetValue, 0f, 1f),
                 Seed: seed,
                 LayerIndex: targetLayer);
-            _pendingPaintStampCommands.Add(command);
+            ApplyPaintCommandToProject(command);
+            InvalidatePaintTexturesForDisplayState();
             if (_isPainting)
             {
                 _activeStrokeCommands.Add(command);
@@ -421,19 +423,21 @@ namespace KnobForge.App.Controls
             };
         }
 
-        private Vector2 ApplyBrushUvAxisInversion(Vector2 uv)
+        private SKPoint ApplyBrushScreenAxisInversion(SKPoint screenPoint)
         {
+            GetScreenCenterPx(out float centerX, out float centerY);
+
             if (_brushInvertX)
             {
-                uv.X = 1f - uv.X;
+                screenPoint.X = (2f * centerX) - screenPoint.X;
             }
 
             if (_brushInvertY)
             {
-                uv.Y = 1f - uv.Y;
+                screenPoint.Y = (2f * centerY) - screenPoint.Y;
             }
 
-            return uv;
+            return screenPoint;
         }
 
         private bool TryMapPointerToPaintUv(Point pointerDip, out Vector2 uv, out float referenceRadius)
@@ -492,6 +496,7 @@ namespace KnobForge.App.Controls
         {
             uv = default;
             SKPoint screenPoint = DipToScreen(pointerDip);
+            screenPoint = ApplyBrushScreenAxisInversion(screenPoint);
             if (!TryBuildPointerRay(screenPoint, referenceRadius, out Vector3 rayOrigin, out Vector3 rayDirection))
             {
                 _lastPaintHitMode = PaintHitMode.Idle;
@@ -520,10 +525,6 @@ namespace KnobForge.App.Controls
             if (drawCollar && _collarResources is not null)
             {
                 float collarRotation = modelRotation;
-                if (_invertImportedCollarOrbit && IsImportedCollarPreset(collarNode))
-                {
-                    collarRotation = -collarRotation;
-                }
 
                 if (TryIntersectMeshWithModelRotation(
                         _collarResources,
@@ -557,7 +558,6 @@ namespace KnobForge.App.Controls
                 uv = new Vector2(
                     (localX / (2f * referenceRadius)) + 0.5f,
                     (localY / (2f * referenceRadius)) + 0.5f);
-                uv = ApplyBrushUvAxisInversion(uv);
                 _lastPaintHitMode = PaintHitMode.Fallback;
                 return true;
             }
@@ -565,7 +565,6 @@ namespace KnobForge.App.Controls
             uv = new Vector2(
                 (bestLocalHit.X / (2f * referenceRadius)) + 0.5f,
                 (bestLocalHit.Y / (2f * referenceRadius)) + 0.5f);
-            uv = ApplyBrushUvAxisInversion(uv);
             _lastPaintHitMode = PaintHitMode.MeshHit;
             return true;
         }

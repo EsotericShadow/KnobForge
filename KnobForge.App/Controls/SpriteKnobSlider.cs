@@ -43,6 +43,9 @@ namespace KnobForge.App.Controls
         public static readonly StyledProperty<double> DragPixelsForFullRangeProperty =
             AvaloniaProperty.Register<SpriteKnobSlider, double>(nameof(DragPixelsForFullRange), 220d);
 
+        public static readonly StyledProperty<bool> ReverseFrameOrderProperty =
+            AvaloniaProperty.Register<SpriteKnobSlider, bool>(nameof(ReverseFrameOrder), true);
+
         public static readonly DirectProperty<SpriteKnobSlider, IImage?> CurrentFrameProperty =
             AvaloniaProperty.RegisterDirect<SpriteKnobSlider, IImage?>(
                 nameof(CurrentFrame),
@@ -121,6 +124,12 @@ namespace KnobForge.App.Controls
             set => SetValue(DragPixelsForFullRangeProperty, value);
         }
 
+        public bool ReverseFrameOrder
+        {
+            get => GetValue(ReverseFrameOrderProperty);
+            set => SetValue(ReverseFrameOrderProperty, value);
+        }
+
         public IImage? CurrentFrame
         {
             get => _currentFrame;
@@ -151,7 +160,8 @@ namespace KnobForge.App.Controls
                 change.Property == FrameHeightProperty ||
                 change.Property == FramePaddingProperty ||
                 change.Property == FrameStartXProperty ||
-                change.Property == FrameStartYProperty)
+                change.Property == FrameStartYProperty ||
+                change.Property == ReverseFrameOrderProperty)
             {
                 ResetFrameCache();
                 UpdateCurrentFrame();
@@ -286,7 +296,10 @@ namespace KnobForge.App.Controls
             double range = Maximum - Minimum;
             double normalized = range > 0d ? (Value - Minimum) / range : 0d;
             normalized = Math.Clamp(normalized, 0d, 1d);
-            normalized = 1d - normalized;
+            if (ReverseFrameOrder)
+            {
+                normalized = 1d - normalized;
+            }
             int index = (int)Math.Round(normalized * (_frames.Count - 1));
             index = Math.Clamp(index, 0, _frames.Count - 1);
             CurrentFrame = _frames[index];

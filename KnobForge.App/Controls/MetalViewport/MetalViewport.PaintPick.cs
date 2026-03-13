@@ -37,19 +37,12 @@ namespace KnobForge.App.Controls
             }
 
             SKPoint screenPoint = DipToScreen(pointerDip);
+            screenPoint = ApplyBrushScreenAxisInversion(screenPoint);
             int sampleX = Math.Clamp((int)MathF.Round(screenPoint.X), 0, width - 1);
             int sampleY = Math.Clamp((int)MathF.Round(screenPoint.Y), 0, height - 1);
 
             if (TryReadPaintPickUv(sampleX, sampleY, out uv))
             {
-                uv = ApplyBrushUvAxisInversion(uv);
-                return true;
-            }
-
-            int flippedY = (height - 1) - sampleY;
-            if (flippedY != sampleY && TryReadPaintPickUv(sampleX, flippedY, out uv))
-            {
-                uv = ApplyBrushUvAxisInversion(uv);
                 return true;
             }
 
@@ -97,11 +90,6 @@ namespace KnobForge.App.Controls
             if (drawCollarPick && collarNode is not null)
             {
                 GpuUniforms collarUniforms = BuildCollarUniforms(knobUniforms, collarNode);
-                if (_invertImportedCollarOrbit && IsImportedCollarPreset(collarNode))
-                {
-                    collarUniforms.ModelRotationCosSin.Y = -collarUniforms.ModelRotationCosSin.Y;
-                }
-
                 collarPickUniform = BuildPaintPickUniform(collarUniforms, objectId: 2f / 255f);
             }
 

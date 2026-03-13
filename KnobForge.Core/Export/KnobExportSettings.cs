@@ -8,6 +8,15 @@ namespace KnobForge.Core.Export
         Grid
     }
 
+    public enum ExportImageFormat
+    {
+        AutoLossless,
+        PngOptimized,
+        PngLossless,
+        WebpLossless,
+        WebpLossy
+    }
+
     public enum ExportFilterPreset
     {
         None,
@@ -199,6 +208,22 @@ namespace KnobForge.Core.Export
         public bool ExportIndividualFrames { get; set; } = DefaultStrategy.ExportIndividualFrames;
         public bool ExportSpritesheet { get; set; } = DefaultStrategy.ExportSpritesheet;
         public float CameraDistanceScale { get; set; } = DefaultStrategy.CameraDistanceScale;
+        public ExportImageFormat ImageFormat { get; set; } = ExportImageFormat.PngOptimized;
+        public int PngCompressionLevel { get; set; } = 9;
+        public PngOptimizationPreset PngOptimizationPreset { get; set; } = PngOptimizationPreset.Balanced;
+        public int PngOptimizationMinimumSavingsBytes { get; set; } = 2048;
+        public int PngOpaqueRgbStep { get; set; } = 2;
+        public int PngOpaqueAlphaStep { get; set; } = 1;
+        public int PngTranslucentRgbStep { get; set; } = 4;
+        public int PngTranslucentAlphaStep { get; set; } = 1;
+        public byte PngTranslucentAlphaThreshold { get; set; } = 128;
+        public byte PngMaxOpaqueRgbDelta { get; set; } = 1;
+        public byte PngMaxVisibleRgbDelta { get; set; } = 4;
+        public byte PngMaxVisibleAlphaDelta { get; set; } = 2;
+        public float PngMeanVisibleLumaDelta { get; set; } = 0.75f;
+        public float PngMeanVisibleAlphaDelta { get; set; } = 0.75f;
+        public float WebpLossyQuality { get; set; } = 90f;
+        public bool OptimizeSpritesheetPng { get; set; } = true;
         public bool ExportOrbitVariants { get; set; }
         public float OrbitVariantYawOffsetDeg { get; set; } = DefaultOrbitVariantYawOffsetDeg;
         public float OrbitVariantPitchOffsetDeg { get; set; } = DefaultOrbitVariantPitchOffsetDeg;

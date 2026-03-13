@@ -300,6 +300,10 @@ namespace KnobForge.App.Controls
                     dynamicLightAnimationTimeSeconds);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
                 GpuUniforms postProcessUniforms = knobUniforms;
+                if (drawCollar)
+                {
+                    ApplyImportedCollarMirrorToEnvironmentOrientation(ref postProcessUniforms, collarNode);
+                }
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
@@ -476,6 +480,7 @@ namespace KnobForge.App.Controls
                     : default;
                 EnsurePaintMaskTexture(_project);
                 EnsurePaintColorTexture(_project);
+                EnsurePaintMask2Texture(_project);
                 ApplyPendingPaintStamps(commandBuffer);
 
                 IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
@@ -487,10 +492,6 @@ namespace KnobForge.App.Controls
                 try
                 {
                     pipelineManager.UsePipeline(new MTLRenderCommandEncoderHandle(encoderPtr), mainPassSampleCount);
-                    if (drawCollar && _invertImportedCollarOrbit && IsImportedCollarPreset(collarNode))
-                    {
-                        collarUniforms.ModelRotationCosSin.Y = -collarUniforms.ModelRotationCosSin.Y;
-                    }
                     ObjC.Void_objc_msgSend_IntPtr_UInt(
                         encoderPtr,
                         Selectors.SetVertexTextureAtIndex,
@@ -516,6 +517,31 @@ namespace KnobForge.App.Controls
                         Selectors.SetFragmentTextureAtIndex,
                         _environmentMapTexture,
                         3);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        ResolveMaterialTexture(materialNode, TextureMapType.Albedo),
+                        4);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        ResolveMaterialTexture(materialNode, TextureMapType.Normal),
+                        5);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        ResolveMaterialTexture(materialNode, TextureMapType.Roughness),
+                        6);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        ResolveMaterialTexture(materialNode, TextureMapType.Metallic),
+                        7);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        _paintMask2Texture,
+                        8);
                     GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
                     bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
                     bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding

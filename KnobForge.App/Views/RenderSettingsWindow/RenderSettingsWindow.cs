@@ -45,9 +45,10 @@ namespace KnobForge.App.Views
         private readonly MetalViewport? _gpuViewport;
         private readonly Control _settingsPanel;
         private readonly ComboBox _outputStrategyComboBox;
+        private readonly TextBlock _outputStrategySummaryTextBlock;
         private readonly TextBlock _outputStrategyDescriptionTextBlock;
         private readonly TextBox _frameCountTextBox;
-        private readonly ComboBox _resolutionComboBox;
+        private readonly TextBox _resolutionTextBox;
         private readonly ComboBox _supersampleComboBox;
         private readonly TextBox _paddingTextBox;
         private readonly TextBox _cameraDistanceScaleTextBox;
@@ -61,9 +62,27 @@ namespace KnobForge.App.Views
         private readonly ComboBox _spritesheetLayoutComboBox;
         private readonly CheckBox _exportFramesCheckBox;
         private readonly CheckBox _exportSpritesheetCheckBox;
+        private readonly CheckBox _optimizeSpritesheetPngCheckBox;
+        private readonly ComboBox _outputImageFormatComboBox;
+        private readonly TextBox _pngCompressionLevelTextBox;
+        private readonly ComboBox _pngOptimizationPresetComboBox;
+        private readonly TextBox _pngMinimumSavingsKbTextBox;
+        private readonly TextBox _pngOpaqueRgbStepTextBox;
+        private readonly TextBox _pngOpaqueAlphaStepTextBox;
+        private readonly TextBox _pngTranslucentRgbStepTextBox;
+        private readonly TextBox _pngTranslucentAlphaStepTextBox;
+        private readonly TextBox _pngTranslucentAlphaThresholdTextBox;
+        private readonly TextBox _pngMaxOpaqueRgbDeltaTextBox;
+        private readonly TextBox _pngMaxVisibleRgbDeltaTextBox;
+        private readonly TextBox _pngMaxVisibleAlphaDeltaTextBox;
+        private readonly TextBox _pngMeanVisibleLumaDeltaTextBox;
+        private readonly TextBox _pngMeanVisibleAlphaDeltaTextBox;
+        private readonly Control _webpLossyQualityRow;
+        private readonly TextBox _webpLossyQualityTextBox;
         private readonly Button _autoCorrectButton;
         private readonly Border _rotaryPreviewSection;
         private readonly TextBlock _interactivePreviewTitleTextBlock;
+        private readonly TextBlock _compressionEstimateTextBlock;
         private readonly ListBox _viewpointsListBox;
         private readonly Button _addViewpointButton;
         private readonly Button _duplicateViewpointButton;
@@ -92,6 +111,7 @@ namespace KnobForge.App.Views
         private readonly Button _startRenderButton;
         private readonly Button _cancelButton;
         private readonly ProgressBar _exportProgressBar;
+        private readonly TextBlock _exportSummaryTextBlock;
         private readonly TextBlock _statusTextBlock;
         private readonly TextBlock _scratchParityNoteTextBlock;
         private readonly OutputStrategyOption[] _outputStrategyOptions;
@@ -104,8 +124,10 @@ namespace KnobForge.App.Views
         private bool _isBuildingRotaryPreview;
         private bool _isRendering;
         private bool _isApplyingOutputStrategy;
+        private bool _isApplyingPngOptimizationPreset;
         private bool _isUpdatingViewpointUi;
         private bool _viewpointsDirtyFromOrbit = true;
+        private long? _lastPreviewEncodedSheetBytes;
         private bool CanUseGpuExport => _gpuViewport?.CanRenderOffscreen == true;
 
         public RenderSettingsWindow()
@@ -130,12 +152,14 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("SettingsPanel not found.");
             _outputStrategyComboBox = this.FindControl<ComboBox>("OutputStrategyComboBox")
                 ?? throw new InvalidOperationException("OutputStrategyComboBox not found.");
+            _outputStrategySummaryTextBlock = this.FindControl<TextBlock>("OutputStrategySummaryTextBlock")
+                ?? throw new InvalidOperationException("OutputStrategySummaryTextBlock not found.");
             _outputStrategyDescriptionTextBlock = this.FindControl<TextBlock>("OutputStrategyDescriptionTextBlock")
                 ?? throw new InvalidOperationException("OutputStrategyDescriptionTextBlock not found.");
             _frameCountTextBox = this.FindControl<TextBox>("FrameCountTextBox")
                 ?? throw new InvalidOperationException("FrameCountTextBox not found.");
-            _resolutionComboBox = this.FindControl<ComboBox>("ResolutionComboBox")
-                ?? throw new InvalidOperationException("ResolutionComboBox not found.");
+            _resolutionTextBox = this.FindControl<TextBox>("ResolutionTextBox")
+                ?? throw new InvalidOperationException("ResolutionTextBox not found.");
             _supersampleComboBox = this.FindControl<ComboBox>("SupersampleComboBox")
                 ?? throw new InvalidOperationException("SupersampleComboBox not found.");
             _paddingTextBox = this.FindControl<TextBox>("PaddingTextBox")
@@ -162,12 +186,48 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("ExportFramesCheckBox not found.");
             _exportSpritesheetCheckBox = this.FindControl<CheckBox>("ExportSpritesheetCheckBox")
                 ?? throw new InvalidOperationException("ExportSpritesheetCheckBox not found.");
+            _optimizeSpritesheetPngCheckBox = this.FindControl<CheckBox>("OptimizeSpritesheetPngCheckBox")
+                ?? throw new InvalidOperationException("OptimizeSpritesheetPngCheckBox not found.");
+            _outputImageFormatComboBox = this.FindControl<ComboBox>("OutputImageFormatComboBox")
+                ?? throw new InvalidOperationException("OutputImageFormatComboBox not found.");
+            _pngCompressionLevelTextBox = this.FindControl<TextBox>("PngCompressionLevelTextBox")
+                ?? throw new InvalidOperationException("PngCompressionLevelTextBox not found.");
+            _pngOptimizationPresetComboBox = this.FindControl<ComboBox>("PngOptimizationPresetComboBox")
+                ?? throw new InvalidOperationException("PngOptimizationPresetComboBox not found.");
+            _pngMinimumSavingsKbTextBox = this.FindControl<TextBox>("PngMinimumSavingsKbTextBox")
+                ?? throw new InvalidOperationException("PngMinimumSavingsKbTextBox not found.");
+            _pngOpaqueRgbStepTextBox = this.FindControl<TextBox>("PngOpaqueRgbStepTextBox")
+                ?? throw new InvalidOperationException("PngOpaqueRgbStepTextBox not found.");
+            _pngOpaqueAlphaStepTextBox = this.FindControl<TextBox>("PngOpaqueAlphaStepTextBox")
+                ?? throw new InvalidOperationException("PngOpaqueAlphaStepTextBox not found.");
+            _pngTranslucentRgbStepTextBox = this.FindControl<TextBox>("PngTranslucentRgbStepTextBox")
+                ?? throw new InvalidOperationException("PngTranslucentRgbStepTextBox not found.");
+            _pngTranslucentAlphaStepTextBox = this.FindControl<TextBox>("PngTranslucentAlphaStepTextBox")
+                ?? throw new InvalidOperationException("PngTranslucentAlphaStepTextBox not found.");
+            _pngTranslucentAlphaThresholdTextBox = this.FindControl<TextBox>("PngTranslucentAlphaThresholdTextBox")
+                ?? throw new InvalidOperationException("PngTranslucentAlphaThresholdTextBox not found.");
+            _pngMaxOpaqueRgbDeltaTextBox = this.FindControl<TextBox>("PngMaxOpaqueRgbDeltaTextBox")
+                ?? throw new InvalidOperationException("PngMaxOpaqueRgbDeltaTextBox not found.");
+            _pngMaxVisibleRgbDeltaTextBox = this.FindControl<TextBox>("PngMaxVisibleRgbDeltaTextBox")
+                ?? throw new InvalidOperationException("PngMaxVisibleRgbDeltaTextBox not found.");
+            _pngMaxVisibleAlphaDeltaTextBox = this.FindControl<TextBox>("PngMaxVisibleAlphaDeltaTextBox")
+                ?? throw new InvalidOperationException("PngMaxVisibleAlphaDeltaTextBox not found.");
+            _pngMeanVisibleLumaDeltaTextBox = this.FindControl<TextBox>("PngMeanVisibleLumaDeltaTextBox")
+                ?? throw new InvalidOperationException("PngMeanVisibleLumaDeltaTextBox not found.");
+            _pngMeanVisibleAlphaDeltaTextBox = this.FindControl<TextBox>("PngMeanVisibleAlphaDeltaTextBox")
+                ?? throw new InvalidOperationException("PngMeanVisibleAlphaDeltaTextBox not found.");
+            _webpLossyQualityRow = this.FindControl<Control>("WebpLossyQualityRow")
+                ?? throw new InvalidOperationException("WebpLossyQualityRow not found.");
+            _webpLossyQualityTextBox = this.FindControl<TextBox>("WebpLossyQualityTextBox")
+                ?? throw new InvalidOperationException("WebpLossyQualityTextBox not found.");
             _autoCorrectButton = this.FindControl<Button>("AutoCorrectButton")
                 ?? throw new InvalidOperationException("AutoCorrectButton not found.");
             _rotaryPreviewSection = this.FindControl<Border>("RotaryPreviewSection")
                 ?? throw new InvalidOperationException("RotaryPreviewSection not found.");
             _interactivePreviewTitleTextBlock = this.FindControl<TextBlock>("InteractivePreviewTitleTextBlock")
                 ?? throw new InvalidOperationException("InteractivePreviewTitleTextBlock not found.");
+            _compressionEstimateTextBlock = this.FindControl<TextBlock>("CompressionEstimateTextBlock")
+                ?? throw new InvalidOperationException("CompressionEstimateTextBlock not found.");
             _viewpointsListBox = this.FindControl<ListBox>("ViewpointsListBox")
                 ?? throw new InvalidOperationException("ViewpointsListBox not found.");
             _addViewpointButton = this.FindControl<Button>("AddViewpointButton")
@@ -224,6 +284,8 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("CancelButton not found.");
             _exportProgressBar = this.FindControl<ProgressBar>("ExportProgressBar")
                 ?? throw new InvalidOperationException("ExportProgressBar not found.");
+            _exportSummaryTextBlock = this.FindControl<TextBlock>("ExportSummaryTextBlock")
+                ?? throw new InvalidOperationException("ExportSummaryTextBlock not found.");
             _statusTextBlock = this.FindControl<TextBlock>("StatusTextBlock")
                 ?? throw new InvalidOperationException("StatusTextBlock not found.");
             _scratchParityNoteTextBlock = this.FindControl<TextBlock>("ScratchParityNoteTextBlock")
@@ -235,25 +297,33 @@ namespace KnobForge.App.Views
             _rotaryPreviewVariantComboBox.ItemsSource = _previewVariantOptions;
             _rotaryPreviewVariantComboBox.SelectedIndex = 0;
 
-            _resolutionComboBox.ItemsSource = new[] { "128", "192", "256", "384", "512", "1024", "2048" };
-
             _supersampleComboBox.ItemsSource = new[] { "1", "2", "3", "4" };
 
             _spritesheetLayoutComboBox.ItemsSource = Enum.GetValues<SpritesheetLayout>();
 
             _filterPresetComboBox.ItemsSource = Enum.GetValues<ExportFilterPreset>();
+            _outputImageFormatComboBox.ItemsSource = BuildFrameImageFormatOptions();
+            _pngOptimizationPresetComboBox.ItemsSource = Enum.GetValues<PngOptimizationPreset>();
 
             _outputFolderTextBox.Text = GetDefaultOutputFolder();
             var defaultExportSettings = new KnobExportSettings();
             _exportOrbitVariantsCheckBox.IsChecked = defaultExportSettings.ExportOrbitVariants;
             _orbitYawOffsetTextBox.Text = defaultExportSettings.OrbitVariantYawOffsetDeg.ToString("0.###", CultureInfo.InvariantCulture);
             _orbitPitchOffsetTextBox.Text = defaultExportSettings.OrbitVariantPitchOffsetDeg.ToString("0.###", CultureInfo.InvariantCulture);
+            _outputImageFormatComboBox.SelectedItem = defaultExportSettings.ImageFormat;
+            _pngCompressionLevelTextBox.Text = defaultExportSettings.PngCompressionLevel.ToString(CultureInfo.InvariantCulture);
+            _pngOptimizationPresetComboBox.SelectedItem = defaultExportSettings.PngOptimizationPreset;
+            _webpLossyQualityTextBox.Text = defaultExportSettings.WebpLossyQuality.ToString("0.#", CultureInfo.InvariantCulture);
+            _optimizeSpritesheetPngCheckBox.IsChecked = defaultExportSettings.OptimizeSpritesheetPng;
+            ApplyPngOptimizationPreset(defaultExportSettings.PngOptimizationPreset);
             _previewBaseYawTextBox.Text = _cameraState.OrbitYawDeg.ToString("0.###", CultureInfo.InvariantCulture);
             _previewBasePitchTextBox.Text = _cameraState.OrbitPitchDeg.ToString("0.###", CultureInfo.InvariantCulture);
             _exportProgressBar.Value = 0d;
-            _scratchParityNoteTextBlock.Text = "Scratch carve parity: export uses the GPU viewport path. Expect close match; tiny edge differences can appear on ultra-thin strokes or fallback hits.";
+            _scratchParityNoteTextBlock.Text = "Render parity: export preview and final export both use the GPU viewport path. Expect a close match; tiny edge differences can still appear on ultra-thin strokes or fallback hits.";
+            _exportSummaryTextBlock.Text = "Summary unavailable until export settings are valid.";
+            _compressionEstimateTextBlock.Text = "Compression estimate unavailable until you create a preview.";
             _statusTextBlock.Text = CanUseGpuExport
-                ? "Idle."
+                ? "Ready to export."
                 : "GPU offscreen rendering is unavailable. Export is GPU-only.";
 
             _outputStrategyComboBox.SelectionChanged += OnOutputStrategySelectionChanged;
@@ -263,6 +333,7 @@ namespace KnobForge.App.Views
             _createRotaryPreviewButton.Click += OnCreateRotaryPreviewButtonClick;
             _rotaryPreviewVariantComboBox.SelectionChanged += OnRotaryPreviewVariantSelectionChanged;
             _rotaryPreviewKnob.PropertyChanged += OnRotaryPreviewKnobPropertyChanged;
+            _pngOptimizationPresetComboBox.SelectionChanged += OnPngOptimizationPresetSelectionChanged;
             _startRenderButton.Click += OnStartRenderButtonClick;
             _cancelButton.Click += OnCancelButtonClick;
             _exportSpritesheetCheckBox.IsCheckedChanged += OnExportSpritesheetCheckedChanged;
@@ -274,6 +345,7 @@ namespace KnobForge.App.Views
             ApplyProjectTypeExportDefaults();
             ResetViewpointsFromOrbit(useCurrentCameraForPrimary: false);
             UpdateSpritesheetLayoutEnabled();
+            UpdateImageFormatControlsEnabled();
             UpdateOrbitVariantControlsEnabled();
             UpdateStartRenderAvailability();
             ConfigureRotaryPreviewAvailability();
@@ -301,6 +373,62 @@ namespace KnobForge.App.Views
                 new PreviewVariantOption("over_left", "Over Left"),
                 new PreviewVariantOption("over_right", "Over Right")
             ];
+        }
+
+        private static ExportImageFormat[] BuildFrameImageFormatOptions()
+        {
+            return
+            [
+                ExportImageFormat.PngOptimized,
+                ExportImageFormat.PngLossless,
+                ExportImageFormat.WebpLossless,
+                ExportImageFormat.WebpLossy
+            ];
+        }
+
+        private void ApplyPngOptimizationPreset(PngOptimizationPreset preset)
+        {
+            if (preset == PngOptimizationPreset.Custom)
+            {
+                return;
+            }
+
+            PngOptimizationProfileDefinition profile = PngOptimizationProfiles.Get(preset);
+            _isApplyingPngOptimizationPreset = true;
+            try
+            {
+                _pngOptimizationPresetComboBox.SelectedItem = preset;
+                _pngMinimumSavingsKbTextBox.Text = Math.Max(0, profile.MinimumSavingsBytes / 1024).ToString(CultureInfo.InvariantCulture);
+                _pngOpaqueRgbStepTextBox.Text = profile.OpaqueRgbStep.ToString(CultureInfo.InvariantCulture);
+                _pngOpaqueAlphaStepTextBox.Text = profile.OpaqueAlphaStep.ToString(CultureInfo.InvariantCulture);
+                _pngTranslucentRgbStepTextBox.Text = profile.TranslucentRgbStep.ToString(CultureInfo.InvariantCulture);
+                _pngTranslucentAlphaStepTextBox.Text = profile.TranslucentAlphaStep.ToString(CultureInfo.InvariantCulture);
+                _pngTranslucentAlphaThresholdTextBox.Text = profile.TranslucentAlphaThreshold.ToString(CultureInfo.InvariantCulture);
+                _pngMaxOpaqueRgbDeltaTextBox.Text = profile.MaxOpaqueRgbDelta.ToString(CultureInfo.InvariantCulture);
+                _pngMaxVisibleRgbDeltaTextBox.Text = profile.MaxVisibleRgbDelta.ToString(CultureInfo.InvariantCulture);
+                _pngMaxVisibleAlphaDeltaTextBox.Text = profile.MaxVisibleAlphaDelta.ToString(CultureInfo.InvariantCulture);
+                _pngMeanVisibleLumaDeltaTextBox.Text = profile.MeanVisibleLumaDelta.ToString("0.###", CultureInfo.InvariantCulture);
+                _pngMeanVisibleAlphaDeltaTextBox.Text = profile.MeanVisibleAlphaDelta.ToString("0.###", CultureInfo.InvariantCulture);
+            }
+            finally
+            {
+                _isApplyingPngOptimizationPreset = false;
+            }
+        }
+
+        private void OnPngOptimizationPresetSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (_isApplyingPngOptimizationPreset)
+            {
+                return;
+            }
+
+            if (_pngOptimizationPresetComboBox.SelectedItem is PngOptimizationPreset preset)
+            {
+                ApplyPngOptimizationPreset(preset);
+                UpdateStartRenderAvailability();
+                MarkRotaryPreviewDirty();
+            }
         }
 
         private void OnOutputStrategySelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -335,13 +463,14 @@ namespace KnobForge.App.Views
                 string supersampleText = definition.SupersampleScale.ToString(CultureInfo.InvariantCulture);
 
                 _frameCountTextBox.Text = frameCountText;
-                _resolutionComboBox.SelectedItem = resolutionText;
-                _resolutionComboBox.Text = resolutionText;
+                _resolutionTextBox.Text = resolutionText;
                 _supersampleComboBox.SelectedItem = supersampleText;
                 _supersampleComboBox.Text = supersampleText;
                 _paddingTextBox.Text = definition.Padding.ToString("0.###", CultureInfo.InvariantCulture);
                 _cameraDistanceScaleTextBox.Text = definition.CameraDistanceScale.ToString("0.###", CultureInfo.InvariantCulture);
-                _spritesheetLayoutComboBox.SelectedItem = definition.SpritesheetLayout;
+                _spritesheetLayoutComboBox.SelectedItem = _project.ProjectType == InteractorProjectType.RotaryKnob
+                    ? SpritesheetLayout.Grid
+                    : definition.SpritesheetLayout;
                 _filterPresetComboBox.SelectedItem = definition.FilterPreset;
                 _exportFramesCheckBox.IsChecked = definition.ExportIndividualFrames;
                 _exportSpritesheetCheckBox.IsChecked = definition.ExportSpritesheet;
@@ -351,6 +480,7 @@ namespace KnobForge.App.Views
             {
                 _isApplyingOutputStrategy = false;
                 UpdateSpritesheetLayoutEnabled();
+                UpdateImageFormatControlsEnabled();
                 UpdateOrbitVariantControlsEnabled();
                 UpdateStartRenderAvailability();
             }
@@ -362,12 +492,19 @@ namespace KnobForge.App.Views
             {
                 _frameCountTextBox.Text = DefaultIndicatorLightFrameCount.ToString(CultureInfo.InvariantCulture);
             }
+
+            if (_project.ProjectType == InteractorProjectType.RotaryKnob)
+            {
+                _spritesheetLayoutComboBox.SelectedItem = SpritesheetLayout.Grid;
+                _exportSpritesheetCheckBox.IsChecked = true;
+            }
         }
 
         private void WireLiveValidationHandlers()
         {
             _frameCountTextBox.TextChanged += OnLiveValidationTextChanged;
             _paddingTextBox.TextChanged += OnLiveValidationTextChanged;
+            _resolutionTextBox.TextChanged += OnLiveValidationTextChanged;
             _cameraDistanceScaleTextBox.TextChanged += OnLiveValidationTextChanged;
             _orbitYawOffsetTextBox.TextChanged += OnLiveValidationTextChanged;
             _orbitPitchOffsetTextBox.TextChanged += OnLiveValidationTextChanged;
@@ -375,19 +512,33 @@ namespace KnobForge.App.Views
             _previewBasePitchTextBox.TextChanged += OnLiveValidationTextChanged;
             _baseNameTextBox.TextChanged += OnLiveValidationTextChanged;
             _outputFolderTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngCompressionLevelTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMinimumSavingsKbTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngOpaqueRgbStepTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngOpaqueAlphaStepTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngTranslucentRgbStepTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngTranslucentAlphaStepTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngTranslucentAlphaThresholdTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMaxOpaqueRgbDeltaTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMaxVisibleRgbDeltaTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMaxVisibleAlphaDeltaTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMeanVisibleLumaDeltaTextBox.TextChanged += OnLiveValidationTextChanged;
+            _pngMeanVisibleAlphaDeltaTextBox.TextChanged += OnLiveValidationTextChanged;
 
-            _resolutionComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
             _supersampleComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
             _spritesheetLayoutComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
             _filterPresetComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
             _outputStrategyComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
+            _outputImageFormatComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
+            _pngOptimizationPresetComboBox.SelectionChanged += OnLiveValidationSelectionChanged;
 
-            _resolutionComboBox.PropertyChanged += OnLiveValidationComboPropertyChanged;
             _supersampleComboBox.PropertyChanged += OnLiveValidationComboPropertyChanged;
 
             _exportFramesCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
             _exportSpritesheetCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
+            _optimizeSpritesheetPngCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
             _exportOrbitVariantsCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
+            _webpLossyQualityTextBox.TextChanged += OnLiveValidationTextChanged;
         }
 
         private void OnLiveValidationTextChanged(object? sender, TextChangedEventArgs e)
@@ -397,12 +548,22 @@ namespace KnobForge.App.Views
                 TrySyncViewpointsFromOrbitBaseline();
             }
 
+            if (!_isApplyingPngOptimizationPreset && IsCompressionTuningTextBox(sender))
+            {
+                _pngOptimizationPresetComboBox.SelectedItem = PngOptimizationPreset.Custom;
+            }
+
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
         }
 
         private void OnLiveValidationSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
+            if (ReferenceEquals(sender, _outputImageFormatComboBox))
+            {
+                UpdateImageFormatControlsEnabled();
+            }
+
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
         }
@@ -414,6 +575,7 @@ namespace KnobForge.App.Views
                 TrySyncViewpointsFromOrbitBaseline();
             }
 
+            UpdateImageFormatControlsEnabled();
             UpdateStartRenderAvailability();
             MarkRotaryPreviewDirty();
         }
@@ -425,6 +587,21 @@ namespace KnobForge.App.Views
                 UpdateStartRenderAvailability();
                 MarkRotaryPreviewDirty();
             }
+        }
+
+        private bool IsCompressionTuningTextBox(object? sender)
+        {
+            return ReferenceEquals(sender, _pngMinimumSavingsKbTextBox) ||
+                ReferenceEquals(sender, _pngOpaqueRgbStepTextBox) ||
+                ReferenceEquals(sender, _pngOpaqueAlphaStepTextBox) ||
+                ReferenceEquals(sender, _pngTranslucentRgbStepTextBox) ||
+                ReferenceEquals(sender, _pngTranslucentAlphaStepTextBox) ||
+                ReferenceEquals(sender, _pngTranslucentAlphaThresholdTextBox) ||
+                ReferenceEquals(sender, _pngMaxOpaqueRgbDeltaTextBox) ||
+                ReferenceEquals(sender, _pngMaxVisibleRgbDeltaTextBox) ||
+                ReferenceEquals(sender, _pngMaxVisibleAlphaDeltaTextBox) ||
+                ReferenceEquals(sender, _pngMeanVisibleLumaDeltaTextBox) ||
+                ReferenceEquals(sender, _pngMeanVisibleAlphaDeltaTextBox);
         }
 
         private static string GetDefaultOutputFolder()

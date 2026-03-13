@@ -62,7 +62,7 @@ namespace KnobForge.App.Views
 
         private void OnAutoCorrectButtonClick(object? sender, RoutedEventArgs e)
         {
-            string resolutionText = (_resolutionComboBox.Text ?? _resolutionComboBox.SelectedItem?.ToString() ?? string.Empty).Trim();
+            string resolutionText = (_resolutionTextBox.Text ?? string.Empty).Trim();
             if (!TryParseInt(resolutionText, MinResolution, MaxResolution, "Resolution", out int resolution, out string resolutionError))
             {
                 _statusTextBlock.Text = $"Auto-correct skipped: {resolutionError}";
@@ -108,11 +108,19 @@ namespace KnobForge.App.Views
             }
 
             int paddingPx = Math.Max(0, (int)MathF.Round(padding));
-            if (_exportSpritesheetCheckBox.IsChecked == true &&
-                (_spritesheetLayoutComboBox.SelectedItem as SpritesheetLayout? ?? SpritesheetLayout.Horizontal) == SpritesheetLayout.Horizontal &&
-                WouldHorizontalLayoutOverflow(frameCount, resolution, paddingPx))
+            bool forcedGridForRotary = false;
+            if (_exportSpritesheetCheckBox.IsChecked == true)
             {
-                _spritesheetLayoutComboBox.SelectedItem = SpritesheetLayout.Grid;
+                if (_project.ProjectType == InteractorProjectType.RotaryKnob)
+                {
+                    _spritesheetLayoutComboBox.SelectedItem = SpritesheetLayout.Grid;
+                    forcedGridForRotary = true;
+                }
+                else if ((_spritesheetLayoutComboBox.SelectedItem as SpritesheetLayout? ?? SpritesheetLayout.Horizontal) == SpritesheetLayout.Horizontal &&
+                    WouldHorizontalLayoutOverflow(frameCount, resolution, paddingPx))
+                {
+                    _spritesheetLayoutComboBox.SelectedItem = SpritesheetLayout.Grid;
+                }
             }
 
             _filterPresetComboBox.SelectedItem = ExportFilterPreset.None;
@@ -125,7 +133,10 @@ namespace KnobForge.App.Views
             string indicatorFrameNote = indicatorFrameAdjusted
                 ? $", indicator frame count set to {DefaultIndicatorLightFrameCount}"
                 : string.Empty;
-            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout{switchFrameNote}{indicatorFrameNote}.";
+            string layoutNote = forcedGridForRotary
+                ? ", grid layout locked in for rotary spritesheets"
+                : string.Empty;
+            _statusTextBlock.Text = $"Applied clean settings: {supersample}x supersampling with export-safe layout{layoutNote}{switchFrameNote}{indicatorFrameNote}.";
         }
 
         private async void OnStartRenderButtonClick(object? sender, RoutedEventArgs e)
@@ -345,7 +356,14 @@ namespace KnobForge.App.Views
                     };
                 }
 
-                var exporter = new KnobExporter(_project, _orientation, exportCameraState, gpuFrameProvider, frameStateApplier);
+                float exportReferenceRadius = GetSceneReferenceRadius();
+                var exporter = new KnobExporter(
+                    _project,
+                    _orientation,
+                    exportCameraState,
+                    gpuFrameProvider,
+                    frameStateApplier,
+                    exportReferenceRadius);
                 var progress = new Progress<KnobExportProgress>(UpdateProgress);
                 KnobExportResult result = await exporter.ExportAsync(
                     settings,
@@ -452,29 +470,32 @@ namespace KnobForge.App.Views
                 !_isBuildingRotaryPreview;
             _createRotaryPreviewButton.IsEnabled = enableRotaryPreviewControls;
             _rotaryPreviewVariantComboBox.IsEnabled = enableRotaryPreviewControls;
-            _cancelButton.Content = isRendering ? "Cancel Render" : "Cancel";
+            _cancelButton.Content = isRendering ? "Cancel Export" : "Cancel";
             UpdateOrbitVariantControlsEnabled();
 
             if (!isRendering)
             {
                 UpdateSpritesheetLayoutEnabled();
+                UpdateImageFormatControlsEnabled();
                 UpdateStartRenderAvailability(preserveCurrentNonErrorStatus: true);
             }
             else
             {
                 _startRenderButton.IsEnabled = false;
                 _startRenderButton.Opacity = 0.55;
-                ToolTip.SetTip(_startRenderButton, "Rendering in progress.");
+                ToolTip.SetTip(_startRenderButton, "Export in progress.");
             }
         }
 
         private void UpdateStartRenderAvailability(bool preserveCurrentNonErrorStatus = false)
         {
+            UpdateOutputStrategySummaryText();
+
             if (_isRendering)
             {
                 _startRenderButton.IsEnabled = false;
                 _startRenderButton.Opacity = 0.55;
-                ToolTip.SetTip(_startRenderButton, "Rendering in progress.");
+                ToolTip.SetTip(_startRenderButton, "Export in progress.");
                 return;
             }
 
@@ -483,38 +504,56 @@ namespace KnobForge.App.Views
             {
                 _startRenderButton.IsEnabled = false;
                 _startRenderButton.Opacity = 0.55;
+                _exportSummaryTextBlock.Text = "Summary unavailable while GPU offscreen export is unavailable.";
+                UpdateCompressionEstimateText();
                 _statusTextBlock.Text = gpuUnavailableMessage;
                 ToolTip.SetTip(_startRenderButton, gpuUnavailableMessage);
                 return;
             }
 
-            if (!TryBuildRequest(out _, out _, out _, out string validationError))
+            if (!TryBuildRequest(out KnobExportSettings settings, out _, out _, out string validationError))
             {
-                string message = $"Cannot render: {validationError}";
+                string message = $"Cannot export: {validationError}";
                 _startRenderButton.IsEnabled = false;
                 _startRenderButton.Opacity = 0.55;
+                _exportSummaryTextBlock.Text = $"Summary unavailable: {validationError}";
+                UpdateCompressionEstimateText();
                 _statusTextBlock.Text = message;
                 ToolTip.SetTip(_startRenderButton, message);
                 return;
             }
 
+            UpdateExportSummaryText(settings);
+            UpdateCompressionEstimateText(settings);
             _startRenderButton.IsEnabled = true;
             _startRenderButton.Opacity = 1.0;
-            ToolTip.SetTip(_startRenderButton, "Ready to render.");
+            ToolTip.SetTip(_startRenderButton, "Ready to export.");
 
             if (preserveCurrentNonErrorStatus &&
                 !string.IsNullOrWhiteSpace(_statusTextBlock.Text) &&
-                !_statusTextBlock.Text.StartsWith("Cannot render:", StringComparison.Ordinal))
+                !_statusTextBlock.Text.StartsWith("Cannot export:", StringComparison.Ordinal))
             {
                 return;
             }
 
-            _statusTextBlock.Text = "Ready to render.";
+            _statusTextBlock.Text = "Ready to export.";
         }
 
         private void UpdateSpritesheetLayoutEnabled()
         {
-            _spritesheetLayoutComboBox.IsEnabled = !_isRendering && _exportSpritesheetCheckBox.IsChecked == true;
+            bool spritesheetEnabled = _exportSpritesheetCheckBox.IsChecked == true;
+            _spritesheetLayoutComboBox.IsEnabled = !_isRendering && spritesheetEnabled;
+            _optimizeSpritesheetPngCheckBox.IsEnabled = !_isRendering && spritesheetEnabled;
+        }
+
+        private void UpdateImageFormatControlsEnabled()
+        {
+            bool exportFrames = _exportFramesCheckBox.IsChecked == true;
+            bool isWebpLossy = exportFrames &&
+                (_outputImageFormatComboBox.SelectedItem as ExportImageFormat?) == ExportImageFormat.WebpLossy;
+            _outputImageFormatComboBox.IsEnabled = !_isRendering && exportFrames;
+            _webpLossyQualityRow.IsVisible = isWebpLossy;
+            _webpLossyQualityTextBox.IsEnabled = !_isRendering && isWebpLossy;
         }
 
         private void UpdateOrbitVariantControlsEnabled()
@@ -522,6 +561,175 @@ namespace KnobForge.App.Views
             bool enabled = !_isRendering && _exportOrbitVariantsCheckBox.IsChecked == true;
             _orbitYawOffsetTextBox.IsEnabled = enabled;
             _orbitPitchOffsetTextBox.IsEnabled = enabled;
+        }
+
+        private void UpdateOutputStrategySummaryText()
+        {
+            string frameCountText = string.IsNullOrWhiteSpace(_frameCountTextBox.Text)
+                ? "?"
+                : _frameCountTextBox.Text.Trim();
+            string resolutionText = (_resolutionTextBox.Text ?? "?").Trim();
+            string supersampleText = (_supersampleComboBox.Text ?? _supersampleComboBox.SelectedItem?.ToString() ?? "?").Trim();
+            SpritesheetLayout layout = _spritesheetLayoutComboBox.SelectedItem as SpritesheetLayout? ?? SpritesheetLayout.Horizontal;
+            string layoutText = layout == SpritesheetLayout.Horizontal ? "horizontal strip" : "grid sheet";
+            bool exportFrames = _exportFramesCheckBox.IsChecked == true;
+            bool exportSpritesheet = _exportSpritesheetCheckBox.IsChecked == true;
+            string targetText = (exportFrames, exportSpritesheet) switch
+            {
+                (true, true) => "frames + sheet",
+                (true, false) => "frames only",
+                (false, true) => "sheet only",
+                _ => "no outputs"
+            };
+
+            _outputStrategySummaryTextBlock.Text = $"{frameCountText} frames, {resolutionText}px, {supersampleText}x SS, {layoutText}, {targetText}";
+        }
+
+        private void UpdateExportSummaryText(KnobExportSettings settings)
+        {
+            int enabledViewCount = settings.ExportViewpoints?
+                .Count(viewpoint => viewpoint != null && viewpoint.Enabled) ?? 0;
+            if (enabledViewCount <= 0)
+            {
+                enabledViewCount = 1;
+            }
+
+            string viewLabel = enabledViewCount == 1 ? "1 view" : $"{enabledViewCount} views";
+            string frameFilesSummary = string.Empty;
+            if (settings.ExportIndividualFrames)
+            {
+                int frameFileCount = checked(settings.FrameCount * enabledViewCount);
+                frameFilesSummary = $"{frameFileCount} {GetFrameFormatDisplayName(settings.ImageFormat)} frame files";
+            }
+
+            string spritesheetSummary = string.Empty;
+            if (settings.ExportSpritesheet)
+            {
+                (SpritesheetLayout layout, int width, int height) = ResolveSummarySpritesheetPlan(settings);
+                string sheetNoun = layout == SpritesheetLayout.Horizontal ? "filmstrip" : "sheet";
+                string sheetCountPrefix = enabledViewCount == 1
+                    ? "1 PNG"
+                    : $"{enabledViewCount} PNG";
+                spritesheetSummary = $"{sheetCountPrefix} {sheetNoun}{(enabledViewCount == 1 ? string.Empty : "s")} at {width}x{height}";
+            }
+
+            string combinedTargets = string.Join(
+                " + ",
+                new[] { frameFilesSummary, spritesheetSummary }.Where(text => !string.IsNullOrWhiteSpace(text)));
+            if (string.IsNullOrWhiteSpace(combinedTargets))
+            {
+                combinedTargets = "no outputs selected";
+            }
+
+            string estimateSummary = BuildCompressionEstimateSummary(settings, enabledViewCount);
+            _exportSummaryTextBlock.Text = $"{settings.FrameCount} frames x {viewLabel} at {settings.Resolution}px -> {combinedTargets}{estimateSummary}";
+        }
+
+        private (SpritesheetLayout Layout, int Width, int Height) ResolveSummarySpritesheetPlan(KnobExportSettings settings)
+        {
+            int paddingPx = Math.Max(0, (int)MathF.Round(settings.Padding));
+            SpritesheetLayout effectiveLayout = settings.SpritesheetLayout;
+            if (effectiveLayout == SpritesheetLayout.Horizontal &&
+                WouldHorizontalLayoutOverflow(settings.FrameCount, settings.Resolution, paddingPx))
+            {
+                effectiveLayout = SpritesheetLayout.Grid;
+            }
+
+            if (effectiveLayout == SpritesheetLayout.Horizontal)
+            {
+                int width = checked((settings.FrameCount * settings.Resolution) + ((settings.FrameCount + 1) * paddingPx));
+                int height = checked(settings.Resolution + (paddingPx * 2));
+                return (effectiveLayout, width, height);
+            }
+
+            int gridSize = (int)Math.Ceiling(Math.Sqrt(settings.FrameCount));
+            int gridWidth = checked((gridSize * settings.Resolution) + ((gridSize + 1) * paddingPx));
+            int gridHeight = checked((gridSize * settings.Resolution) + ((gridSize + 1) * paddingPx));
+            return (effectiveLayout, gridWidth, gridHeight);
+        }
+
+        private static string GetFrameFormatDisplayName(ExportImageFormat imageFormat)
+        {
+            return imageFormat switch
+            {
+                ExportImageFormat.PngOptimized => "optimized PNG",
+                ExportImageFormat.WebpLossless => "WebP lossless",
+                ExportImageFormat.WebpLossy => "WebP lossy",
+                ExportImageFormat.AutoLossless => "auto-selected lossless",
+                _ => "PNG"
+            };
+        }
+
+        private void UpdateCompressionEstimateText(KnobExportSettings? settings = null)
+        {
+            if (!SupportsRotaryPreview)
+            {
+                _compressionEstimateTextBlock.Text = "Compression estimate is unavailable for this project type.";
+                return;
+            }
+
+            if (settings == null && !TryBuildRequest(out settings, out _, out _, out _))
+            {
+                _compressionEstimateTextBlock.Text = "Compression estimate is unavailable until export settings are valid.";
+                return;
+            }
+
+            if (_lastPreviewEncodedSheetBytes is null)
+            {
+                _compressionEstimateTextBlock.Text = "Compression estimate unavailable until you refresh the interactive preview.";
+                return;
+            }
+
+            int enabledViewCount = settings.ExportViewpoints?
+                .Count(viewpoint => viewpoint != null && viewpoint.Enabled) ?? 0;
+            if (enabledViewCount <= 0)
+            {
+                enabledViewCount = 1;
+            }
+
+            string perViewSheetText = FormatAssetSize(_lastPreviewEncodedSheetBytes.Value);
+            string totalSheetText = FormatAssetSize(_lastPreviewEncodedSheetBytes.Value * enabledViewCount);
+            string optimizationLabel = settings.OptimizeSpritesheetPng
+                ? $"{settings.PngOptimizationPreset} PNG, zlib {settings.PngCompressionLevel}"
+                : $"Lossless PNG, zlib {settings.PngCompressionLevel}";
+            string frameNote = settings.ExportIndividualFrames
+                ? " Frame-file sizes are content-dependent and not estimated here."
+                : string.Empty;
+            _compressionEstimateTextBlock.Text = settings.ExportSpritesheet
+                ? $"Estimated spritesheet size: {perViewSheetText} per view, about {totalSheetText} total across {enabledViewCount} view(s). Pipeline: {optimizationLabel}.{frameNote}"
+                : $"Current preview sheet encodes to {perViewSheetText}. Pipeline: {optimizationLabel}.{frameNote}";
+        }
+
+        private string BuildCompressionEstimateSummary(KnobExportSettings settings, int enabledViewCount)
+        {
+            if (!settings.ExportSpritesheet)
+            {
+                return string.Empty;
+            }
+
+            if (_lastPreviewEncodedSheetBytes is null)
+            {
+                return " | size est. after preview refresh";
+            }
+
+            return $" | est. {FormatAssetSize(_lastPreviewEncodedSheetBytes.Value * enabledViewCount)} total PNG sheet size";
+        }
+
+        private static string FormatAssetSize(long bytes)
+        {
+            if (bytes < 1024)
+            {
+                return $"{bytes} B";
+            }
+
+            double kb = bytes / 1024d;
+            if (kb < 1024d)
+            {
+                return $"{kb:0.#} KB";
+            }
+
+            double mb = kb / 1024d;
+            return $"{mb:0.##} MB";
         }
     }
 }

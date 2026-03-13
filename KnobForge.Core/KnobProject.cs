@@ -67,7 +67,18 @@ namespace KnobForge.Core
         Gunk = 2,
         Scratch = 3,
         Erase = 4,
-        Color = 5
+        Color = 5,
+        Roughness = 6,
+        Metallic = 7
+    }
+
+    public enum PaintBlendMode
+    {
+        Normal = 0,
+        Multiply = 1,
+        Screen = 2,
+        Overlay = 3,
+        Add = 4
     }
 
     public enum SliderAssemblyMode
@@ -124,6 +135,17 @@ namespace KnobForge.Core
         IndicatorLight = 4
     }
 
+    public sealed class PaintLayer
+    {
+        public string Name { get; set; } = "Layer";
+        public float Opacity { get; set; } = 1.0f;
+        public PaintBlendMode BlendMode { get; set; } = PaintBlendMode.Normal;
+        public bool Visible { get; set; } = true;
+        public byte[]? PixelData { get; set; }
+        public byte[]? ColorPixelData { get; set; }
+        public byte[]? PixelData2 { get; set; }
+    }
+
     public sealed class KnobLight
     {
         public string Name { get; set; } = "Light";
@@ -169,6 +191,8 @@ namespace KnobForge.Core
         private float _brushDarkness = 0.58f;
         private float _paintCoatMetallic = 0.02f;
         private float _paintCoatRoughness = 0.56f;
+        private float _roughnessPaintTarget = 0.20f;
+        private float _metallicPaintTarget = 0.90f;
         private float _clearCoatAmount = 0f;
         private float _clearCoatRoughness = 0.18f;
         private float _anisotropyAngleDegrees = 0f;
@@ -284,8 +308,16 @@ namespace KnobForge.Core
         private float _environmentHdriBlend;
         private float _environmentHdriRotationDegrees;
         private string _environmentHdriPath = string.Empty;
-        private readonly byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
+        private readonly List<PaintLayer> _paintLayers = new();
+        private byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
+        private byte[] _paintColorRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
+        private byte[] _paintMask2Rgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private int _paintMaskVersion = 1;
+        private int _paintColorVersion = 1;
+        private int _paintMask2Version = 1;
+        private int _paintRecomposeSuspendCount;
+        private bool _paintRecomposeDeferred;
+        private bool _paintRecomposeDeferredIncrementVersions;
 
         public SKBitmap BaseTexture { get; private set; }
         public int Width => BaseTexture.Width;
@@ -420,6 +452,16 @@ namespace KnobForge.Core
             get => _paintCoatRoughness;
             set => _paintCoatRoughness = Math.Clamp(value, 0.04f, 1f);
         }
+        public float RoughnessPaintTarget
+        {
+            get => _roughnessPaintTarget;
+            set => _roughnessPaintTarget = Math.Clamp(value, 0f, 1f);
+        }
+        public float MetallicPaintTarget
+        {
+            get => _metallicPaintTarget;
+            set => _metallicPaintTarget = Math.Clamp(value, 0f, 1f);
+        }
         public float ClearCoatAmount
         {
             get => _clearCoatAmount;
@@ -481,8 +523,11 @@ namespace KnobForge.Core
             get => _scratchDepthRamp;
             set => _scratchDepthRamp = Math.Clamp(value, 0f, 0.02f);
         }
-        public int PaintMaskSize => DefaultPaintMaskSize;
+        public int PaintMaskSize { get; private set; } = DefaultPaintMaskSize;
         public int PaintMaskVersion => _paintMaskVersion;
+        public int PaintColorVersion => _paintColorVersion;
+        public int PaintMask2Version => _paintMask2Version;
+        public IReadOnlyList<PaintLayer> PaintLayers => _paintLayers;
         public float SpiralNormalLodFadeStart
         {
             get => _spiralNormalLodFadeStart;
@@ -1025,6 +1070,8 @@ namespace KnobForge.Core
 
         public KnobProject(string? path = null)
         {
+            EnsureDefaultPaintLayer();
+
             if (!string.IsNullOrEmpty(path) && File.Exists(path))
             {
                 BaseTexture = SKBitmap.Decode(path);
@@ -1584,17 +1631,135 @@ namespace KnobForge.Core
             return _paintMaskRgba8;
         }
 
+        public byte[] GetPaintColorRgba8()
+        {
+            return _paintColorRgba8;
+        }
+
+        public byte[] GetPaintMask2Rgba8()
+        {
+            return _paintMask2Rgba8;
+        }
+
+        public void SetPaintMaskResolution(int size)
+        {
+            if (size != 512 && size != 1024 && size != 2048 && size != 4096)
+            {
+                throw new ArgumentOutOfRangeException(nameof(size), "Paint mask size must be 512, 1024, 2048, or 4096.");
+            }
+
+            if (PaintMaskSize == size &&
+                _paintMaskRgba8.Length == size * size * 4 &&
+                _paintColorRgba8.Length == size * size * 4 &&
+                _paintMask2Rgba8.Length == size * size * 4)
+            {
+                return;
+            }
+
+            PaintMaskSize = size;
+            _paintMaskRgba8 = new byte[size * size * 4];
+            _paintColorRgba8 = new byte[size * size * 4];
+            _paintMask2Rgba8 = new byte[size * size * 4];
+            for (int i = 0; i < _paintLayers.Count; i++)
+            {
+                _paintLayers[i].PixelData = null;
+                _paintLayers[i].ColorPixelData = null;
+                _paintLayers[i].PixelData2 = null;
+            }
+
+            _paintMaskVersion++;
+            _paintColorVersion++;
+            _paintMask2Version++;
+        }
+
         public void ClearPaintMask()
         {
+            EnsureDefaultPaintLayer();
+            for (int i = 0; i < _paintLayers.Count; i++)
+            {
+                _paintLayers[i].PixelData = null;
+                _paintLayers[i].ColorPixelData = null;
+                _paintLayers[i].PixelData2 = null;
+            }
+
             Array.Clear(_paintMaskRgba8, 0, _paintMaskRgba8.Length);
+            Array.Clear(_paintColorRgba8, 0, _paintColorRgba8.Length);
+            Array.Clear(_paintMask2Rgba8, 0, _paintMask2Rgba8.Length);
             _paintMaskVersion++;
+            _paintColorVersion++;
+            _paintMask2Version++;
+        }
+
+        public void BeginPaintRecomposeBatch()
+        {
+            _paintRecomposeSuspendCount++;
+        }
+
+        public void EndPaintRecomposeBatch()
+        {
+            if (_paintRecomposeSuspendCount <= 0)
+            {
+                _paintRecomposeSuspendCount = 0;
+                return;
+            }
+
+            _paintRecomposeSuspendCount--;
+            if (_paintRecomposeSuspendCount == 0 && _paintRecomposeDeferred)
+            {
+                bool incrementVersions = _paintRecomposeDeferredIncrementVersions;
+                _paintRecomposeDeferred = false;
+                _paintRecomposeDeferredIncrementVersions = false;
+                RecomposePaintBuffersCore(incrementVersions);
+            }
+        }
+
+        public void EnsurePaintLayerCount(int count)
+        {
+            int clampedCount = Math.Max(1, count);
+            EnsureDefaultPaintLayer();
+            bool structureChanged = false;
+            while (_paintLayers.Count < clampedCount)
+            {
+                _paintLayers.Add(new PaintLayer
+                {
+                    Name = $"Layer {_paintLayers.Count + 1}"
+                });
+                structureChanged = true;
+            }
+
+            while (_paintLayers.Count > clampedCount)
+            {
+                _paintLayers.RemoveAt(_paintLayers.Count - 1);
+                structureChanged = true;
+            }
+
+            if (structureChanged)
+            {
+                RecomposePaintBuffers(incrementVersions: true);
+            }
+        }
+
+        public void SetPaintLayerProperties(int index, string name, float opacity, PaintBlendMode blendMode, bool visible)
+        {
+            EnsureDefaultPaintLayer();
+            if ((uint)index >= (uint)_paintLayers.Count)
+            {
+                return;
+            }
+
+            PaintLayer layer = _paintLayers[index];
+            layer.Name = string.IsNullOrWhiteSpace(name) ? $"Layer {index + 1}" : name.Trim();
+            layer.Opacity = Math.Clamp(opacity, 0f, 1f);
+            layer.BlendMode = blendMode;
+            layer.Visible = visible;
+            RecomposePaintBuffers(incrementVersions: true);
         }
 
         public Vector4 SamplePaintMaskBilinear(float u, float v)
         {
             float uc = Math.Clamp(u, 0f, 1f);
             float vc = Math.Clamp(v, 0f, 1f);
-            int size = DefaultPaintMaskSize;
+            int size = PaintMaskSize;
             float x = uc * (size - 1);
             float y = vc * (size - 1);
             int x0 = (int)MathF.Floor(x);
@@ -1613,6 +1778,29 @@ namespace KnobForge.Core
             return Vector4.Lerp(nx0, nx1, ty);
         }
 
+        public Vector4 SamplePaintMask2Bilinear(float u, float v)
+        {
+            float uc = Math.Clamp(u, 0f, 1f);
+            float vc = Math.Clamp(v, 0f, 1f);
+            int size = PaintMaskSize;
+            float x = uc * (size - 1);
+            float y = vc * (size - 1);
+            int x0 = (int)MathF.Floor(x);
+            int y0 = (int)MathF.Floor(y);
+            int x1 = Math.Min(x0 + 1, size - 1);
+            int y1 = Math.Min(y0 + 1, size - 1);
+            float tx = x - x0;
+            float ty = y - y0;
+
+            Vector4 n00 = ReadMask2Rgba(x0, y0);
+            Vector4 n10 = ReadMask2Rgba(x1, y0);
+            Vector4 n01 = ReadMask2Rgba(x0, y1);
+            Vector4 n11 = ReadMask2Rgba(x1, y1);
+            Vector4 nx0 = Vector4.Lerp(n00, n10, tx);
+            Vector4 nx1 = Vector4.Lerp(n01, n11, tx);
+            return Vector4.Lerp(nx0, nx1, ty);
+        }
+
         public bool StampPaintMaskUv(
             Vector2 uvCenter,
             float uvRadius,
@@ -1623,12 +1811,80 @@ namespace KnobForge.Core
             float spread,
             uint seed)
         {
+            return StampPaintMaskUv(
+                0,
+                uvCenter,
+                uvRadius,
+                brushType,
+                scratchAbrasionType,
+                channel,
+                opacity,
+                spread,
+                seed,
+                PaintColor,
+                ResolveBrushTargetValue(channel));
+        }
+
+        public bool StampPaintMaskUv(
+            int layerIndex,
+            Vector2 uvCenter,
+            float uvRadius,
+            PaintBrushType brushType,
+            ScratchAbrasionType scratchAbrasionType,
+            PaintChannel channel,
+            float opacity,
+            float spread,
+            uint seed,
+            Vector3 paintColor)
+        {
+            return StampPaintMaskUv(
+                layerIndex,
+                uvCenter,
+                uvRadius,
+                brushType,
+                scratchAbrasionType,
+                channel,
+                opacity,
+                spread,
+                seed,
+                paintColor,
+                ResolveBrushTargetValue(channel));
+        }
+
+        public bool StampPaintMaskUv(
+            int layerIndex,
+            Vector2 uvCenter,
+            float uvRadius,
+            PaintBrushType brushType,
+            ScratchAbrasionType scratchAbrasionType,
+            PaintChannel channel,
+            float opacity,
+            float spread,
+            uint seed,
+            Vector3 paintColor,
+            float targetValue)
+        {
             if (uvRadius <= 1e-6f || opacity <= 1e-6f)
             {
                 return false;
             }
 
-            int size = DefaultPaintMaskSize;
+            EnsureDefaultPaintLayer();
+            int clampedLayerIndex = Math.Clamp(layerIndex, 0, _paintLayers.Count - 1);
+            PaintLayer layer = _paintLayers[clampedLayerIndex];
+            byte[] layerMask = EnsureLayerPixelBuffer(layer, colorBuffer: false);
+            byte[]? layerMask2 = channel switch
+            {
+                PaintChannel.Roughness or PaintChannel.Metallic => EnsureLayerPixelBuffer2(layer),
+                PaintChannel.Erase => layer.PixelData2,
+                _ => null
+            };
+            byte[]? layerColor = channel is PaintChannel.Color or PaintChannel.Erase
+                ? EnsureLayerPixelBuffer(layer, colorBuffer: true)
+                : null;
+            Vector3 clampedPaintColor = ClampColor01(paintColor);
+            float clampedTargetValue = Math.Clamp(targetValue, 0f, 1f);
+            int size = PaintMaskSize;
             float radiusPx = MathF.Max(0.5f, uvRadius * size);
             int xMin = Math.Clamp((int)MathF.Floor((uvCenter.X * size) - radiusPx - 1f), 0, size - 1);
             int xMax = Math.Clamp((int)MathF.Ceiling((uvCenter.X * size) + radiusPx + 1f), 0, size - 1);
@@ -1667,16 +1923,52 @@ namespace KnobForge.Core
                     int idx = ((y * size) + x) * 4;
                     if (channel == PaintChannel.Erase)
                     {
-                        changed |= LerpByte(ref _paintMaskRgba8[idx + 0], 0, alpha);
-                        changed |= LerpByte(ref _paintMaskRgba8[idx + 1], 0, alpha);
-                        changed |= LerpByte(ref _paintMaskRgba8[idx + 2], 0, alpha);
-                        changed |= LerpByte(ref _paintMaskRgba8[idx + 3], 0, alpha);
+                        changed |= LerpByte(ref layerMask[idx + 0], 0, alpha);
+                        changed |= LerpByte(ref layerMask[idx + 1], 0, alpha);
+                        changed |= LerpByte(ref layerMask[idx + 2], 0, alpha);
+                        changed |= LerpByte(ref layerMask[idx + 3], 0, alpha);
+                        if (layerColor != null)
+                        {
+                            changed |= LerpByte(ref layerColor[idx + 0], 0, alpha);
+                            changed |= LerpByte(ref layerColor[idx + 1], 0, alpha);
+                            changed |= LerpByte(ref layerColor[idx + 2], 0, alpha);
+                            changed |= LerpByte(ref layerColor[idx + 3], 0, alpha);
+                        }
+                        if (layerMask2 != null)
+                        {
+                            changed |= LerpByte(ref layerMask2[idx + 0], 0, alpha);
+                            changed |= LerpByte(ref layerMask2[idx + 1], 0, alpha);
+                            changed |= LerpByte(ref layerMask2[idx + 2], 0, alpha);
+                            changed |= LerpByte(ref layerMask2[idx + 3], 0, alpha);
+                        }
                     }
                     else
                     {
                         if (channel == PaintChannel.Color)
                         {
-                            // CPU paint-mask fallback has no dedicated color texture.
+                            if (layerColor == null)
+                            {
+                                continue;
+                            }
+
+                            changed |= LerpByte(ref layerColor[idx + 0], ToByte(clampedPaintColor.X), alpha);
+                            changed |= LerpByte(ref layerColor[idx + 1], ToByte(clampedPaintColor.Y), alpha);
+                            changed |= LerpByte(ref layerColor[idx + 2], ToByte(clampedPaintColor.Z), alpha);
+                            changed |= LerpByte(ref layerColor[idx + 3], 255, alpha);
+                            continue;
+                        }
+
+                        if (channel == PaintChannel.Roughness && layerMask2 != null)
+                        {
+                            changed |= LerpByte(ref layerMask2[idx + 0], ToByte(clampedTargetValue), alpha);
+                            changed |= LerpByte(ref layerMask2[idx + 2], 255, alpha);
+                            continue;
+                        }
+
+                        if (channel == PaintChannel.Metallic && layerMask2 != null)
+                        {
+                            changed |= LerpByte(ref layerMask2[idx + 1], ToByte(clampedTargetValue), alpha);
+                            changed |= LerpByte(ref layerMask2[idx + 3], 255, alpha);
                             continue;
                         }
 
@@ -1690,7 +1982,7 @@ namespace KnobForge.Core
                         };
                         if (channelIndex >= 0)
                         {
-                            changed |= LerpByte(ref _paintMaskRgba8[idx + channelIndex], 255, alpha);
+                            changed |= LerpByte(ref layerMask[idx + channelIndex], 255, alpha);
                         }
                     }
                 }
@@ -1698,7 +1990,7 @@ namespace KnobForge.Core
 
             if (changed)
             {
-                _paintMaskVersion++;
+                RecomposePaintBuffers(incrementVersions: true);
             }
 
             return changed;
@@ -1706,12 +1998,123 @@ namespace KnobForge.Core
 
         private Vector4 ReadMaskRgba(int x, int y)
         {
-            int idx = ((y * DefaultPaintMaskSize) + x) * 4;
+            int idx = ((y * PaintMaskSize) + x) * 4;
             return new Vector4(
                 _paintMaskRgba8[idx + 0] / 255f,
                 _paintMaskRgba8[idx + 1] / 255f,
                 _paintMaskRgba8[idx + 2] / 255f,
                 _paintMaskRgba8[idx + 3] / 255f);
+        }
+
+        private Vector4 ReadMask2Rgba(int x, int y)
+        {
+            int idx = ((y * PaintMaskSize) + x) * 4;
+            return new Vector4(
+                _paintMask2Rgba8[idx + 0] / 255f,
+                _paintMask2Rgba8[idx + 1] / 255f,
+                _paintMask2Rgba8[idx + 2] / 255f,
+                _paintMask2Rgba8[idx + 3] / 255f);
+        }
+
+        private void EnsureDefaultPaintLayer()
+        {
+            if (_paintLayers.Count > 0)
+            {
+                return;
+            }
+
+            _paintLayers.Add(new PaintLayer
+            {
+                Name = "Layer 1"
+            });
+        }
+
+        private byte[] EnsureLayerPixelBuffer(PaintLayer layer, bool colorBuffer)
+        {
+            int length = PaintMaskSize * PaintMaskSize * 4;
+            if (colorBuffer)
+            {
+                layer.ColorPixelData ??= new byte[length];
+                if (layer.ColorPixelData.Length != length)
+                {
+                    layer.ColorPixelData = new byte[length];
+                }
+
+                return layer.ColorPixelData;
+            }
+
+            layer.PixelData ??= new byte[length];
+            if (layer.PixelData.Length != length)
+            {
+                layer.PixelData = new byte[length];
+            }
+
+            return layer.PixelData;
+        }
+
+        private byte[] EnsureLayerPixelBuffer2(PaintLayer layer)
+        {
+            int length = PaintMaskSize * PaintMaskSize * 4;
+            layer.PixelData2 ??= new byte[length];
+            if (layer.PixelData2.Length != length)
+            {
+                layer.PixelData2 = new byte[length];
+            }
+
+            return layer.PixelData2;
+        }
+
+        private void RecomposePaintBuffers(bool incrementVersions)
+        {
+            if (_paintRecomposeSuspendCount > 0)
+            {
+                _paintRecomposeDeferred = true;
+                _paintRecomposeDeferredIncrementVersions |= incrementVersions;
+                return;
+            }
+
+            RecomposePaintBuffersCore(incrementVersions);
+        }
+
+        private void RecomposePaintBuffersCore(bool incrementVersions)
+        {
+            EnsureDefaultPaintLayer();
+            int expectedLength = PaintMaskSize * PaintMaskSize * 4;
+            if (_paintMaskRgba8.Length != expectedLength)
+            {
+                _paintMaskRgba8 = new byte[expectedLength];
+            }
+
+            if (_paintColorRgba8.Length != expectedLength)
+            {
+                _paintColorRgba8 = new byte[expectedLength];
+            }
+
+            if (_paintMask2Rgba8.Length != expectedLength)
+            {
+                _paintMask2Rgba8 = new byte[expectedLength];
+            }
+
+            PaintLayerCompositor.Composite(_paintLayers, _paintMaskRgba8, PaintMaskSize);
+            PaintLayerCompositor.CompositeColor(_paintLayers, _paintColorRgba8, PaintMaskSize, -1, 1f);
+            PaintLayerCompositor.CompositeMask2(_paintLayers, _paintMask2Rgba8, PaintMaskSize, -1, 1f);
+
+            if (incrementVersions)
+            {
+                _paintMaskVersion++;
+                _paintColorVersion++;
+                _paintMask2Version++;
+            }
+        }
+
+        private float ResolveBrushTargetValue(PaintChannel channel)
+        {
+            return channel switch
+            {
+                PaintChannel.Roughness => RoughnessPaintTarget,
+                PaintChannel.Metallic => MetallicPaintTarget,
+                _ => 1f
+            };
         }
 
         private static bool LerpByte(ref byte target, byte toValue, float alpha)
@@ -1721,6 +2124,11 @@ namespace KnobForge.Core
             byte after = (byte)Math.Clamp((int)MathF.Round(blended), 0, 255);
             target = after;
             return after != before;
+        }
+
+        private static byte ToByte(float value)
+        {
+            return (byte)Math.Clamp((int)MathF.Round(value * 255f), 0, 255);
         }
 
         private static float ComputeBrushWeight(

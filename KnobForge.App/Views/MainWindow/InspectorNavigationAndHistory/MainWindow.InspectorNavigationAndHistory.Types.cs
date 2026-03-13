@@ -45,6 +45,7 @@ namespace KnobForge.App.Views
             public float ShadowQuality { get; set; }
             public float ShadowGray { get; set; }
             public float ShadowDiffuseInfluence { get; set; }
+            public int PaintMaskSize { get; set; } = KnobProject.DefaultPaintMaskSize;
             public int PaintHistoryRevision { get; set; }
             public int ActivePaintLayerIndex { get; set; }
             public int FocusedPaintLayerIndex { get; set; } = -1;
@@ -58,6 +59,8 @@ namespace KnobForge.App.Views
             public float BrushDarkness { get; set; }
             public float PaintCoatMetallic { get; set; } = 0.02f;
             public float PaintCoatRoughness { get; set; } = 0.56f;
+            public float RoughnessPaintTarget { get; set; } = 0.20f;
+            public float MetallicPaintTarget { get; set; } = 0.90f;
             public float ClearCoatAmount { get; set; }
             public float ClearCoatRoughness { get; set; } = 0.18f;
             public float AnisotropyAngleDegrees { get; set; }

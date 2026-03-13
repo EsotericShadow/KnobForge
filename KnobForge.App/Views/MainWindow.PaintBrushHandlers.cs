@@ -17,6 +17,7 @@ namespace KnobForge.App.Views
                 _brushPaintChannelCombo == null ||
                 _brushTypeCombo == null ||
                 _brushPaintColorPicker == null ||
+                _paintChannelTargetValueSlider == null ||
                 _scratchAbrasionTypeCombo == null ||
                 _brushSizeSlider == null ||
                 _brushOpacitySlider == null ||
@@ -82,6 +83,15 @@ namespace KnobForge.App.Views
             _project.BrushSpread = (float)_brushSpreadSlider.Value;
             _project.PaintCoatMetallic = (float)_paintCoatMetallicSlider.Value;
             _project.PaintCoatRoughness = (float)_paintCoatRoughnessSlider.Value;
+            float targetValue = (float)_paintChannelTargetValueSlider.Value;
+            if (_project.BrushChannel == PaintChannel.Roughness)
+            {
+                _project.RoughnessPaintTarget = targetValue;
+            }
+            else if (_project.BrushChannel == PaintChannel.Metallic)
+            {
+                _project.MetallicPaintTarget = targetValue;
+            }
             _project.ClearCoatAmount = (float)_clearCoatAmountSlider.Value;
             _project.ClearCoatRoughness = (float)_clearCoatRoughnessSlider.Value;
             _project.AnisotropyAngleDegrees = (float)_anisotropyAngleSlider.Value;

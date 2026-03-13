@@ -78,6 +78,51 @@ public sealed partial class KnobExporter
                 throw new ArgumentOutOfRangeException(nameof(settings.Padding), "Padding must be >= 0.");
             }
 
+            if (settings.PngCompressionLevel < 0 || settings.PngCompressionLevel > 9)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngCompressionLevel), "PngCompressionLevel must be between 0 and 9.");
+            }
+
+            if (settings.PngOptimizationMinimumSavingsBytes < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngOptimizationMinimumSavingsBytes), "PngOptimizationMinimumSavingsBytes must be >= 0.");
+            }
+
+            if (settings.PngOpaqueRgbStep < 1 || settings.PngOpaqueRgbStep > 64)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngOpaqueRgbStep), "PngOpaqueRgbStep must be between 1 and 64.");
+            }
+
+            if (settings.PngOpaqueAlphaStep < 1 || settings.PngOpaqueAlphaStep > 64)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngOpaqueAlphaStep), "PngOpaqueAlphaStep must be between 1 and 64.");
+            }
+
+            if (settings.PngTranslucentRgbStep < 1 || settings.PngTranslucentRgbStep > 64)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngTranslucentRgbStep), "PngTranslucentRgbStep must be between 1 and 64.");
+            }
+
+            if (settings.PngTranslucentAlphaStep < 1 || settings.PngTranslucentAlphaStep > 64)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngTranslucentAlphaStep), "PngTranslucentAlphaStep must be between 1 and 64.");
+            }
+
+            if (settings.WebpLossyQuality < 0f || settings.WebpLossyQuality > 100f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.WebpLossyQuality), "WebpLossyQuality must be between 0 and 100.");
+            }
+
+            if (settings.PngMeanVisibleLumaDelta < 0f || settings.PngMeanVisibleLumaDelta > 255f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngMeanVisibleLumaDelta), "PngMeanVisibleLumaDelta must be between 0 and 255.");
+            }
+
+            if (settings.PngMeanVisibleAlphaDelta < 0f || settings.PngMeanVisibleAlphaDelta > 255f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(settings.PngMeanVisibleAlphaDelta), "PngMeanVisibleAlphaDelta must be between 0 and 255.");
+            }
+
             if (settings.OrbitVariantYawOffsetDeg < 0f || settings.OrbitVariantYawOffsetDeg > 180f)
             {
                 throw new ArgumentOutOfRangeException(nameof(settings.OrbitVariantYawOffsetDeg), "OrbitVariantYawOffsetDeg must be between 0 and 180.");
@@ -237,27 +282,47 @@ public sealed partial class KnobExporter
             return Math.Max(2, digits);
         }
 
-        private static string ResolveFramePath(string outputDirectory, string baseName, int frameIndex, int digits)
+        private static string ResolveFramePath(string outputDirectory, string baseName, int frameIndex, int digits, string extension)
         {
-            return ResolveFramePath(outputDirectory, baseName, string.Empty, frameIndex, digits);
+            return ResolveFramePath(outputDirectory, baseName, string.Empty, frameIndex, digits, extension);
         }
 
-        private static string ResolveFramePath(string outputDirectory, string baseName, string viewTag, int frameIndex, int digits)
+        private static string ResolveFrameBasePath(string outputDirectory, string baseName, int frameIndex, int digits)
+        {
+            return ResolveFrameBasePath(outputDirectory, baseName, string.Empty, frameIndex, digits);
+        }
+
+        private static string ResolveFrameBasePath(string outputDirectory, string baseName, string viewTag, int frameIndex, int digits)
         {
             string number = frameIndex.ToString($"D{digits}");
             string prefix = string.IsNullOrWhiteSpace(viewTag) ? baseName : $"{baseName}_{viewTag}";
-            return Path.Combine(outputDirectory, $"{prefix}_{number}.png");
+            return Path.Combine(outputDirectory, $"{prefix}_{number}");
         }
 
-        private static string ResolveSpritesheetPath(string outputDirectory, string baseName)
+        private static string ResolveFramePath(string outputDirectory, string baseName, string viewTag, int frameIndex, int digits, string extension)
         {
-            return ResolveSpritesheetPath(outputDirectory, baseName, string.Empty);
+            return $"{ResolveFrameBasePath(outputDirectory, baseName, viewTag, frameIndex, digits)}.{extension}";
         }
 
-        private static string ResolveSpritesheetPath(string outputDirectory, string baseName, string viewTag)
+        private static string ResolveSpritesheetPath(string outputDirectory, string baseName, string extension)
+        {
+            return ResolveSpritesheetPath(outputDirectory, baseName, string.Empty, extension);
+        }
+
+        private static string ResolveSpritesheetBasePath(string outputDirectory, string baseName)
+        {
+            return ResolveSpritesheetBasePath(outputDirectory, baseName, string.Empty);
+        }
+
+        private static string ResolveSpritesheetBasePath(string outputDirectory, string baseName, string viewTag)
         {
             string prefix = string.IsNullOrWhiteSpace(viewTag) ? baseName : $"{baseName}_{viewTag}";
-            return Path.Combine(outputDirectory, $"{prefix}_spritesheet.png");
+            return Path.Combine(outputDirectory, $"{prefix}_spritesheet");
+        }
+
+        private static string ResolveSpritesheetPath(string outputDirectory, string baseName, string viewTag, string extension)
+        {
+            return $"{ResolveSpritesheetBasePath(outputDirectory, baseName, viewTag)}.{extension}";
         }
 
         private static ExportPathPlan ResolveExportPaths(
@@ -265,15 +330,17 @@ public sealed partial class KnobExporter
             string baseName,
             bool exportFrames,
             bool exportSpritesheet,
-            int frameDigits)
+            int frameDigits,
+            string frameExtension,
+            string spritesheetExtension)
         {
             string outputRoot = Path.GetFullPath(outputRootFolder);
             string outputDirectory = exportFrames && exportSpritesheet
                 ? Path.Combine(outputRoot, baseName)
                 : outputRoot;
 
-            string firstFramePath = ResolveFramePath(outputDirectory, baseName, 0, frameDigits);
-            string spritesheetPath = ResolveSpritesheetPath(outputDirectory, baseName);
+            string firstFramePath = ResolveFramePath(outputDirectory, baseName, 0, frameDigits, frameExtension);
+            string spritesheetPath = ResolveSpritesheetPath(outputDirectory, baseName, spritesheetExtension);
             string firstPath = exportFrames ? firstFramePath : spritesheetPath;
 
             return new ExportPathPlan(outputDirectory, firstPath, spritesheetPath);

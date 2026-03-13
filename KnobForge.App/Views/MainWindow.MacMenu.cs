@@ -20,6 +20,8 @@ namespace KnobForge.App.Views
         private NativeMenuItem? _nativeBrushChannelRustMenuItem;
         private NativeMenuItem? _nativeBrushChannelWearMenuItem;
         private NativeMenuItem? _nativeBrushChannelGunkMenuItem;
+        private NativeMenuItem? _nativeBrushChannelRoughnessMenuItem;
+        private NativeMenuItem? _nativeBrushChannelMetallicMenuItem;
         private NativeMenuItem? _nativeDeleteActivePaintLayerMenuItem;
         private NativeMenuItem? _nativeFocusActivePaintLayerMenuItem;
 
@@ -181,11 +183,15 @@ namespace KnobForge.App.Views
             _nativeBrushChannelRustMenuItem = CreateBrushChannelMenuItem("Rust Channel", PaintChannel.Rust);
             _nativeBrushChannelWearMenuItem = CreateBrushChannelMenuItem("Wear Channel", PaintChannel.Wear);
             _nativeBrushChannelGunkMenuItem = CreateBrushChannelMenuItem("Gunk Channel", PaintChannel.Gunk);
+            _nativeBrushChannelRoughnessMenuItem = CreateBrushChannelMenuItem("Roughness Channel", PaintChannel.Roughness);
+            _nativeBrushChannelMetallicMenuItem = CreateBrushChannelMenuItem("Metallic Channel", PaintChannel.Metallic);
             brushMenu.Add(_nativeBrushChannelColorMenuItem);
             brushMenu.Add(_nativeBrushChannelScratchMenuItem);
             brushMenu.Add(_nativeBrushChannelRustMenuItem);
             brushMenu.Add(_nativeBrushChannelWearMenuItem);
             brushMenu.Add(_nativeBrushChannelGunkMenuItem);
+            brushMenu.Add(_nativeBrushChannelRoughnessMenuItem);
+            brushMenu.Add(_nativeBrushChannelMetallicMenuItem);
             brushMenu.Add(new NativeMenuItemSeparator());
 
             brushMenu.Add(CreateActionMenuItem(
@@ -435,6 +441,16 @@ namespace KnobForge.App.Views
             if (_nativeBrushChannelGunkMenuItem != null)
             {
                 _nativeBrushChannelGunkMenuItem.IsChecked = channel == PaintChannel.Gunk;
+            }
+
+            if (_nativeBrushChannelRoughnessMenuItem != null)
+            {
+                _nativeBrushChannelRoughnessMenuItem.IsChecked = channel == PaintChannel.Roughness;
+            }
+
+            if (_nativeBrushChannelMetallicMenuItem != null)
+            {
+                _nativeBrushChannelMetallicMenuItem.IsChecked = channel == PaintChannel.Metallic;
             }
 
             int layerCount = _metalViewport?.GetPaintLayers().Count ?? 0;

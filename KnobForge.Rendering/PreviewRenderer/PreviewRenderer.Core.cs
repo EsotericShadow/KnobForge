@@ -42,7 +42,7 @@ namespace KnobForge.Rendering
         private readonly OrientationDebug _orientation = new()
         {
             InvertX = true,
-            InvertY = true,
+            InvertY = false,
             InvertZ = true,
             FlipCamera180 = true
         };
@@ -61,7 +61,7 @@ namespace KnobForge.Rendering
         public void ResetOrientationDebug()
         {
             _orientation.InvertX = true;
-            _orientation.InvertY = true;
+            _orientation.InvertY = false;
             _orientation.InvertZ = true;
             _orientation.FlipCamera180 = true;
         }

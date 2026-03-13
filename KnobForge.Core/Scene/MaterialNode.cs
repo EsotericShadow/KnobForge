@@ -117,6 +117,15 @@ namespace KnobForge.Core.Scene
         public float SpecularPower { get; set; } = 64f;
         public float DiffuseStrength { get; set; } = 1.0f;
         public float SpecularStrength { get; set; } = 1.0f;
+        public string? AlbedoMapPath { get; set; }
+        public string? NormalMapPath { get; set; }
+        public string? RoughnessMapPath { get; set; }
+        public string? MetallicMapPath { get; set; }
+        public float NormalMapStrength { get; set; } = 1.0f;
+        public bool HasAlbedoMap => !string.IsNullOrEmpty(AlbedoMapPath);
+        public bool HasNormalMap => !string.IsNullOrEmpty(NormalMapPath);
+        public bool HasRoughnessMap => !string.IsNullOrEmpty(RoughnessMapPath);
+        public bool HasMetallicMap => !string.IsNullOrEmpty(MetallicMapPath);
 
         public MaterialNode(string name = "Material")
             : base(name)

@@ -49,6 +49,10 @@ namespace KnobForge.App.Views
             _project.ShadowQuality = snapshot.ShadowQuality;
             _project.ShadowGray = snapshot.ShadowGray;
             _project.ShadowDiffuseInfluence = snapshot.ShadowDiffuseInfluence;
+            if (_project.PaintMaskSize != snapshot.PaintMaskSize)
+            {
+                _project.SetPaintMaskResolution(snapshot.PaintMaskSize);
+            }
 
             _project.BrushPaintingEnabled = snapshot.BrushPaintingEnabled;
             _project.BrushType = snapshot.BrushType;
@@ -60,6 +64,8 @@ namespace KnobForge.App.Views
             _project.BrushDarkness = snapshot.BrushDarkness;
             _project.PaintCoatMetallic = snapshot.PaintCoatMetallic;
             _project.PaintCoatRoughness = snapshot.PaintCoatRoughness;
+            _project.RoughnessPaintTarget = snapshot.RoughnessPaintTarget;
+            _project.MetallicPaintTarget = snapshot.MetallicPaintTarget;
             _project.ClearCoatAmount = snapshot.ClearCoatAmount;
             _project.ClearCoatRoughness = snapshot.ClearCoatRoughness;
             _project.AnisotropyAngleDegrees = snapshot.AnisotropyAngleDegrees;

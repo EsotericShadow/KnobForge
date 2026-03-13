@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using KnobForge.App.Controls;
+using KnobForge.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,22 @@ namespace KnobForge.App.Views
                 _focusPaintLayerCheckBox.PropertyChanged += OnFocusPaintLayerChanged;
             }
 
+            if (_paintLayerVisibleCheckBox != null)
+            {
+                _paintLayerVisibleCheckBox.PropertyChanged += OnPaintLayerVisibleChanged;
+            }
+
+            if (_paintLayerBlendModeCombo != null)
+            {
+                _paintLayerBlendModeCombo.ItemsSource = Enum.GetValues<PaintBlendMode>();
+                _paintLayerBlendModeCombo.SelectionChanged += OnPaintLayerBlendModeChanged;
+            }
+
+            if (_paintLayerOpacitySlider != null)
+            {
+                _paintLayerOpacitySlider.PropertyChanged += OnPaintLayerOpacityChanged;
+            }
+
             if (_paintLayerNameTextBox != null)
             {
                 _paintLayerNameTextBox.KeyDown += OnPaintLayerNameTextBoxKeyDown;
@@ -61,6 +78,7 @@ namespace KnobForge.App.Views
         private void OnViewportPaintLayersChanged()
         {
             RefreshPaintLayerListFromViewport(preferActiveSelection: false);
+            UpdatePaintResolutionUi();
         }
 
         private void OnViewportPaintHistoryRevisionChanged(int _)
@@ -209,6 +227,58 @@ namespace KnobForge.App.Views
             CaptureUndoSnapshotIfChanged();
         }
 
+        private void OnPaintLayerVisibleChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property != CheckBox.IsCheckedProperty || _metalViewport == null || _updatingUi)
+            {
+                return;
+            }
+
+            if (!TryGetSelectedPaintLayerIndex(out int index))
+            {
+                return;
+            }
+
+            _metalViewport.SetPaintLayerVisible(index, _paintLayerVisibleCheckBox?.IsChecked != false);
+            RefreshPaintLayerListFromViewport(preferActiveSelection: false);
+            CaptureUndoSnapshotIfChanged();
+        }
+
+        private void OnPaintLayerBlendModeChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (_metalViewport == null || _paintLayerBlendModeCombo == null || _updatingUi)
+            {
+                return;
+            }
+
+            if (!TryGetSelectedPaintLayerIndex(out int index) ||
+                _paintLayerBlendModeCombo.SelectedItem is not PaintBlendMode blendMode)
+            {
+                return;
+            }
+
+            _metalViewport.SetPaintLayerBlendMode(index, blendMode);
+            RefreshPaintLayerListFromViewport(preferActiveSelection: false);
+            CaptureUndoSnapshotIfChanged();
+        }
+
+        private void OnPaintLayerOpacityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property != Slider.ValueProperty || _metalViewport == null || _paintLayerOpacitySlider == null || _updatingUi)
+            {
+                return;
+            }
+
+            if (!TryGetSelectedPaintLayerIndex(out int index))
+            {
+                return;
+            }
+
+            _metalViewport.SetPaintLayerOpacity(index, (float)_paintLayerOpacitySlider.Value);
+            RefreshPaintLayerListFromViewport(preferActiveSelection: false);
+            CaptureUndoSnapshotIfChanged();
+        }
+
         private void OnPaintLayerNameTextBoxKeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter)
@@ -248,8 +318,15 @@ namespace KnobForge.App.Views
                 MetalViewport.PaintLayerInfo info = layers[i];
                 string activeTag = info.IsActive ? "Active" : "Idle";
                 string focusTag = info.IsFocused ? ", Focus" : string.Empty;
-                string display = $"{info.Index + 1}. {info.Name} ({activeTag}{focusTag})";
-                _paintLayerItems.Add(new PaintLayerListItem(info.Index, info.Name, display));
+                string visibilityTag = info.Visible ? string.Empty : ", Hidden";
+                string display = $"{info.Index + 1}. {info.Name} ({activeTag}{focusTag}{visibilityTag}, {info.BlendMode}, {info.Opacity * 100f:0}%)";
+                _paintLayerItems.Add(new PaintLayerListItem(
+                    info.Index,
+                    info.Name,
+                    display,
+                    info.Opacity,
+                    info.BlendMode,
+                    info.Visible));
             }
 
             int targetIndex = preferActiveSelection
@@ -288,6 +365,28 @@ namespace KnobForge.App.Views
                     }
                 }
 
+                if (_paintLayerVisibleCheckBox != null)
+                {
+                    _paintLayerVisibleCheckBox.IsChecked = selectLayer ? _paintLayerItems[targetIndex].Visible : false;
+                }
+
+                if (_paintLayerBlendModeCombo != null)
+                {
+                    _paintLayerBlendModeCombo.SelectedItem = selectLayer ? _paintLayerItems[targetIndex].BlendMode : PaintBlendMode.Normal;
+                }
+
+                if (_paintLayerOpacitySlider != null)
+                {
+                    _paintLayerOpacitySlider.Value = selectLayer ? _paintLayerItems[targetIndex].Opacity : 1d;
+                }
+
+                if (_paintLayerOpacityValueText != null)
+                {
+                    _paintLayerOpacityValueText.Text = selectLayer
+                        ? $"Opacity: {_paintLayerItems[targetIndex].Opacity * 100f:0}%"
+                        : "Opacity: 100%";
+                }
+
                 if (_focusPaintLayerCheckBox != null)
                 {
                     _focusPaintLayerCheckBox.IsChecked = _metalViewport.FocusedPaintLayerIndex >= 0;
@@ -295,6 +394,21 @@ namespace KnobForge.App.Views
             });
 
             bool hasSelection = _paintLayerListBox.SelectedItem is PaintLayerListItem;
+            if (_paintLayerVisibleCheckBox != null)
+            {
+                _paintLayerVisibleCheckBox.IsEnabled = hasSelection;
+            }
+
+            if (_paintLayerBlendModeCombo != null)
+            {
+                _paintLayerBlendModeCombo.IsEnabled = hasSelection;
+            }
+
+            if (_paintLayerOpacitySlider != null)
+            {
+                _paintLayerOpacitySlider.IsEnabled = hasSelection;
+            }
+
             if (_renamePaintLayerButton != null)
             {
                 _renamePaintLayerButton.IsEnabled = hasSelection;
@@ -313,16 +427,28 @@ namespace KnobForge.App.Views
 
         private sealed class PaintLayerListItem
         {
-            public PaintLayerListItem(int index, string name, string displayName)
+            public PaintLayerListItem(
+                int index,
+                string name,
+                string displayName,
+                float opacity,
+                PaintBlendMode blendMode,
+                bool visible)
             {
                 Index = index;
                 Name = name;
                 DisplayName = displayName;
+                Opacity = opacity;
+                BlendMode = blendMode;
+                Visible = visible;
             }
 
             public int Index { get; }
             public string Name { get; }
             public string DisplayName { get; }
+            public float Opacity { get; }
+            public PaintBlendMode BlendMode { get; }
+            public bool Visible { get; }
 
             public override string ToString()
             {

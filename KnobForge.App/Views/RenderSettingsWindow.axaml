@@ -3,407 +3,664 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:KnobForge.App.Controls"
     x:Class="KnobForge.App.Views.RenderSettingsWindow"
-    Width="560"
-    Height="700"
-    MinWidth="520"
-    MinHeight="640"
-    Title="Render Settings"
+    Width="1040"
+    Height="760"
+    MinWidth="940"
+    MinHeight="700"
+    Title="Export"
     CanResize="True">
 
     <Grid RowDefinitions="*,Auto">
-        <ScrollViewer Grid.Row="0"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-            <StackPanel x:Name="SettingsPanel"
-                        Margin="16"
-                        Spacing="12">
-                <TextBlock Text="Render Settings"
-                           FontSize="20"
-                           FontWeight="SemiBold"/>
-                <Border Background="#20262E"
-                        BorderBrush="#3A4654"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="10,8">
-                    <TextBlock x:Name="ScratchParityNoteTextBlock"
-                               TextWrapping="Wrap"
-                               FontSize="11"
-                               Foreground="#C7D3DF"/>
-                </Border>
+        <Grid Grid.Row="0"
+              Margin="16"
+              ColumnDefinitions="430,16,*">
+            <ScrollViewer Grid.Column="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="SettingsPanel"
+                            Spacing="12">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Export"
+                                   FontSize="22"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="Set output targets, preview framing, and render quality."
+                                   FontSize="12"
+                                   Foreground="#A9B4BF"/>
+                    </StackPanel>
 
-                <Grid ColumnDefinitions="180,*"
-                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-                      RowSpacing="8">
-                    <TextBlock Grid.Row="0"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Output Strategy"/>
-                    <ComboBox x:Name="OutputStrategyComboBox"
-                              Grid.Row="0"
-                              Grid.Column="1"/>
-
-                    <TextBlock x:Name="OutputStrategyDescriptionTextBlock"
-                               Grid.Row="1"
-                               Grid.Column="1"
-                               TextWrapping="Wrap"
-                               FontSize="11"
-                               Foreground="#B9C6D3"/>
-
-                    <TextBlock Grid.Row="2"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Frame Count"/>
-                    <TextBox x:Name="FrameCountTextBox"
-                             Grid.Row="2"
-                             Grid.Column="1"
-                             Text="360"/>
-
-                    <TextBlock Grid.Row="3"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Resolution"/>
-                    <ComboBox x:Name="ResolutionComboBox"
-                              Grid.Row="3"
-                              Grid.Column="1"
-                              IsEditable="True"/>
-
-                    <TextBlock Grid.Row="4"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Supersampling"/>
-                    <ComboBox x:Name="SupersampleComboBox"
-                              Grid.Row="4"
-                              Grid.Column="1"/>
-
-                    <TextBlock Grid.Row="5"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Padding"/>
-                    <TextBox x:Name="PaddingTextBox"
-                             Grid.Row="5"
-                             Grid.Column="1"
-                             Text="0"/>
-
-                    <TextBlock Grid.Row="6"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Camera Distance Scale"/>
-                    <TextBox x:Name="CameraDistanceScaleTextBox"
-                             Grid.Row="6"
-                             Grid.Column="1"
-                             Text="6.0"/>
-
-                    <TextBlock Grid.Row="7"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Filter Preset"/>
-                    <ComboBox x:Name="FilterPresetComboBox"
-                              Grid.Row="7"
-                              Grid.Column="1"/>
-
-                    <TextBlock Grid.Row="8"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Orbit Variants"/>
-                    <CheckBox x:Name="ExportOrbitVariantsCheckBox"
-                             Grid.Row="8"
-                             Grid.Column="1"
-                             VerticalAlignment="Center"
-                             Content="Also export under/over + left/right views"/>
-
-                    <TextBlock Grid.Row="9"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Orbit Yaw Offset (deg)"/>
-                    <TextBox x:Name="OrbitYawOffsetTextBox"
-                             Grid.Row="9"
-                             Grid.Column="1"
-                             Text="12"/>
-
-                    <TextBlock Grid.Row="10"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Orbit Pitch Offset (deg)"/>
-                    <TextBox x:Name="OrbitPitchOffsetTextBox"
-                             Grid.Row="10"
-                             Grid.Column="1"
-                             Text="8"/>
-
-                    <TextBlock Grid.Row="11"
-                               Grid.Column="0"
-                               VerticalAlignment="Top"
-                               Text="Viewpoints (Advanced)"/>
-                    <Border Grid.Row="11"
-                            Grid.Column="1"
-                            Background="#121820"
+                    <Border Background="#151B22"
                             BorderBrush="#31404F"
                             BorderThickness="1"
-                            CornerRadius="5"
-                            Padding="8">
+                            CornerRadius="8"
+                            Padding="12">
                         <StackPanel Spacing="8">
-                            <Grid ColumnDefinitions="Auto,*,*"
-                                  ColumnSpacing="8">
-                                <TextBlock Grid.Column="0"
-                                           VerticalAlignment="Center"
-                                           Text="Preview Base Yaw/Pitch"/>
-                                <TextBox x:Name="PreviewBaseYawTextBox"
-                                         Grid.Column="1"/>
-                                <TextBox x:Name="PreviewBasePitchTextBox"
-                                         Grid.Column="2"/>
-                            </Grid>
+                            <TextBlock Text="Preset"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                            <ComboBox x:Name="OutputStrategyComboBox"/>
+                            <TextBlock x:Name="OutputStrategySummaryTextBlock"
+                                       TextWrapping="Wrap"
+                                       FontWeight="SemiBold"
+                                       Foreground="#E3EBF4"/>
+                            <TextBlock x:Name="OutputStrategyDescriptionTextBlock"
+                                       TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Foreground="#B9C6D3"/>
+                        </StackPanel>
+                    </Border>
 
-                            <WrapPanel Orientation="Horizontal"
-                                       ItemWidth="118"
-                                       ItemHeight="30">
-                                <Button x:Name="AddViewpointButton"
-                                        Content="+ Add"/>
-                                <Button x:Name="DuplicateViewpointButton"
-                                        Content="Duplicate"/>
-                                <Button x:Name="ResetViewpointsFromOrbitButton"
-                                        Content="Reset From Orbit"/>
-                                <Button x:Name="RemoveViewpointButton"
-                                        Content="Remove"/>
-                                <Button x:Name="MoveViewpointUpButton"
-                                        Content="Move Up"/>
-                                <Button x:Name="MoveViewpointDownButton"
-                                        Content="Move Down"/>
-                            </WrapPanel>
+                    <Border Background="#151B22"
+                            BorderBrush="#31404F"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <Expander Header="Render Settings"
+                                  IsExpanded="False">
+                            <StackPanel Margin="0,10,0,0"
+                                        Spacing="10">
+                                <TextBlock Text="Preset values stay collapsed unless you need a custom export."
+                                           FontSize="11"
+                                           Foreground="#A9B4BF"
+                                           TextWrapping="Wrap"/>
+                                <Grid ColumnDefinitions="170,*"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+                                      ColumnSpacing="10"
+                                      RowSpacing="8">
+                                    <TextBlock Grid.Row="0"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Frame Count"/>
+                                    <TextBox x:Name="FrameCountTextBox"
+                                             Grid.Row="0"
+                                             Grid.Column="1"
+                                             Text="360"/>
 
-                            <ListBox x:Name="ViewpointsListBox"
-                                     Height="132"/>
+                                    <TextBlock Grid.Row="1"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Frame Size (px)"/>
+                                    <TextBox x:Name="ResolutionTextBox"
+                                             Grid.Row="1"
+                                             Grid.Column="1"
+                                             Text="256"
+                                             Watermark="Type any pixel size"/>
 
-                            <Grid ColumnDefinitions="Auto,*"
-                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-                                  ColumnSpacing="8"
-                                  RowSpacing="6">
+                                    <TextBlock Grid.Row="2"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Supersampling"/>
+                                    <ComboBox x:Name="SupersampleComboBox"
+                                              Grid.Row="2"
+                                              Grid.Column="1"/>
+
+                                    <TextBlock Grid.Row="3"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Padding"/>
+                                    <TextBox x:Name="PaddingTextBox"
+                                             Grid.Row="3"
+                                             Grid.Column="1"
+                                             Text="0"/>
+
+                                    <TextBlock Grid.Row="4"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Camera Distance Scale"/>
+                                    <TextBox x:Name="CameraDistanceScaleTextBox"
+                                             Grid.Row="4"
+                                             Grid.Column="1"
+                                             Text="6.0"/>
+
+                                    <TextBlock Grid.Row="5"
+                                               Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="Filter Preset"/>
+                                    <ComboBox x:Name="FilterPresetComboBox"
+                                              Grid.Row="5"
+                                              Grid.Column="1"/>
+                                </Grid>
+
+                                <Button x:Name="AutoCorrectButton"
+                                        Content="Optimize for Clean Output"
+                                        HorizontalAlignment="Left"
+                                        MinWidth="220"/>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+
+                    <Border Background="#151B22"
+                            BorderBrush="#31404F"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Camera &amp; Views"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Base camera plus optional alternate export angles."
+                                       FontSize="11"
+                                       Foreground="#A9B4BF"
+                                       TextWrapping="Wrap"/>
+
+                            <Grid ColumnDefinitions="170,*"
+                                  RowDefinitions="Auto,Auto,Auto"
+                                  ColumnSpacing="10"
+                                  RowSpacing="8">
                                 <TextBlock Grid.Row="0"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="Enabled"/>
-                                <CheckBox x:Name="ViewpointEnabledCheckBox"
-                                          Grid.Row="0"
-                                          Grid.Column="1"
-                                          Content="Export this viewpoint"/>
+                                           Text="Preview Base Yaw / Pitch"/>
+                                <Grid Grid.Row="0"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="*,*"
+                                      ColumnSpacing="8">
+                                    <TextBox x:Name="PreviewBaseYawTextBox"
+                                             Grid.Column="0"/>
+                                    <TextBox x:Name="PreviewBasePitchTextBox"
+                                             Grid.Column="1"/>
+                                </Grid>
+
+                                <TextBlock Grid.Row="1"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Top"
+                                           Text="Quick Orbit Set"/>
+                                <StackPanel Grid.Row="1"
+                                            Grid.Column="1"
+                                            Spacing="8">
+                                    <CheckBox x:Name="ExportOrbitVariantsCheckBox"
+                                              Content="Generate under/over + left/right variants"/>
+                                    <Grid ColumnDefinitions="*,*"
+                                          ColumnSpacing="8">
+                                        <TextBox x:Name="OrbitYawOffsetTextBox"
+                                                 Grid.Column="0"
+                                                 Watermark="Yaw offset (deg)"
+                                                 Text="12"/>
+                                        <TextBox x:Name="OrbitPitchOffsetTextBox"
+                                                 Grid.Column="1"
+                                                 Watermark="Pitch offset (deg)"
+                                                 Text="8"/>
+                                    </Grid>
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.Column="1"
+                                           Text="Use the quick orbit set for common multi-angle exports, or expand advanced viewpoints for full per-view camera control."
+                                           FontSize="11"
+                                           Foreground="#A9B4BF"
+                                           TextWrapping="Wrap"/>
+                            </Grid>
+
+                            <Expander Header="Advanced Viewpoints"
+                                      IsExpanded="False">
+                                <StackPanel Margin="0,10,0,0"
+                                            Spacing="10">
+                                    <WrapPanel Orientation="Horizontal"
+                                               ItemWidth="124"
+                                               ItemHeight="32">
+                                        <Button x:Name="AddViewpointButton"
+                                                Content="+ Add"/>
+                                        <Button x:Name="DuplicateViewpointButton"
+                                                Content="Duplicate"/>
+                                        <Button x:Name="ResetViewpointsFromOrbitButton"
+                                                Content="Reset From Orbit"/>
+                                        <Button x:Name="RemoveViewpointButton"
+                                                Content="Remove"/>
+                                        <Button x:Name="MoveViewpointUpButton"
+                                                Content="Move Up"/>
+                                        <Button x:Name="MoveViewpointDownButton"
+                                                Content="Move Down"/>
+                                    </WrapPanel>
+
+                                    <ListBox x:Name="ViewpointsListBox"
+                                             Height="148"/>
+
+                                    <Grid ColumnDefinitions="170,*"
+                                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                          ColumnSpacing="10"
+                                          RowSpacing="8">
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Enabled"/>
+                                        <CheckBox x:Name="ViewpointEnabledCheckBox"
+                                                  Grid.Row="0"
+                                                  Grid.Column="1"
+                                                  Content="Export this viewpoint"/>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Name"/>
+                                        <TextBox x:Name="ViewpointNameTextBox"
+                                                 Grid.Row="1"
+                                                 Grid.Column="1"/>
+
+                                        <TextBlock Grid.Row="2"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="File Tag"/>
+                                        <TextBox x:Name="ViewpointFileTagTextBox"
+                                                 Grid.Row="2"
+                                                 Grid.Column="1"/>
+
+                                        <TextBlock Grid.Row="3"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Camera Mode"/>
+                                        <CheckBox x:Name="ViewpointAbsoluteCameraCheckBox"
+                                                  Grid.Row="3"
+                                                  Grid.Column="1"
+                                                  Content="Use absolute yaw / pitch"/>
+
+                                        <TextBlock Grid.Row="4"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Yaw / Pitch (deg)"/>
+                                        <Grid Grid.Row="4"
+                                              Grid.Column="1"
+                                              ColumnDefinitions="*,*"
+                                              ColumnSpacing="8">
+                                            <TextBox x:Name="ViewpointYawTextBox"
+                                                     Grid.Column="0"/>
+                                            <TextBox x:Name="ViewpointPitchTextBox"
+                                                     Grid.Column="1"/>
+                                        </Grid>
+
+                                        <TextBlock Grid.Row="5"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Zoom Override"/>
+                                        <Grid Grid.Row="5"
+                                              Grid.Column="1"
+                                              ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="8">
+                                            <CheckBox x:Name="ViewpointOverrideZoomCheckBox"
+                                                      Grid.Column="0"
+                                                      VerticalAlignment="Center"/>
+                                            <TextBox x:Name="ViewpointZoomTextBox"
+                                                     Grid.Column="1"/>
+                                        </Grid>
+
+                                        <TextBlock Grid.Row="6"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Pan Override"/>
+                                        <Grid Grid.Row="6"
+                                              Grid.Column="1"
+                                              ColumnDefinitions="Auto,*,*"
+                                              ColumnSpacing="8">
+                                            <CheckBox x:Name="ViewpointOverridePanCheckBox"
+                                                      Grid.Column="0"
+                                                      VerticalAlignment="Center"/>
+                                            <TextBox x:Name="ViewpointPanXTextBox"
+                                                     Grid.Column="1"/>
+                                            <TextBox x:Name="ViewpointPanYTextBox"
+                                                     Grid.Column="2"/>
+                                        </Grid>
+                                    </Grid>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#151B22"
+                            BorderBrush="#31404F"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Output"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Choose where files go and which outputs to generate."
+                                       FontSize="11"
+                                       Foreground="#A9B4BF"
+                                       TextWrapping="Wrap"/>
+
+                            <Grid ColumnDefinitions="170,*"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                  ColumnSpacing="10"
+                                  RowSpacing="8">
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Base Name"/>
+                                <TextBox x:Name="BaseNameTextBox"
+                                         Grid.Row="0"
+                                         Grid.Column="1"
+                                         Text="KnobA"/>
 
                                 <TextBlock Grid.Row="1"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="Name"/>
-                                <TextBox x:Name="ViewpointNameTextBox"
-                                         Grid.Row="1"
-                                         Grid.Column="1"/>
+                                           Text="Output Folder"/>
+                                <Grid Grid.Row="1"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="8">
+                                    <TextBox x:Name="OutputFolderTextBox"
+                                             Grid.Column="0"
+                                             IsReadOnly="True"/>
+                                    <Button x:Name="BrowseOutputButton"
+                                            Grid.Column="1"
+                                            Content="Browse..."
+                                            MinWidth="86"/>
+                                </Grid>
 
                                 <TextBlock Grid.Row="2"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="File Tag"/>
-                                <TextBox x:Name="ViewpointFileTagTextBox"
-                                         Grid.Row="2"
-                                         Grid.Column="1"/>
+                                           Text="Spritesheet Layout"/>
+                                <ComboBox x:Name="SpritesheetLayoutComboBox"
+                                          Grid.Row="2"
+                                          Grid.Column="1"/>
 
                                 <TextBlock Grid.Row="3"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="Camera Mode"/>
-                                <CheckBox x:Name="ViewpointAbsoluteCameraCheckBox"
+                                           Text="Frame Files"/>
+                                <CheckBox x:Name="ExportFramesCheckBox"
                                           Grid.Row="3"
                                           Grid.Column="1"
-                                          Content="Use absolute yaw/pitch"/>
+                                          IsChecked="True"
+                                          Content="Save individual frame images"/>
 
                                 <TextBlock Grid.Row="4"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="Yaw / Pitch (deg)"/>
-                                <Grid Grid.Row="4"
-                                      Grid.Column="1"
-                                      ColumnDefinitions="*,*"
-                                      ColumnSpacing="8">
-                                    <TextBox x:Name="ViewpointYawTextBox"
-                                             Grid.Column="0"/>
-                                    <TextBox x:Name="ViewpointPitchTextBox"
-                                             Grid.Column="1"/>
-                                </Grid>
+                                           Text="Frame Format"/>
+                                <ComboBox x:Name="OutputImageFormatComboBox"
+                                          Grid.Row="4"
+                                          Grid.Column="1"/>
 
-                                <TextBlock Grid.Row="5"
-                                           Grid.Column="0"
-                                           VerticalAlignment="Center"
-                                           Text="Zoom Override"/>
-                                <Grid Grid.Row="5"
-                                      Grid.Column="1"
-                                      ColumnDefinitions="Auto,*"
-                                      ColumnSpacing="8">
-                                    <CheckBox x:Name="ViewpointOverrideZoomCheckBox"
-                                              Grid.Column="0"
-                                              VerticalAlignment="Center"/>
-                                    <TextBox x:Name="ViewpointZoomTextBox"
-                                             Grid.Column="1"/>
+                                <Grid x:Name="WebpLossyQualityRow"
+                                      Grid.Row="5"
+                                      Grid.ColumnSpan="2"
+                                      ColumnDefinitions="170,*"
+                                      ColumnSpacing="10">
+                                    <TextBlock Grid.Column="0"
+                                               VerticalAlignment="Center"
+                                               Text="WebP Lossy Quality"/>
+                                    <TextBox x:Name="WebpLossyQualityTextBox"
+                                             Grid.Column="1"
+                                             Text="90"/>
                                 </Grid>
 
                                 <TextBlock Grid.Row="6"
                                            Grid.Column="0"
                                            VerticalAlignment="Center"
-                                           Text="Pan Override"/>
-                                <Grid Grid.Row="6"
-                                      Grid.Column="1"
-                                      ColumnDefinitions="Auto,*,*"
-                                      ColumnSpacing="8">
-                                    <CheckBox x:Name="ViewpointOverridePanCheckBox"
-                                              Grid.Column="0"
-                                              VerticalAlignment="Center"/>
-                                    <TextBox x:Name="ViewpointPanXTextBox"
-                                             Grid.Column="1"/>
-                                    <TextBox x:Name="ViewpointPanYTextBox"
-                                             Grid.Column="2"/>
-                                </Grid>
+                                           Text="PNG Deflate Level"/>
+                                <TextBox x:Name="PngCompressionLevelTextBox"
+                                         Grid.Row="6"
+                                         Grid.Column="1"
+                                         Text="9"/>
+
+                                <TextBlock Grid.Row="7"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="PNG Optimization"/>
+                                <ComboBox x:Name="PngOptimizationPresetComboBox"
+                                          Grid.Row="7"
+                                          Grid.Column="1"/>
                             </Grid>
+
+                            <CheckBox x:Name="ExportSpritesheetCheckBox"
+                                      IsChecked="False"
+                                      Content="Save spritesheet image"/>
+
+                            <CheckBox x:Name="OptimizeSpritesheetPngCheckBox"
+                                      IsChecked="True"
+                                      Content="Optimize spritesheet PNG size automatically"/>
+
+                            <Expander Header="Advanced PNG Compression"
+                                      IsExpanded="False">
+                                <StackPanel Margin="0,10,0,0"
+                                            Spacing="10">
+                                    <TextBlock Text="These values drive the near-lossless PNG optimizer directly. Increase the step sizes and delta limits to chase smaller files."
+                                               FontSize="11"
+                                               Foreground="#A9B4BF"
+                                               TextWrapping="Wrap"/>
+                                    <Grid ColumnDefinitions="170,*"
+                                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                          ColumnSpacing="10"
+                                          RowSpacing="8">
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Min Savings (KB)"/>
+                                        <TextBox x:Name="PngMinimumSavingsKbTextBox"
+                                                 Grid.Row="0"
+                                                 Grid.Column="1"
+                                                 Text="2"/>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Opaque RGB Step"/>
+                                        <TextBox x:Name="PngOpaqueRgbStepTextBox"
+                                                 Grid.Row="1"
+                                                 Grid.Column="1"
+                                                 Text="2"/>
+
+                                        <TextBlock Grid.Row="2"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Opaque Alpha Step"/>
+                                        <TextBox x:Name="PngOpaqueAlphaStepTextBox"
+                                                 Grid.Row="2"
+                                                 Grid.Column="1"
+                                                 Text="1"/>
+
+                                        <TextBlock Grid.Row="3"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Translucent RGB Step"/>
+                                        <TextBox x:Name="PngTranslucentRgbStepTextBox"
+                                                 Grid.Row="3"
+                                                 Grid.Column="1"
+                                                 Text="4"/>
+
+                                        <TextBlock Grid.Row="4"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Translucent Alpha Step"/>
+                                        <TextBox x:Name="PngTranslucentAlphaStepTextBox"
+                                                 Grid.Row="4"
+                                                 Grid.Column="1"
+                                                 Text="1"/>
+
+                                        <TextBlock Grid.Row="5"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Translucent Alpha Threshold"/>
+                                        <TextBox x:Name="PngTranslucentAlphaThresholdTextBox"
+                                                 Grid.Row="5"
+                                                 Grid.Column="1"
+                                                 Text="128"/>
+
+                                        <TextBlock Grid.Row="6"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Max Opaque RGB Delta"/>
+                                        <TextBox x:Name="PngMaxOpaqueRgbDeltaTextBox"
+                                                 Grid.Row="6"
+                                                 Grid.Column="1"
+                                                 Text="1"/>
+
+                                        <TextBlock Grid.Row="7"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Max Visible RGB Delta"/>
+                                        <TextBox x:Name="PngMaxVisibleRgbDeltaTextBox"
+                                                 Grid.Row="7"
+                                                 Grid.Column="1"
+                                                 Text="4"/>
+
+                                        <TextBlock Grid.Row="8"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Max Visible Alpha Delta"/>
+                                        <TextBox x:Name="PngMaxVisibleAlphaDeltaTextBox"
+                                                 Grid.Row="8"
+                                                 Grid.Column="1"
+                                                 Text="2"/>
+
+                                        <TextBlock Grid.Row="9"
+                                                   Grid.Column="0"
+                                                   VerticalAlignment="Center"
+                                                   Text="Mean Luma / Alpha Delta"/>
+                                        <Grid Grid.Row="9"
+                                              Grid.Column="1"
+                                              ColumnDefinitions="*,*"
+                                              ColumnSpacing="8">
+                                            <TextBox x:Name="PngMeanVisibleLumaDeltaTextBox"
+                                                     Grid.Column="0"
+                                                     Text="0.75"/>
+                                            <TextBox x:Name="PngMeanVisibleAlphaDeltaTextBox"
+                                                     Grid.Column="1"
+                                                     Text="0.75"/>
+                                        </Grid>
+                                    </Grid>
+                                </StackPanel>
+                            </Expander>
+
+                            <Border Background="#171E26"
+                                    BorderBrush="#293646"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,8">
+                                <TextBlock Text="Spritesheets always export as PNG for filmstrip and UI compatibility. WebP remains optional for individual frame files only."
+                                           TextWrapping="Wrap"
+                                           FontSize="11"
+                                           Foreground="#C7D3DF"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Column="2"
+                    Background="#151B22"
+                    BorderBrush="#31404F"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14">
+                <Grid RowDefinitions="Auto,Auto,*,Auto"
+                      RowSpacing="10">
+                    <StackPanel Grid.Row="0"
+                                Spacing="2">
+                        <TextBlock x:Name="InteractivePreviewTitleTextBlock"
+                                   Text="Interactive Preview (1:1)"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="Use the live preview to verify framing parity before exporting files."
+                                   FontSize="11"
+                                   Foreground="#A9B4BF"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1"
+                          ColumnDefinitions="Auto,*"
+                          RowDefinitions="Auto,Auto"
+                          ColumnSpacing="8"
+                          RowSpacing="8">
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="Perspective"/>
+                        <ComboBox x:Name="RotaryPreviewVariantComboBox"
+                                  Grid.Row="0"
+                                  Grid.Column="1"/>
+
+                        <Button x:Name="CreateRotaryPreviewButton"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                HorizontalAlignment="Left"
+                                Content="Create Preview"
+                                MinWidth="220"/>
+                    </Grid>
+
+                    <Border x:Name="RotaryPreviewSection"
+                            Grid.Row="2"
+                            Background="#0F141A"
+                            BorderBrush="#2B3642"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="RotaryPreviewInfoTextBlock"
+                                       TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Foreground="#B9C6D3"/>
+                            <TextBlock x:Name="CompressionEstimateTextBlock"
+                                       TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Foreground="#9FB0C2"/>
+                            <Border Background="#10161D"
+                                    BorderBrush="#25313E"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                <StackPanel Margin="16"
+                                            HorizontalAlignment="Center"
+                                            Spacing="8">
+                                    <controls:SpriteKnobSlider x:Name="RotaryPreviewKnob"
+                                                               Minimum="0"
+                                                               Maximum="1"
+                                                               KnobDiameter="180"
+                                                               IsEnabled="False"/>
+                                    <TextBlock x:Name="RotaryPreviewValueTextBlock"
+                                               HorizontalAlignment="Center"
+                                               Foreground="#9FB0C2"
+                                               Text="Frame 1 / 1"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Grid.Row="12"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Base Name"/>
-                    <TextBox x:Name="BaseNameTextBox"
-                             Grid.Row="12"
-                             Grid.Column="1"
-                             Text="KnobA"/>
-
-                    <TextBlock Grid.Row="13"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Output Folder"/>
-                    <Grid Grid.Row="13"
-                          Grid.Column="1"
-                          ColumnDefinitions="*,Auto"
-                          ColumnSpacing="8">
-                        <TextBox x:Name="OutputFolderTextBox"
-                                 Grid.Column="0"
-                                 IsReadOnly="True"/>
-                        <Button x:Name="BrowseOutputButton"
-                                Grid.Column="1"
-                                Content="Browse..."
-                                MinWidth="86"/>
-                    </Grid>
-
-                    <TextBlock Grid.Row="14"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Spritesheet Layout"/>
-                    <ComboBox x:Name="SpritesheetLayoutComboBox"
-                              Grid.Row="14"
-                              Grid.Column="1"/>
-
-                    <TextBlock Grid.Row="15"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Export Frames"/>
-                    <CheckBox x:Name="ExportFramesCheckBox"
-                              Grid.Row="15"
-                              Grid.Column="1"
-                              IsChecked="True"
-                              VerticalAlignment="Center"
-                              Content="Save individual PNG frames"/>
-
-                    <TextBlock Grid.Row="16"
-                               Grid.Column="0"
-                               VerticalAlignment="Center"
-                               Text="Export Spritesheet"/>
-                    <CheckBox x:Name="ExportSpritesheetCheckBox"
-                              Grid.Row="16"
-                              Grid.Column="1"
-                              IsChecked="False"
-                              VerticalAlignment="Center"
-                              Content="Save spritesheet PNG"/>
-                </Grid>
-
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Left"
-                            Spacing="8">
-                    <Button x:Name="AutoCorrectButton"
-                            Content="Auto-correct Clean Settings"
-                            MinWidth="220"/>
-                </StackPanel>
-
-                <Border x:Name="RotaryPreviewSection"
-                        Background="#151B22"
-                        BorderBrush="#3A4654"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Padding="10"
-                        Margin="0,4,0,0">
-                    <StackPanel Spacing="8">
-                        <TextBlock x:Name="InteractivePreviewTitleTextBlock"
-                                   Text="Interactive Preview (1:1)"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"/>
-                        <Grid ColumnDefinitions="Auto,*"
-                              RowDefinitions="Auto,Auto"
-                              ColumnSpacing="8"
-                              RowSpacing="8">
-                            <TextBlock Grid.Row="0"
-                                       Grid.Column="0"
-                                       VerticalAlignment="Center"
-                                       Text="Perspective"/>
-                            <ComboBox x:Name="RotaryPreviewVariantComboBox"
-                                      Grid.Row="0"
-                                      Grid.Column="1"/>
-
-                            <Button x:Name="CreateRotaryPreviewButton"
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    HorizontalAlignment="Left"
-                                    Content="Create Preview"
-                                    MinWidth="190"/>
-                        </Grid>
-                        <TextBlock x:Name="RotaryPreviewInfoTextBlock"
+                    <Border Grid.Row="3"
+                            Background="#171E26"
+                            BorderBrush="#293646"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,8">
+                        <TextBlock x:Name="ScratchParityNoteTextBlock"
                                    TextWrapping="Wrap"
                                    FontSize="11"
-                                   Foreground="#B9C6D3"/>
-                        <Border Background="#0F141A"
-                                BorderBrush="#2B3642"
-                                BorderThickness="1"
-                                CornerRadius="4">
-                            <StackPanel Margin="12"
-                                        HorizontalAlignment="Center"
-                                        Spacing="6">
-                                <controls:SpriteKnobSlider x:Name="RotaryPreviewKnob"
-                                                           Minimum="0"
-                                                           Maximum="1"
-                                                           KnobDiameter="128"
-                                                           IsEnabled="False"/>
-                                <TextBlock x:Name="RotaryPreviewValueTextBlock"
-                                           HorizontalAlignment="Center"
-                                           Foreground="#9FB0C2"
-                                           Text="Frame 1 / 1"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+                                   Foreground="#C7D3DF"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
 
         <Border Grid.Row="1"
                 BorderBrush="#2A3138"
                 BorderThickness="0,1,0,0"
                 Padding="16,12">
             <StackPanel Spacing="8">
+                <TextBlock x:Name="ExportSummaryTextBlock"
+                           FontWeight="SemiBold"
+                           Foreground="#E3EBF4"
+                           Text="Summary unavailable."/>
                 <ProgressBar x:Name="ExportProgressBar"
                              Minimum="0"
                              Maximum="1"
                              Height="12"/>
-                <TextBlock x:Name="StatusTextBlock"
-                           Text="Idle."
-                           Foreground="#A9B4BF"/>
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Spacing="8">
+                <Grid ColumnDefinitions="*,Auto,Auto"
+                      ColumnSpacing="8">
+                    <TextBlock x:Name="StatusTextBlock"
+                               Grid.Column="0"
+                               VerticalAlignment="Center"
+                               Text="Idle."
+                               Foreground="#A9B4BF"/>
                     <Button x:Name="StartRenderButton"
-                            Content="Start Render"
+                            Grid.Column="1"
+                            Content="Export"
                             MinWidth="120"/>
                     <Button x:Name="CancelButton"
+                            Grid.Column="2"
                             Content="Cancel"
                             MinWidth="100"/>
-                </StackPanel>
+                </Grid>
             </StackPanel>
         </Border>
     </Grid>

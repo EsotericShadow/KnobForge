@@ -39,7 +39,7 @@ namespace KnobForge.App.Views
                 return false;
             }
 
-            string resolutionText = (_resolutionComboBox.Text ?? _resolutionComboBox.SelectedItem?.ToString() ?? string.Empty).Trim();
+            string resolutionText = (_resolutionTextBox.Text ?? string.Empty).Trim();
             if (!TryParseInt(resolutionText, MinResolution, MaxResolution, "Resolution", out int resolution, out error))
             {
                 return false;
@@ -136,9 +136,18 @@ namespace KnobForge.App.Views
 
         private float GetSceneReferenceRadius()
         {
+            if (_gpuViewport != null)
+            {
+                float viewportReferenceRadius = _gpuViewport.GetCurrentSceneReferenceRadius();
+                if (viewportReferenceRadius > 1f)
+                {
+                    return viewportReferenceRadius;
+                }
+            }
+
             float maxReferenceRadius = 1f;
-            var previewRenderer = new PreviewRenderer(_project);
-            maxReferenceRadius = MathF.Max(maxReferenceRadius, previewRenderer.GetMaxModelReferenceRadius());
+            ModelNode? modelNode = _project.SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            maxReferenceRadius = MathF.Max(maxReferenceRadius, modelNode?.Radius ?? 1f);
 
             MetalMesh? mesh = MetalMeshBuilder.TryBuildFromProject(_project);
             if (mesh != null)
@@ -174,6 +183,76 @@ namespace KnobForge.App.Views
             return width > MaxResolution;
         }
 
+        private bool TryBuildCompressionSettings(out CompressionSettingsSnapshot snapshot, out string error)
+        {
+            snapshot = default;
+            error = string.Empty;
+
+            var selectedImageFormat = _outputImageFormatComboBox.SelectedItem as ExportImageFormat?;
+            ExportImageFormat imageFormat = selectedImageFormat ?? ExportImageFormat.PngOptimized;
+            var selectedPreset = _pngOptimizationPresetComboBox.SelectedItem as PngOptimizationPreset?;
+            PngOptimizationPreset pngOptimizationPreset = selectedPreset ?? PngOptimizationPreset.Custom;
+
+            if (!TryParseInt(_pngCompressionLevelTextBox.Text, 0, 9, "PNG Deflate Level", out int pngCompressionLevel, out error))
+            {
+                return false;
+            }
+
+            if (!TryParseInt(_pngMinimumSavingsKbTextBox.Text, 0, 1024 * 1024, "PNG Min Savings (KB)", out int minimumSavingsKb, out error))
+            {
+                return false;
+            }
+
+            if (!TryParseInt(_pngOpaqueRgbStepTextBox.Text, 1, 64, "Opaque RGB Step", out int opaqueRgbStep, out error) ||
+                !TryParseInt(_pngOpaqueAlphaStepTextBox.Text, 1, 64, "Opaque Alpha Step", out int opaqueAlphaStep, out error) ||
+                !TryParseInt(_pngTranslucentRgbStepTextBox.Text, 1, 64, "Translucent RGB Step", out int translucentRgbStep, out error) ||
+                !TryParseInt(_pngTranslucentAlphaStepTextBox.Text, 1, 64, "Translucent Alpha Step", out int translucentAlphaStep, out error))
+            {
+                return false;
+            }
+
+            if (!TryParseInt(_pngTranslucentAlphaThresholdTextBox.Text, 0, 255, "Translucent Alpha Threshold", out int translucentAlphaThreshold, out error) ||
+                !TryParseInt(_pngMaxOpaqueRgbDeltaTextBox.Text, 0, 255, "Max Opaque RGB Delta", out int maxOpaqueRgbDelta, out error) ||
+                !TryParseInt(_pngMaxVisibleRgbDeltaTextBox.Text, 0, 255, "Max Visible RGB Delta", out int maxVisibleRgbDelta, out error) ||
+                !TryParseInt(_pngMaxVisibleAlphaDeltaTextBox.Text, 0, 255, "Max Visible Alpha Delta", out int maxVisibleAlphaDelta, out error))
+            {
+                return false;
+            }
+
+            if (!TryParseFloat(_pngMeanVisibleLumaDeltaTextBox.Text, 0f, 255f, "Mean Visible Luma Delta", out float meanVisibleLumaDelta, out error) ||
+                !TryParseFloat(_pngMeanVisibleAlphaDeltaTextBox.Text, 0f, 255f, "Mean Visible Alpha Delta", out float meanVisibleAlphaDelta, out error))
+            {
+                return false;
+            }
+
+            float webpLossyQuality = 90f;
+            if ((_exportFramesCheckBox.IsChecked == true) &&
+                imageFormat == ExportImageFormat.WebpLossy &&
+                !TryParseFloat(_webpLossyQualityTextBox.Text, 0f, 100f, "WebP Lossy Quality", out webpLossyQuality, out error))
+            {
+                return false;
+            }
+
+            snapshot = new CompressionSettingsSnapshot(
+                imageFormat,
+                pngCompressionLevel,
+                pngOptimizationPreset,
+                checked(minimumSavingsKb * 1024),
+                opaqueRgbStep,
+                opaqueAlphaStep,
+                translucentRgbStep,
+                translucentAlphaStep,
+                (byte)translucentAlphaThreshold,
+                (byte)maxOpaqueRgbDelta,
+                (byte)maxVisibleRgbDelta,
+                (byte)maxVisibleAlphaDelta,
+                meanVisibleLumaDelta,
+                meanVisibleAlphaDelta,
+                webpLossyQuality,
+                _optimizeSpritesheetPngCheckBox.IsChecked == true);
+            return true;
+        }
+
         private bool TryBuildRequest(
             out KnobExportSettings settings,
             out string outputRootFolder,
@@ -194,7 +273,7 @@ namespace KnobForge.App.Views
                 return false;
             }
 
-            string resolutionText = (_resolutionComboBox.Text ?? _resolutionComboBox.SelectedItem?.ToString() ?? string.Empty).Trim();
+            string resolutionText = (_resolutionTextBox.Text ?? string.Empty).Trim();
             if (!TryParseInt(resolutionText, MinResolution, MaxResolution, "Resolution", out int resolution, out error))
             {
                 return false;
@@ -307,6 +386,10 @@ namespace KnobForge.App.Views
 
             var selectedFilter = _filterPresetComboBox.SelectedItem as ExportFilterPreset?;
             ExportFilterPreset filterPreset = selectedFilter ?? ExportFilterPreset.None;
+            if (!TryBuildCompressionSettings(out CompressionSettingsSnapshot compressionSettings, out error))
+            {
+                return false;
+            }
 
             ExportOutputStrategy strategy = _outputStrategyComboBox.SelectedItem is OutputStrategyOption option
                 ? option.Definition.Strategy
@@ -334,6 +417,7 @@ namespace KnobForge.App.Views
                 OrbitVariantPitchOffsetDeg = orbitPitchOffsetDeg,
                 ExportViewpoints = configuredViewpoints.ToList()
             };
+            compressionSettings.ApplyTo(settings);
 
             return true;
         }

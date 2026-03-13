@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.Core.Scene;
 using KnobForge.Rendering;
 using SkiaSharp;
 
@@ -98,268 +100,89 @@ namespace KnobForge.App.Controls
         {
             _debugContextMenu?.Close();
 
-            var invertXItem = new MenuItem
-            {
-                Header = "Invert X",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _orientation.InvertX
-            };
-            invertXItem.Click += (_, _) =>
-            {
-                _orientation.InvertX = !_orientation.InvertX;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            CollarNode? collarNode = GetDebugCollarNode();
+            bool hasImportedCollar = IsImportedCollarPreset(collarNode);
 
-            var invertYItem = new MenuItem
-            {
-                Header = "Invert Y",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _orientation.InvertY
-            };
-            invertYItem.Click += (_, _) =>
-            {
-                _orientation.InvertY = !_orientation.InvertY;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var cameraMenu = CreateSubmenu(
+                "Camera Basis",
+                CreateToggleMenuItem("Invert X", _orientation.InvertX, () => _orientation.InvertX = !_orientation.InvertX),
+                CreateToggleMenuItem("Invert Y", _orientation.InvertY, () => _orientation.InvertY = !_orientation.InvertY),
+                CreateToggleMenuItem("Invert Z", _orientation.InvertZ, () => _orientation.InvertZ = !_orientation.InvertZ),
+                new Separator(),
+                CreateToggleMenuItem("Flip Camera 180°", _orientation.FlipCamera180, () => _orientation.FlipCamera180 = !_orientation.FlipCamera180));
 
-            var invertZItem = new MenuItem
-            {
-                Header = "Invert Z",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _orientation.InvertZ
-            };
-            invertZItem.Click += (_, _) =>
-            {
-                _orientation.InvertZ = !_orientation.InvertZ;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var gizmoMenu = CreateSubmenu(
+                "Gizmo Overlay",
+                CreateToggleMenuItem("Invert X", _gizmoInvertX, () => _gizmoInvertX = !_gizmoInvertX),
+                CreateToggleMenuItem("Invert Y", _gizmoInvertY, () => _gizmoInvertY = !_gizmoInvertY),
+                CreateToggleMenuItem("Invert Z", _gizmoInvertZ, () => _gizmoInvertZ = !_gizmoInvertZ));
 
-            var gizmoInvertXItem = new MenuItem
-            {
-                Header = "Gizmo Invert X",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _gizmoInvertX
-            };
-            gizmoInvertXItem.Click += (_, _) =>
-            {
-                _gizmoInvertX = !_gizmoInvertX;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var brushMenu = CreateSubmenu(
+                "Brush / Paint Mapping",
+                CreateToggleMenuItem("Invert X", _brushInvertX, () => _brushInvertX = !_brushInvertX),
+                CreateToggleMenuItem("Invert Y", _brushInvertY, () => _brushInvertY = !_brushInvertY),
+                CreateToggleMenuItem("Invert Z (Depth)", _brushInvertZ, () => _brushInvertZ = !_brushInvertZ),
+                new Separator(),
+                CreateActionMenuItem("Mirror Saved Paint X", () => MirrorPaintHistoryUvs(mirrorX: true, mirrorY: false), invalidateGpu: false),
+                CreateActionMenuItem("Mirror Saved Paint Y", () => MirrorPaintHistoryUvs(mirrorX: false, mirrorY: true), invalidateGpu: false),
+                CreateActionMenuItem("Mirror Saved Paint X+Y", () => MirrorPaintHistoryUvs(mirrorX: true, mirrorY: true), invalidateGpu: false));
 
-            var gizmoInvertYItem = new MenuItem
-            {
-                Header = "Gizmo Invert Y",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _gizmoInvertY
-            };
-            gizmoInvertYItem.Click += (_, _) =>
-            {
-                _gizmoInvertY = !_gizmoInvertY;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var lightEffectsMenu = CreateSubmenu(
+                "Light Effects / Env Lookup",
+                CreateToggleMenuItem("Invert X", _lightEffectInvertX, () => _lightEffectInvertX = !_lightEffectInvertX),
+                CreateToggleMenuItem("Invert Y", _lightEffectInvertY, () => _lightEffectInvertY = !_lightEffectInvertY),
+                CreateToggleMenuItem("Invert Z", _lightEffectInvertZ, () => _lightEffectInvertZ = !_lightEffectInvertZ));
 
-            var gizmoInvertZItem = new MenuItem
-            {
-                Header = "Gizmo Invert Z",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _gizmoInvertZ
-            };
-            gizmoInvertZItem.Click += (_, _) =>
-            {
-                _gizmoInvertZ = !_gizmoInvertZ;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var bloomMenu = CreateSubmenu(
+                "Bloom / Post-Process",
+                CreateToggleMenuItem("Composite Invert X", _bloomCompositeInvertX, () => _bloomCompositeInvertX = !_bloomCompositeInvertX),
+                CreateToggleMenuItem("Composite Invert Y", _bloomCompositeInvertY, () => _bloomCompositeInvertY = !_bloomCompositeInvertY));
 
-            var brushInvertXItem = new MenuItem
-            {
-                Header = "Brush Invert X",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _brushInvertX
-            };
-            brushInvertXItem.Click += (_, _) =>
-            {
-                _brushInvertX = !_brushInvertX;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var collarMenu = CreateSubmenu(
+                "Collar Mesh / Compensation",
+                CreateReadOnlyToggleMenuItem(
+                    hasImportedCollar ? "Project Mirror X" : "Project Mirror X (No Imported Collar)",
+                    hasImportedCollar && collarNode!.ImportedMirrorX),
+                CreateReadOnlyToggleMenuItem(
+                    hasImportedCollar ? "Project Mirror Y" : "Project Mirror Y (No Imported Collar)",
+                    hasImportedCollar && collarNode!.ImportedMirrorY),
+                CreateReadOnlyToggleMenuItem(
+                    hasImportedCollar ? "Project Mirror Z" : "Project Mirror Z (No Imported Collar)",
+                    hasImportedCollar && collarNode!.ImportedMirrorZ),
+                new Separator(),
+                CreateToggleMenuItem("Compensation Flip X", _collarCompensationInvertX, () => _collarCompensationInvertX = !_collarCompensationInvertX),
+                CreateToggleMenuItem("Compensation Flip Y", _collarCompensationInvertY, () => _collarCompensationInvertY = !_collarCompensationInvertY),
+                CreateToggleMenuItem("Compensation Flip Z", _collarCompensationInvertZ, () => _collarCompensationInvertZ = !_collarCompensationInvertZ),
+                new Separator(),
+                CreateReadOnlyToggleMenuItem("Invert Collar Orbit (Imported Mesh) [Locked Off]", false),
+                CreateToggleMenuItem(
+                    "Invert Front-Face Winding (Imported Mesh Collar)",
+                    _invertImportedStlFrontFaceWinding,
+                    () => _invertImportedStlFrontFaceWinding = !_invertImportedStlFrontFaceWinding));
 
-            var brushInvertYItem = new MenuItem
-            {
-                Header = "Brush Invert Y",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _brushInvertY
-            };
-            brushInvertYItem.Click += (_, _) =>
-            {
-                _brushInvertY = !_brushInvertY;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var geometryMenu = CreateSubmenu(
+                "Geometry / Winding",
+                CreateToggleMenuItem(
+                    "Invert Front-Face Winding (Knob)",
+                    _invertKnobFrontFaceWinding,
+                    () => _invertKnobFrontFaceWinding = !_invertKnobFrontFaceWinding));
 
-            var brushInvertZItem = new MenuItem
-            {
-                Header = "Brush Invert Z (Depth)",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _brushInvertZ
-            };
-            brushInvertZItem.Click += (_, _) =>
-            {
-                _brushInvertZ = !_brushInvertZ;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var lightEffectInvertXItem = new MenuItem
-            {
-                Header = "Light Effects Invert X",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _lightEffectInvertX
-            };
-            lightEffectInvertXItem.Click += (_, _) =>
-            {
-                _lightEffectInvertX = !_lightEffectInvertX;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var lightEffectInvertYItem = new MenuItem
-            {
-                Header = "Light Effects Invert Y",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _lightEffectInvertY
-            };
-            lightEffectInvertYItem.Click += (_, _) =>
-            {
-                _lightEffectInvertY = !_lightEffectInvertY;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var lightEffectInvertZItem = new MenuItem
-            {
-                Header = "Light Effects Invert Z",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _lightEffectInvertZ
-            };
-            lightEffectInvertZItem.Click += (_, _) =>
-            {
-                _lightEffectInvertZ = !_lightEffectInvertZ;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var flipCameraItem = new MenuItem
-            {
-                Header = "Flip Camera 180°",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _orientation.FlipCamera180
-            };
-            flipCameraItem.Click += (_, _) =>
-            {
-                _orientation.FlipCamera180 = !_orientation.FlipCamera180;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var invertCollarOrbitItem = new MenuItem
-            {
-                Header = "Invert Collar Orbit (Imported Mesh)",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _invertImportedCollarOrbit
-            };
-            invertCollarOrbitItem.Click += (_, _) =>
-            {
-                _invertImportedCollarOrbit = !_invertImportedCollarOrbit;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var invertKnobFrontFaceWindingItem = new MenuItem
-            {
-                Header = "Invert Front-Face Winding (Knob)",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _invertKnobFrontFaceWinding
-            };
-            invertKnobFrontFaceWindingItem.Click += (_, _) =>
-            {
-                _invertKnobFrontFaceWinding = !_invertKnobFrontFaceWinding;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var invertImportedStlFrontFaceWindingItem = new MenuItem
-            {
-                Header = "Invert Front-Face Winding (Imported Mesh Collar)",
-                ToggleType = MenuItemToggleType.CheckBox,
-                IsChecked = _invertImportedStlFrontFaceWinding
-            };
-            invertImportedStlFrontFaceWindingItem.Click += (_, _) =>
-            {
-                _invertImportedStlFrontFaceWinding = !_invertImportedStlFrontFaceWinding;
-                PrintOrientation();
-                InvalidateGpu();
-            };
-
-            var resetItem = new MenuItem
-            {
-                Header = "Reset Orientation"
-            };
-            resetItem.Click += (_, _) =>
-            {
-                _orientation = new OrientationDebug
-                {
-                    InvertX = true,
-                    InvertY = true,
-                    InvertZ = true,
-                    FlipCamera180 = true
-                };
-                _gizmoInvertX = false;
-                _gizmoInvertY = true;
-                _gizmoInvertZ = false;
-                _brushInvertX = false;
-                _brushInvertY = true;
-                _brushInvertZ = false;
-                _lightEffectInvertX = false;
-                _lightEffectInvertY = false;
-                _lightEffectInvertZ = false;
-                _invertImportedCollarOrbit = false;
-                _invertKnobFrontFaceWinding = true;
-                _invertImportedStlFrontFaceWinding = true;
-                PrintOrientation();
-                InvalidateGpu();
-            };
+            var printItem = CreateActionMenuItem("Print Debug State", PrintOrientation);
+            var resetItem = CreateActionMenuItem("Reset Orientation / Debug Axes", ResetOrientationDebugState, invalidateGpu: true);
 
             _debugContextMenu = new ContextMenu
             {
                 Items =
                 {
-                    invertXItem,
-                    invertYItem,
-                    invertZItem,
+                    cameraMenu,
+                    gizmoMenu,
+                    brushMenu,
+                    lightEffectsMenu,
+                    bloomMenu,
+                    collarMenu,
+                    geometryMenu,
                     new Separator(),
-                    gizmoInvertXItem,
-                    gizmoInvertYItem,
-                    gizmoInvertZItem,
-                    new Separator(),
-                    brushInvertXItem,
-                    brushInvertYItem,
-                    brushInvertZItem,
-                    new Separator(),
-                    lightEffectInvertXItem,
-                    lightEffectInvertYItem,
-                    lightEffectInvertZItem,
-                    new Separator(),
-                    flipCameraItem,
-                    invertCollarOrbitItem,
-                    invertKnobFrontFaceWindingItem,
-                    invertImportedStlFrontFaceWindingItem,
-                    new Separator(),
+                    printItem,
                     resetItem
                 },
                 Placement = PlacementMode.Pointer,
@@ -384,11 +207,119 @@ namespace KnobForge.App.Controls
             Console.WriteLine($"LightEffectInvertX: {_lightEffectInvertX}");
             Console.WriteLine($"LightEffectInvertY: {_lightEffectInvertY}");
             Console.WriteLine($"LightEffectInvertZ: {_lightEffectInvertZ}");
+            Console.WriteLine($"CollarCompensationInvertX: {_collarCompensationInvertX}");
+            Console.WriteLine($"CollarCompensationInvertY: {_collarCompensationInvertY}");
+            Console.WriteLine($"CollarCompensationInvertZ: {_collarCompensationInvertZ}");
+            Console.WriteLine($"BloomCompositeInvertX: {_bloomCompositeInvertX}");
+            Console.WriteLine($"BloomCompositeInvertY: {_bloomCompositeInvertY}");
             Console.WriteLine($"FlipCamera180: {_orientation.FlipCamera180}");
             Console.WriteLine($"InvertImportedCollarOrbit: {_invertImportedCollarOrbit}");
             Console.WriteLine($"InvertKnobFrontFaceWinding: {_invertKnobFrontFaceWinding}");
             Console.WriteLine($"InvertImportedStlFrontFaceWinding: {_invertImportedStlFrontFaceWinding}");
+            CollarNode? collarNode = GetDebugCollarNode();
+            if (IsImportedCollarPreset(collarNode) && collarNode is not null)
+            {
+                Console.WriteLine($"ProjectCollarMirrorX: {collarNode.ImportedMirrorX}");
+                Console.WriteLine($"ProjectCollarMirrorY: {collarNode.ImportedMirrorY}");
+                Console.WriteLine($"ProjectCollarMirrorZ: {collarNode.ImportedMirrorZ}");
+            }
+
             Console.WriteLine("---------------------------");
+        }
+
+        private void ResetOrientationDebugState()
+        {
+            _orientation = new OrientationDebug
+            {
+                InvertX = true,
+                InvertY = false,
+                InvertZ = true,
+                FlipCamera180 = true
+            };
+            _gizmoInvertX = false;
+            _gizmoInvertY = false;
+            _gizmoInvertZ = false;
+            _brushInvertX = false;
+            _brushInvertY = true;
+            _brushInvertZ = false;
+            _lightEffectInvertX = true;
+            _lightEffectInvertY = true;
+            _lightEffectInvertZ = false;
+            _collarCompensationInvertX = false;
+            _collarCompensationInvertY = false;
+            _collarCompensationInvertZ = false;
+            _bloomCompositeInvertX = false;
+            _bloomCompositeInvertY = false;
+            _invertImportedCollarOrbit = false;
+            _invertKnobFrontFaceWinding = true;
+            _invertImportedStlFrontFaceWinding = true;
+            PrintOrientation();
+        }
+
+        private MenuItem CreateToggleMenuItem(string header, bool isChecked, Action onToggle)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = isChecked
+            };
+            item.Click += (_, _) =>
+            {
+                onToggle();
+                PrintOrientation();
+                InvalidateGpu();
+            };
+            return item;
+        }
+
+        private static MenuItem CreateReadOnlyToggleMenuItem(string header, bool isChecked)
+        {
+            return new MenuItem
+            {
+                Header = header,
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = isChecked,
+                IsEnabled = false
+            };
+        }
+
+        private static MenuItem CreateSubmenu(string header, params object[] items)
+        {
+            var item = new MenuItem
+            {
+                Header = header
+            };
+
+            foreach (object child in items)
+            {
+                item.Items.Add(child);
+            }
+
+            return item;
+        }
+
+        private MenuItem CreateActionMenuItem(string header, Action onClick, bool invalidateGpu = false)
+        {
+            var item = new MenuItem
+            {
+                Header = header
+            };
+            item.Click += (_, _) =>
+            {
+                onClick();
+                if (invalidateGpu)
+                {
+                    InvalidateGpu();
+                }
+            };
+            return item;
+        }
+
+        private CollarNode? GetDebugCollarNode()
+        {
+            ModelNode? modelNode = _project?.SceneRoot.Children.OfType<ModelNode>().FirstOrDefault();
+            return modelNode?.Children.OfType<CollarNode>().FirstOrDefault();
         }
 
         private float GetRenderScale()

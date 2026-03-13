@@ -1480,6 +1480,52 @@
                                         <TextBlock Text="Gunk"/>
                                         <controls:SpriteKnobSlider x:Name="MaterialGunkSlider" Minimum="0" Maximum="1"/>
                                         <TextBlock x:Name="MaterialGunkValueText"/>
+
+                                        <Separator Margin="0,6,0,6"/>
+                                        <TextBlock Text="Texture Maps" FontWeight="SemiBold"/>
+
+                                        <TextBlock Text="Albedo Map"/>
+                                        <TextBlock x:Name="MaterialAlbedoMapPathText"
+                                                   Text="None"
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button x:Name="MaterialAlbedoMapBrowseButton" Content="Browse..."/>
+                                            <Button x:Name="MaterialAlbedoMapClearButton" Content="Clear"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="Normal Map"/>
+                                        <TextBlock x:Name="MaterialNormalMapPathText"
+                                                   Text="None"
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button x:Name="MaterialNormalMapBrowseButton" Content="Browse..."/>
+                                            <Button x:Name="MaterialNormalMapClearButton" Content="Clear"/>
+                                        </StackPanel>
+                                        <StackPanel x:Name="MaterialNormalMapStrengthPanel"
+                                                    Spacing="6"
+                                                    IsVisible="False">
+                                            <TextBlock Text="Normal Strength"/>
+                                            <controls:SpriteKnobSlider x:Name="MaterialNormalMapStrengthSlider" Minimum="0" Maximum="2"/>
+                                            <TextBlock x:Name="MaterialNormalMapStrengthValueText"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="Roughness Map"/>
+                                        <TextBlock x:Name="MaterialRoughnessMapPathText"
+                                                   Text="None"
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button x:Name="MaterialRoughnessMapBrowseButton" Content="Browse..."/>
+                                            <Button x:Name="MaterialRoughnessMapClearButton" Content="Clear"/>
+                                        </StackPanel>
+
+                                        <TextBlock Text="Metallic Map"/>
+                                        <TextBlock x:Name="MaterialMetallicMapPathText"
+                                                   Text="None"
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button x:Name="MaterialMetallicMapBrowseButton" Content="Browse..."/>
+                                            <Button x:Name="MaterialMetallicMapClearButton" Content="Clear"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Expander>
 
@@ -1568,6 +1614,33 @@
                                                 </StackPanel>
                                                 <CheckBox x:Name="FocusPaintLayerCheckBox"
                                                           Content="Focus selected layer (dim others 25%)"/>
+                                                <CheckBox x:Name="PaintLayerVisibleCheckBox"
+                                                          Content="Visible"/>
+                                                <TextBlock Text="Blend Mode"/>
+                                                <ComboBox x:Name="PaintLayerBlendModeCombo"/>
+                                                <TextBlock Text="Layer Opacity"/>
+                                                <controls:SpriteKnobSlider x:Name="PaintLayerOpacitySlider"
+                                                                           Minimum="0"
+                                                                           Maximum="1"/>
+                                                <TextBlock x:Name="PaintLayerOpacityValueText"
+                                                           FontSize="11"
+                                                           Foreground="#A9B4BF"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#1D242C"
+                                                BorderBrush="#354352"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="8">
+                                            <StackPanel Spacing="6">
+                                                <TextBlock Text="Paint Mask Resolution"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"/>
+                                                <ComboBox x:Name="PaintMaskResolutionCombo"/>
+                                                <TextBlock x:Name="PaintMaskResolutionMemoryText"
+                                                           FontSize="11"
+                                                           Foreground="#A9B4BF"/>
                                             </StackPanel>
                                         </Border>
 
@@ -1596,6 +1669,21 @@
                                             <TextBlock Text="Used when Paint Channel is Color"
                                                        FontSize="11"
                                                        Foreground="#A9B4BF"/>
+                                        </StackPanel>
+
+                                        <StackPanel x:Name="PaintChannelTargetValuePanel"
+                                                    Spacing="4"
+                                                    IsVisible="False">
+                                            <TextBlock x:Name="PaintChannelTargetValueLabel"
+                                                       Text="Target Value"/>
+                                            <Slider x:Name="PaintChannelTargetValueSlider"
+                                                    Minimum="0"
+                                                    Maximum="1"
+                                                    Value="0.2"/>
+                                            <TextBlock x:Name="PaintChannelTargetValueText"
+                                                       FontSize="11"
+                                                       Foreground="#A9B4BF"
+                                                       Text="0.20"/>
                                         </StackPanel>
 
                                         <StackPanel x:Name="GeneralPaintPrimaryPanel" Spacing="6">

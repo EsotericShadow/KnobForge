@@ -163,18 +163,31 @@ namespace KnobForge.App.Controls
 
         public readonly struct PaintLayerInfo
         {
-            public PaintLayerInfo(int index, string name, bool isActive, bool isFocused)
+            public PaintLayerInfo(
+                int index,
+                string name,
+                bool isActive,
+                bool isFocused,
+                float opacity,
+                PaintBlendMode blendMode,
+                bool visible)
             {
                 Index = index;
                 Name = name ?? string.Empty;
                 IsActive = isActive;
                 IsFocused = isFocused;
+                Opacity = opacity;
+                BlendMode = blendMode;
+                Visible = visible;
             }
 
             public int Index { get; }
             public string Name { get; }
             public bool IsActive { get; }
             public bool IsFocused { get; }
+            public float Opacity { get; }
+            public PaintBlendMode BlendMode { get; }
+            public bool Visible { get; }
         }
 
         private sealed class PaintLayerState
@@ -185,6 +198,9 @@ namespace KnobForge.App.Controls
             }
 
             public string Name { get; set; }
+            public float Opacity { get; set; } = 1f;
+            public PaintBlendMode BlendMode { get; set; } = PaintBlendMode.Normal;
+            public bool Visible { get; set; } = true;
         }
 
         private const int MaxGpuLights = 8;
@@ -225,6 +241,7 @@ namespace KnobForge.App.Controls
         private IntPtr _environmentMapTexture;
         private IntPtr _paintMaskTexture;
         private IntPtr _paintColorTexture;
+        private IntPtr _paintMask2Texture;
         private IntPtr _paintStampLibrary;
         private IntPtr _paintStampVertexFunction;
         private IntPtr _paintStampFragmentFunction;
@@ -260,6 +277,7 @@ namespace KnobForge.App.Controls
         private nuint _msaaTextureWidth;
         private nuint _msaaTextureHeight;
         private MetalRendererContext? _context;
+        private TextureManager? _textureManager;
         private DispatcherTimer? _renderTimer;
         private MeshShapeKey _meshShapeKey;
         private CollarShapeKey _collarShapeKey;
@@ -288,7 +306,13 @@ namespace KnobForge.App.Controls
         private bool _viewportCollarStateLogged;
         private bool _offscreenCollarStateLogged;
         private int _paintMaskTextureVersion = -1;
+        private int _paintColorTextureVersion = -1;
+        private int _paintMask2TextureVersion = -1;
+        private int _paintTextureFocusedLayerIndex = int.MinValue;
         private bool _paintColorTextureNeedsClear = true;
+        private byte[] _paintMaskDisplayScratch = Array.Empty<byte>();
+        private byte[] _paintColorDisplayScratch = Array.Empty<byte>();
+        private byte[] _paintMask2DisplayScratch = Array.Empty<byte>();
 
         private KnobProject? _project;
         private bool _dirty = true;
@@ -323,23 +347,27 @@ namespace KnobForge.App.Controls
         private int _paintHistoryRevision;
         private int _activePaintLayerIndex;
         private int _focusedPaintLayerIndex = -1;
-        private bool _paintRebuildRequested = true;
         private OrientationDebug _orientation = new()
         {
             InvertX = true,
-            InvertY = true,
+            InvertY = false,
             InvertZ = true,
             FlipCamera180 = true
         };
         private bool _gizmoInvertX;
-        private bool _gizmoInvertY = true;
+        private bool _gizmoInvertY;
         private bool _gizmoInvertZ;
         private bool _brushInvertX;
         private bool _brushInvertY = true;
         private bool _brushInvertZ;
-        private bool _lightEffectInvertX;
-        private bool _lightEffectInvertY;
+        private bool _lightEffectInvertX = true;
+        private bool _lightEffectInvertY = true;
         private bool _lightEffectInvertZ;
+        private bool _collarCompensationInvertX;
+        private bool _collarCompensationInvertY;
+        private bool _collarCompensationInvertZ;
+        private bool _bloomCompositeInvertX;
+        private bool _bloomCompositeInvertY;
         private bool _invertImportedCollarOrbit;
         private bool _invertKnobFrontFaceWinding = true;
         private bool _invertImportedStlFrontFaceWinding = true;
@@ -376,11 +404,15 @@ namespace KnobForge.App.Controls
                 ReleaseEnvironmentMapTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
+                ReleasePaintMask2Texture();
                 ReleasePaintStampResources();
                 ReleasePaintPickResources();
                 ReleaseLightGizmoResources();
                 ReleaseUniformUploadScratchBuffers();
                 _paintMaskTextureVersion = -1;
+                _paintColorTextureVersion = -1;
+                _paintMask2TextureVersion = -1;
+                _paintTextureFocusedLayerIndex = int.MinValue;
                 _paintColorTextureNeedsClear = true;
                 _paintPickMapDirty = true;
                 _pendingPaintStampCommands.Clear();
@@ -392,7 +424,6 @@ namespace KnobForge.App.Controls
                 _focusedPaintLayerIndex = -1;
                 _activeStrokeLayerIndex = 0;
                 EnsureDefaultPaintLayer();
-                _paintRebuildRequested = true;
                 _viewportCollarStateLogged = false;
                 _offscreenCollarStateLogged = false;
                 InvalidateGpu();
@@ -528,6 +559,8 @@ namespace KnobForge.App.Controls
                 return base.CreateNativeControlCore(parent);
             }
 
+            _textureManager ??= new TextureManager(device);
+
             _nativeView = ObjC.IntPtr_objc_msgSend(ObjC.IntPtr_objc_msgSend(ObjCClasses.NSView, Selectors.Alloc), Selectors.Init);
             _metalLayer = ObjC.IntPtr_objc_msgSend(ObjC.IntPtr_objc_msgSend(ObjCClasses.CAMetalLayer, Selectors.Alloc), Selectors.Init);
 
@@ -600,19 +633,23 @@ namespace KnobForge.App.Controls
                 ReleaseEnvironmentMapTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
+                ReleasePaintMask2Texture();
                 ReleasePaintStampResources();
                 ReleasePaintPickResources();
                 ReleaseLightGizmoResources();
                 ReleaseUniformUploadScratchBuffers();
+                _textureManager?.Dispose();
+                _textureManager = null;
                 _paintMaskTextureVersion = -1;
+                _paintColorTextureVersion = -1;
+                _paintMask2TextureVersion = -1;
+                _paintTextureFocusedLayerIndex = int.MinValue;
                 _paintColorTextureNeedsClear = true;
                 _paintPickMapDirty = true;
                 _pendingPaintStampCommands.Clear();
                 _activeStrokeCommands.Clear();
                 _committedPaintStrokes.Clear();
                 _paintHistoryRevision = 0;
-                _paintRebuildRequested = true;
-
                 ClearMeshResources();
                 _meshShapeKey = default;
                 _collarShapeKey = default;
@@ -815,6 +852,10 @@ namespace KnobForge.App.Controls
                 GpuUniforms knobUniforms = BuildUniforms(_project, modelNode, sceneReferenceRadius, Bounds.Size);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
                 postProcessUniforms = knobUniforms;
+                if (drawCollar)
+                {
+                    ApplyImportedCollarMirrorToEnvironmentOrientation(ref postProcessUniforms, collarNode);
+                }
                 hasPostProcessUniforms = true;
                 MaterialNode? materialNode = modelNode?.Children.OfType<MaterialNode>().FirstOrDefault();
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
@@ -1007,11 +1048,8 @@ namespace KnobForge.App.Controls
                     : default;
                 EnsurePaintMaskTexture(_project);
                 EnsurePaintColorTexture(_project);
+                EnsurePaintMask2Texture(_project);
                 ApplyPendingPaintStamps(commandBuffer);
-                if (drawCollar && _invertImportedCollarOrbit && IsImportedCollarPreset(collarNode))
-                {
-                    collarUniforms.ModelRotationCosSin.Y = -collarUniforms.ModelRotationCosSin.Y;
-                }
 
                 IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
                 if (encoderPtr != IntPtr.Zero)
@@ -1045,6 +1083,31 @@ namespace KnobForge.App.Controls
                             Selectors.SetFragmentTextureAtIndex,
                             _environmentMapTexture,
                             3);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            ResolveMaterialTexture(materialNode, TextureMapType.Albedo),
+                            4);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            ResolveMaterialTexture(materialNode, TextureMapType.Normal),
+                            5);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            ResolveMaterialTexture(materialNode, TextureMapType.Roughness),
+                            6);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            ResolveMaterialTexture(materialNode, TextureMapType.Metallic),
+                            7);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            _paintMask2Texture,
+                            8);
 
                         Size viewportDip = Bounds.Size;
                         float renderScale = GetRenderScale();
@@ -1675,7 +1738,9 @@ namespace KnobForge.App.Controls
                 1f);
             RenderBloomBlurPass(commandBuffer, _bloomExtractTexture, _bloomBlurTexture, uniforms);
 
-            RenderBloomCompositePass(commandBuffer, finalTargetTexture, sourceTexture, _bloomExtractTexture);
+            GpuUniforms compositeUniforms = uniforms;
+            ApplyBloomCompositeDebugOrientation(ref compositeUniforms);
+            RenderBloomCompositePass(commandBuffer, finalTargetTexture, sourceTexture, _bloomExtractTexture, compositeUniforms);
             return true;
         }
 
@@ -1777,7 +1842,7 @@ namespace KnobForge.App.Controls
             }
         }
 
-        private void RenderBloomCompositePass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, IntPtr bloomTexture)
+        private void RenderBloomCompositePass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, IntPtr bloomTexture, in GpuUniforms uniforms)
         {
             if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero || bloomTexture == IntPtr.Zero)
             {
@@ -1817,6 +1882,7 @@ namespace KnobForge.App.Controls
                     Selectors.SetFragmentTextureAtIndex,
                     bloomTexture,
                     1);
+                UploadUniforms(encoderPtr, uniforms);
                 ObjC.Void_objc_msgSend_UInt_UInt_UInt(
                     encoderPtr,
                     Selectors.DrawPrimitivesVertexStartVertexCount,
