@@ -43,6 +43,7 @@ namespace KnobForge.App.Views
         private readonly OrientationDebug _orientation;
         private readonly ViewportCameraState _cameraState;
         private readonly MetalViewport? _gpuViewport;
+        private readonly string? _projectFilePath;
         private readonly Control _settingsPanel;
         private readonly ComboBox _outputStrategyComboBox;
         private readonly TextBlock _outputStrategySummaryTextBlock;
@@ -83,6 +84,23 @@ namespace KnobForge.App.Views
         private readonly Border _rotaryPreviewSection;
         private readonly TextBlock _interactivePreviewTitleTextBlock;
         private readonly TextBlock _compressionEstimateTextBlock;
+        private readonly Control _textureBakeSection;
+        private readonly ComboBox _textureBakeMaterialComboBox;
+        private readonly ComboBox _textureBakeResolutionComboBox;
+        private readonly CheckBox _textureBakeAlbedoCheckBox;
+        private readonly CheckBox _textureBakeNormalCheckBox;
+        private readonly CheckBox _textureBakeRoughnessCheckBox;
+        private readonly CheckBox _textureBakeMetallicCheckBox;
+        private readonly TextBox _textureBakeOutputFolderTextBox;
+        private readonly Button _browseTextureBakeOutputButton;
+        private readonly TextBox _textureBakeBaseNameTextBox;
+        private readonly TextBlock _textureBakeEstimateTextBlock;
+        private readonly TextBlock _textureBakeFilePreviewTextBlock;
+        private readonly Button _bakeTexturesButton;
+        private readonly Button _cancelTextureBakeButton;
+        private readonly Button _openTextureBakeFolderButton;
+        private readonly ProgressBar _textureBakeProgressBar;
+        private readonly TextBlock _textureBakeStatusTextBlock;
         private readonly ListBox _viewpointsListBox;
         private readonly Button _addViewpointButton;
         private readonly Button _duplicateViewpointButton;
@@ -116,13 +134,17 @@ namespace KnobForge.App.Views
         private readonly TextBlock _scratchParityNoteTextBlock;
         private readonly OutputStrategyOption[] _outputStrategyOptions;
         private PreviewVariantOption[] _previewVariantOptions;
+        private TextureBakeMaterialOption[] _textureBakeMaterialOptions = Array.Empty<TextureBakeMaterialOption>();
         private readonly List<ViewpointEditorItem> _viewpointEditorItems = new();
 
         private CancellationTokenSource? _exportCts;
         private CancellationTokenSource? _rotaryPreviewCts;
+        private CancellationTokenSource? _textureBakeCts;
         private string? _rotaryPreviewTempPath;
+        private string? _lastTextureBakeOutputFolder;
         private bool _isBuildingRotaryPreview;
         private bool _isRendering;
+        private bool _isBakingTextures;
         private bool _isApplyingOutputStrategy;
         private bool _isApplyingPngOptimizationPreset;
         private bool _isUpdatingViewpointUi;
@@ -135,16 +157,18 @@ namespace KnobForge.App.Views
                 new KnobProject(),
                 new OrientationDebug(),
                 new ViewportCameraState(30f, -20f, 1f, SKPoint.Empty),
+                null,
                 null)
         {
         }
 
-        public RenderSettingsWindow(KnobProject project, OrientationDebug orientation, ViewportCameraState cameraState, MetalViewport? gpuViewport)
+        public RenderSettingsWindow(KnobProject project, OrientationDebug orientation, ViewportCameraState cameraState, MetalViewport? gpuViewport, string? projectFilePath)
         {
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _orientation = orientation ?? throw new ArgumentNullException(nameof(orientation));
             _cameraState = cameraState;
             _gpuViewport = gpuViewport;
+            _projectFilePath = projectFilePath;
 
             InitializeComponent();
 
@@ -228,6 +252,40 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("InteractivePreviewTitleTextBlock not found.");
             _compressionEstimateTextBlock = this.FindControl<TextBlock>("CompressionEstimateTextBlock")
                 ?? throw new InvalidOperationException("CompressionEstimateTextBlock not found.");
+            _textureBakeSection = this.FindControl<Control>("TextureBakeSection")
+                ?? throw new InvalidOperationException("TextureBakeSection not found.");
+            _textureBakeMaterialComboBox = this.FindControl<ComboBox>("TextureBakeMaterialComboBox")
+                ?? throw new InvalidOperationException("TextureBakeMaterialComboBox not found.");
+            _textureBakeResolutionComboBox = this.FindControl<ComboBox>("TextureBakeResolutionComboBox")
+                ?? throw new InvalidOperationException("TextureBakeResolutionComboBox not found.");
+            _textureBakeAlbedoCheckBox = this.FindControl<CheckBox>("TextureBakeAlbedoCheckBox")
+                ?? throw new InvalidOperationException("TextureBakeAlbedoCheckBox not found.");
+            _textureBakeNormalCheckBox = this.FindControl<CheckBox>("TextureBakeNormalCheckBox")
+                ?? throw new InvalidOperationException("TextureBakeNormalCheckBox not found.");
+            _textureBakeRoughnessCheckBox = this.FindControl<CheckBox>("TextureBakeRoughnessCheckBox")
+                ?? throw new InvalidOperationException("TextureBakeRoughnessCheckBox not found.");
+            _textureBakeMetallicCheckBox = this.FindControl<CheckBox>("TextureBakeMetallicCheckBox")
+                ?? throw new InvalidOperationException("TextureBakeMetallicCheckBox not found.");
+            _textureBakeOutputFolderTextBox = this.FindControl<TextBox>("TextureBakeOutputFolderTextBox")
+                ?? throw new InvalidOperationException("TextureBakeOutputFolderTextBox not found.");
+            _browseTextureBakeOutputButton = this.FindControl<Button>("BrowseTextureBakeOutputButton")
+                ?? throw new InvalidOperationException("BrowseTextureBakeOutputButton not found.");
+            _textureBakeBaseNameTextBox = this.FindControl<TextBox>("TextureBakeBaseNameTextBox")
+                ?? throw new InvalidOperationException("TextureBakeBaseNameTextBox not found.");
+            _textureBakeEstimateTextBlock = this.FindControl<TextBlock>("TextureBakeEstimateTextBlock")
+                ?? throw new InvalidOperationException("TextureBakeEstimateTextBlock not found.");
+            _textureBakeFilePreviewTextBlock = this.FindControl<TextBlock>("TextureBakeFilePreviewTextBlock")
+                ?? throw new InvalidOperationException("TextureBakeFilePreviewTextBlock not found.");
+            _bakeTexturesButton = this.FindControl<Button>("BakeTexturesButton")
+                ?? throw new InvalidOperationException("BakeTexturesButton not found.");
+            _cancelTextureBakeButton = this.FindControl<Button>("CancelTextureBakeButton")
+                ?? throw new InvalidOperationException("CancelTextureBakeButton not found.");
+            _openTextureBakeFolderButton = this.FindControl<Button>("OpenTextureBakeFolderButton")
+                ?? throw new InvalidOperationException("OpenTextureBakeFolderButton not found.");
+            _textureBakeProgressBar = this.FindControl<ProgressBar>("TextureBakeProgressBar")
+                ?? throw new InvalidOperationException("TextureBakeProgressBar not found.");
+            _textureBakeStatusTextBlock = this.FindControl<TextBlock>("TextureBakeStatusTextBlock")
+                ?? throw new InvalidOperationException("TextureBakeStatusTextBlock not found.");
             _viewpointsListBox = this.FindControl<ListBox>("ViewpointsListBox")
                 ?? throw new InvalidOperationException("ViewpointsListBox not found.");
             _addViewpointButton = this.FindControl<Button>("AddViewpointButton")
@@ -296,6 +354,8 @@ namespace KnobForge.App.Views
             _previewVariantOptions = BuildPreviewVariantOptions();
             _rotaryPreviewVariantComboBox.ItemsSource = _previewVariantOptions;
             _rotaryPreviewVariantComboBox.SelectedIndex = 0;
+            _textureBakeResolutionComboBox.ItemsSource = new[] { 256, 512, 1024, 2048, 4096 };
+            _textureBakeResolutionComboBox.SelectedItem = 1024;
 
             _supersampleComboBox.ItemsSource = new[] { "1", "2", "3", "4" };
 
@@ -305,7 +365,10 @@ namespace KnobForge.App.Views
             _outputImageFormatComboBox.ItemsSource = BuildFrameImageFormatOptions();
             _pngOptimizationPresetComboBox.ItemsSource = Enum.GetValues<PngOptimizationPreset>();
 
-            _outputFolderTextBox.Text = GetDefaultOutputFolder();
+            string defaultOutputFolder = GetDefaultOutputFolder();
+            _outputFolderTextBox.Text = defaultOutputFolder;
+            _textureBakeOutputFolderTextBox.Text = defaultOutputFolder;
+            _textureBakeBaseNameTextBox.Text = BuildDefaultTextureBakeBaseName();
             var defaultExportSettings = new KnobExportSettings();
             _exportOrbitVariantsCheckBox.IsChecked = defaultExportSettings.ExportOrbitVariants;
             _orbitYawOffsetTextBox.Text = defaultExportSettings.OrbitVariantYawOffsetDeg.ToString("0.###", CultureInfo.InvariantCulture);
@@ -328,6 +391,7 @@ namespace KnobForge.App.Views
 
             _outputStrategyComboBox.SelectionChanged += OnOutputStrategySelectionChanged;
             _browseOutputButton.Click += OnBrowseOutputButtonClick;
+            _browseTextureBakeOutputButton.Click += OnBrowseTextureBakeOutputButtonClick;
             _autoCorrectButton.Click += OnAutoCorrectButtonClick;
             WireViewpointEditorHandlers();
             _createRotaryPreviewButton.Click += OnCreateRotaryPreviewButtonClick;
@@ -336,6 +400,9 @@ namespace KnobForge.App.Views
             _pngOptimizationPresetComboBox.SelectionChanged += OnPngOptimizationPresetSelectionChanged;
             _startRenderButton.Click += OnStartRenderButtonClick;
             _cancelButton.Click += OnCancelButtonClick;
+            _bakeTexturesButton.Click += OnBakeTexturesButtonClick;
+            _cancelTextureBakeButton.Click += OnCancelTextureBakeButtonClick;
+            _openTextureBakeFolderButton.Click += OnOpenTextureBakeFolderButtonClick;
             _exportSpritesheetCheckBox.IsCheckedChanged += OnExportSpritesheetCheckedChanged;
             _exportOrbitVariantsCheckBox.IsCheckedChanged += OnExportOrbitVariantsCheckedChanged;
             Closing += OnWindowClosing;
@@ -349,6 +416,9 @@ namespace KnobForge.App.Views
             UpdateOrbitVariantControlsEnabled();
             UpdateStartRenderAvailability();
             ConfigureRotaryPreviewAvailability();
+            RefreshTextureBakeMaterialOptions();
+            UpdateTextureBakeSummary();
+            UpdateTextureBakeControlsState();
         }
 
         private static OutputStrategyOption[] BuildOutputStrategyOptions()
@@ -539,6 +609,15 @@ namespace KnobForge.App.Views
             _optimizeSpritesheetPngCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
             _exportOrbitVariantsCheckBox.IsCheckedChanged += OnLiveValidationCheckedChanged;
             _webpLossyQualityTextBox.TextChanged += OnLiveValidationTextChanged;
+
+            _textureBakeResolutionComboBox.SelectionChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeMaterialComboBox.SelectionChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeAlbedoCheckBox.IsCheckedChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeNormalCheckBox.IsCheckedChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeRoughnessCheckBox.IsCheckedChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeMetallicCheckBox.IsCheckedChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeBaseNameTextBox.TextChanged += (_, _) => UpdateTextureBakeSummary();
+            _textureBakeOutputFolderTextBox.TextChanged += (_, _) => UpdateTextureBakeSummary();
         }
 
         private void OnLiveValidationTextChanged(object? sender, TextChangedEventArgs e)
@@ -604,8 +683,17 @@ namespace KnobForge.App.Views
                 ReferenceEquals(sender, _pngMeanVisibleAlphaDeltaTextBox);
         }
 
-        private static string GetDefaultOutputFolder()
+        private string GetDefaultOutputFolder()
         {
+            if (!string.IsNullOrWhiteSpace(_projectFilePath))
+            {
+                string? projectDirectory = Path.GetDirectoryName(_projectFilePath);
+                if (!string.IsNullOrWhiteSpace(projectDirectory) && Directory.Exists(projectDirectory))
+                {
+                    return projectDirectory;
+                }
+            }
+
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             if (!string.IsNullOrWhiteSpace(desktop))
             {

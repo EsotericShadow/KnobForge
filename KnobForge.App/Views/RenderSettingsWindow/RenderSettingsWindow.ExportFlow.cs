@@ -441,6 +441,14 @@ namespace KnobForge.App.Views
                 return;
             }
 
+            if (_isBakingTextures)
+            {
+                _textureBakeStatusTextBlock.Text = "Cancelling texture bake...";
+                _textureBakeCts?.Cancel();
+                e.Cancel = true;
+                return;
+            }
+
             _rotaryPreviewCts?.Cancel();
             _rotaryPreviewCts?.Dispose();
             _rotaryPreviewCts = null;
@@ -472,6 +480,7 @@ namespace KnobForge.App.Views
             _rotaryPreviewVariantComboBox.IsEnabled = enableRotaryPreviewControls;
             _cancelButton.Content = isRendering ? "Cancel Export" : "Cancel";
             UpdateOrbitVariantControlsEnabled();
+            UpdateTextureBakeControlsState();
 
             if (!isRendering)
             {
@@ -496,6 +505,14 @@ namespace KnobForge.App.Views
                 _startRenderButton.IsEnabled = false;
                 _startRenderButton.Opacity = 0.55;
                 ToolTip.SetTip(_startRenderButton, "Export in progress.");
+                return;
+            }
+
+            if (_isBakingTextures)
+            {
+                _startRenderButton.IsEnabled = false;
+                _startRenderButton.Opacity = 0.55;
+                ToolTip.SetTip(_startRenderButton, "Texture bake in progress.");
                 return;
             }
 

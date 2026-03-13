@@ -29,7 +29,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            var dialog = new RenderSettingsWindow(_project, _metalViewport.CurrentOrientation, _metalViewport.CurrentCameraState, _metalViewport)
+            var dialog = new RenderSettingsWindow(_project, _metalViewport.CurrentOrientation, _metalViewport.CurrentCameraState, _metalViewport, _currentProjectFilePath)
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };

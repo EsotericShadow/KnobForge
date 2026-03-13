@@ -536,6 +536,141 @@
                             </Border>
                         </StackPanel>
                     </Border>
+
+                    <Border Background="#151B22"
+                            BorderBrush="#31404F"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12">
+                        <StackPanel x:Name="TextureBakeSection"
+                                    Spacing="10">
+                            <TextBlock Text="Texture Bake"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Export composed PBR texture maps without lighting, directly from the current material stack."
+                                       FontSize="11"
+                                       Foreground="#A9B4BF"
+                                       TextWrapping="Wrap"/>
+
+                            <Grid ColumnDefinitions="170,*"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                                  ColumnSpacing="10"
+                                  RowSpacing="8">
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Material"/>
+                                <ComboBox x:Name="TextureBakeMaterialComboBox"
+                                          Grid.Row="0"
+                                          Grid.Column="1"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Resolution"/>
+                                <ComboBox x:Name="TextureBakeResolutionComboBox"
+                                          Grid.Row="1"
+                                          Grid.Column="1"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Top"
+                                           Text="Maps"/>
+                                <WrapPanel Grid.Row="2"
+                                           Grid.Column="1"
+                                           Orientation="Horizontal"
+                                           ItemHeight="28">
+                                    <CheckBox x:Name="TextureBakeAlbedoCheckBox"
+                                              Margin="0,0,10,0"
+                                              IsChecked="True"
+                                              Content="Albedo"/>
+                                    <CheckBox x:Name="TextureBakeNormalCheckBox"
+                                              Margin="0,0,10,0"
+                                              IsChecked="True"
+                                              Content="Normal"/>
+                                    <CheckBox x:Name="TextureBakeRoughnessCheckBox"
+                                              Margin="0,0,10,0"
+                                              IsChecked="True"
+                                              Content="Roughness"/>
+                                    <CheckBox x:Name="TextureBakeMetallicCheckBox"
+                                              IsChecked="True"
+                                              Content="Metallic"/>
+                                </WrapPanel>
+
+                                <TextBlock Grid.Row="3"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Output Folder"/>
+                                <Grid Grid.Row="3"
+                                      Grid.Column="1"
+                                      ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="8">
+                                    <TextBox x:Name="TextureBakeOutputFolderTextBox"
+                                             Grid.Column="0"
+                                             IsReadOnly="True"/>
+                                    <Button x:Name="BrowseTextureBakeOutputButton"
+                                            Grid.Column="1"
+                                            Content="Browse..."
+                                            MinWidth="86"/>
+                                </Grid>
+
+                                <TextBlock Grid.Row="4"
+                                           Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="Base Name"/>
+                                <TextBox x:Name="TextureBakeBaseNameTextBox"
+                                         Grid.Row="4"
+                                         Grid.Column="1"
+                                         Text="bake"/>
+                            </Grid>
+
+                            <Border Background="#171E26"
+                                    BorderBrush="#293646"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,8">
+                                <StackPanel Spacing="4">
+                                    <TextBlock x:Name="TextureBakeEstimateTextBlock"
+                                               TextWrapping="Wrap"
+                                               FontSize="11"
+                                               Foreground="#C7D3DF"/>
+                                    <TextBlock x:Name="TextureBakeFilePreviewTextBlock"
+                                               TextWrapping="Wrap"
+                                               FontSize="11"
+                                               Foreground="#9FB0C2"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid ColumnDefinitions="Auto,Auto,Auto,*"
+                                  ColumnSpacing="8">
+                                <Button x:Name="BakeTexturesButton"
+                                        Grid.Column="0"
+                                        Content="Bake Textures"
+                                        MinWidth="140"/>
+                                <Button x:Name="CancelTextureBakeButton"
+                                        Grid.Column="1"
+                                        Content="Cancel Bake"
+                                        MinWidth="120"
+                                        IsEnabled="False"/>
+                                <Button x:Name="OpenTextureBakeFolderButton"
+                                        Grid.Column="2"
+                                        Content="Open Folder"
+                                        MinWidth="110"
+                                        IsEnabled="False"/>
+                            </Grid>
+
+                            <ProgressBar x:Name="TextureBakeProgressBar"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Height="10"/>
+
+                            <TextBlock x:Name="TextureBakeStatusTextBlock"
+                                       Text="Ready to bake textures."
+                                       FontSize="11"
+                                       Foreground="#B9C6D3"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
 
