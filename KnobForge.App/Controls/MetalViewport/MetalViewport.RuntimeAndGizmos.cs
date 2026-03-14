@@ -200,6 +200,7 @@ namespace KnobForge.App.Controls
             nuint bloomHeight = Math.Max(1, height / 2);
             if (_bloomExtractTexture != IntPtr.Zero &&
                 _bloomBlurTexture != IntPtr.Zero &&
+                _bloomAccumTexture != IntPtr.Zero &&
                 _bloomTextureWidth == bloomWidth &&
                 _bloomTextureHeight == bloomHeight)
             {
@@ -216,6 +217,12 @@ namespace KnobForge.App.Controls
             {
                 ObjC.Void_objc_msgSend(_bloomBlurTexture, Selectors.Release);
                 _bloomBlurTexture = IntPtr.Zero;
+            }
+
+            if (_bloomAccumTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomAccumTexture, Selectors.Release);
+                _bloomAccumTexture = IntPtr.Zero;
             }
 
             _bloomTextureWidth = 0;
@@ -238,7 +245,8 @@ namespace KnobForge.App.Controls
 
             IntPtr extractTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
             IntPtr blurTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
-            if (extractTexture == IntPtr.Zero || blurTexture == IntPtr.Zero)
+            IntPtr accumTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+            if (extractTexture == IntPtr.Zero || blurTexture == IntPtr.Zero || accumTexture == IntPtr.Zero)
             {
                 if (extractTexture != IntPtr.Zero)
                 {
@@ -250,11 +258,17 @@ namespace KnobForge.App.Controls
                     ObjC.Void_objc_msgSend(blurTexture, Selectors.Release);
                 }
 
+                if (accumTexture != IntPtr.Zero)
+                {
+                    ObjC.Void_objc_msgSend(accumTexture, Selectors.Release);
+                }
+
                 return;
             }
 
             _bloomExtractTexture = extractTexture;
             _bloomBlurTexture = blurTexture;
+            _bloomAccumTexture = accumTexture;
             _bloomTextureWidth = bloomWidth;
             _bloomTextureHeight = bloomHeight;
         }
@@ -579,6 +593,7 @@ namespace KnobForge.App.Controls
             _environmentMapTexture = texture;
             _environmentMapTexturePath = fullPath;
             _environmentMapTextureWriteTicks = writeTicks;
+            _environmentMapMaxMipLevel = MathF.Max(0f, MathF.Floor(MathF.Log2(MathF.Max(width, height))));
         }
 
         private void ReleaseEnvironmentMapTexture()
@@ -591,6 +606,81 @@ namespace KnobForge.App.Controls
 
             _environmentMapTexturePath = string.Empty;
             _environmentMapTextureWriteTicks = 0;
+            _environmentMapMaxMipLevel = 0f;
+        }
+
+        private void EnsureBrdfLutTexture()
+        {
+            if (_brdfLutReady || _brdfLutTexture != IntPtr.Zero || _context is null || _context.Device.Handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                float[] lutFloats = BrdfLutGenerator.Generate();
+                ushort[] halfData = new ushort[lutFloats.Length];
+                for (int i = 0; i < lutFloats.Length; i++)
+                {
+                    halfData[i] = BitConverter.HalfToUInt16Bits((Half)lutFloats[i]);
+                }
+
+                IntPtr descriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                    ObjCClasses.MTLTextureDescriptor,
+                    Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                    BrdfLutPixelFormat,
+                    (nuint)BrdfLutGenerator.LutSize,
+                    (nuint)BrdfLutGenerator.LutSize,
+                    false);
+                if (descriptor == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                ObjC.Void_objc_msgSend_UInt(descriptor, Selectors.SetUsage, 1); // MTLTextureUsageShaderRead
+                IntPtr texture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, descriptor);
+                if (texture == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                GCHandle pinned = GCHandle.Alloc(halfData, GCHandleType.Pinned);
+                try
+                {
+                    MTLRegion region = new(
+                        new MTLOrigin(0, 0, 0),
+                        new MTLSize((nuint)BrdfLutGenerator.LutSize, (nuint)BrdfLutGenerator.LutSize, 1));
+                    ObjC.Void_objc_msgSend_MTLRegion_UInt_IntPtr_UInt(
+                        texture,
+                        Selectors.ReplaceRegionMipmapLevelWithBytesBytesPerRow,
+                        region,
+                        0,
+                        pinned.AddrOfPinnedObject(),
+                        (nuint)(BrdfLutGenerator.LutSize * sizeof(ushort) * 2));
+                }
+                finally
+                {
+                    pinned.Free();
+                }
+
+                _brdfLutTexture = texture;
+                _brdfLutReady = true;
+            }
+            catch
+            {
+                ReleaseBrdfLutTexture();
+            }
+        }
+
+        private void ReleaseBrdfLutTexture()
+        {
+            if (_brdfLutTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_brdfLutTexture, Selectors.Release);
+                _brdfLutTexture = IntPtr.Zero;
+            }
+
+            _brdfLutReady = false;
         }
 
         public void DiscardPendingPaintStamps()

@@ -1,3 +1,4 @@
+using KnobForge.Core.MaterialGraph;
 using KnobForge.Core.Scene;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,8 @@ namespace KnobForge.App.Views
                 NormalMapPath = material.NormalMapPath,
                 RoughnessMapPath = material.RoughnessMapPath,
                 MetallicMapPath = material.MetallicMapPath,
-                NormalMapStrength = material.NormalMapStrength
+                NormalMapStrength = material.NormalMapStrength,
+                Graph = MaterialGraphSerialization.Clone(material.Graph)
             };
         }
 
@@ -92,7 +94,8 @@ namespace KnobForge.App.Views
                 NormalMapPath = snapshot.NormalMapPath,
                 RoughnessMapPath = snapshot.RoughnessMapPath,
                 MetallicMapPath = snapshot.MetallicMapPath,
-                NormalMapStrength = snapshot.NormalMapStrength
+                NormalMapStrength = snapshot.NormalMapStrength,
+                Graph = MaterialGraphSerialization.Clone(snapshot.Graph)
             };
         }
 
@@ -134,6 +137,7 @@ namespace KnobForge.App.Views
             material.RoughnessMapPath = snapshot.RoughnessMapPath;
             material.MetallicMapPath = snapshot.MetallicMapPath;
             material.NormalMapStrength = snapshot.NormalMapStrength;
+            material.Graph = MaterialGraphSerialization.Clone(snapshot.Graph);
         }
 
         private static MaterialNode CloneMaterialNode(MaterialNode material)

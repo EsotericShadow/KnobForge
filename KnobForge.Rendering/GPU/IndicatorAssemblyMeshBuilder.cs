@@ -38,7 +38,7 @@ public sealed class IndicatorPartMesh
 
 public static class IndicatorAssemblyMeshBuilder
 {
-    public static IndicatorAssemblyConfig ResolveConfig(KnobProject? project)
+    public static IndicatorAssemblyConfig ResolveConfig(KnobProject? project, RenderQualityTier quality = RenderQualityTier.Normal)
     {
         if (project is null || project.ProjectType != InteractorProjectType.IndicatorLight)
         {
@@ -96,6 +96,10 @@ public static class IndicatorAssemblyMeshBuilder
             ? project.IndicatorLensLongitudeSegments
             : 40;
 
+        radialSegments = ScaleSegments(radialSegments, quality, 8, 128);
+        lensLatitudeSegments = ScaleSegments(lensLatitudeSegments, quality, 4, 96);
+        lensLongitudeSegments = ScaleSegments(lensLongitudeSegments, quality, 6, 160);
+
         float resolvedBaseWidth = project.IndicatorBaseWidth > 0f ? project.IndicatorBaseWidth : baseWidth;
         float resolvedBaseHeight = project.IndicatorBaseHeight > 0f ? project.IndicatorBaseHeight : baseHeight;
         float resolvedBaseThickness = project.IndicatorBaseThickness > 0f ? project.IndicatorBaseThickness : baseThickness;
@@ -132,6 +136,18 @@ public static class IndicatorAssemblyMeshBuilder
             RadialSegments: radialSegments,
             LensLatitudeSegments: lensLatitudeSegments,
             LensLongitudeSegments: lensLongitudeSegments);
+    }
+
+    private static int ScaleSegments(int baseCount, RenderQualityTier quality, int minimum, int maximum)
+    {
+        float scale = quality switch
+        {
+            RenderQualityTier.Draft => 0.5f,
+            RenderQualityTier.Production => 1.5f,
+            _ => 1f
+        };
+
+        return Math.Clamp((int)MathF.Round(baseCount * scale), minimum, maximum);
     }
 
     public static IndicatorPartMesh BuildBaseMesh(in IndicatorAssemblyConfig config)

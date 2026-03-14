@@ -9,50 +9,50 @@ using System.IO;
 
 namespace KnobForge.App.Controls
 {
-    public class SpriteKnobSlider : Slider
+    public class SpriteSheetPreviewKnob : Slider
     {
         public static readonly StyledProperty<string> SpriteSheetPathProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, string>(
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, string>(
                 nameof(SpriteSheetPath),
-                "Assets/green_channel_strip_over_right_spritesheet.png");
+                string.Empty);
 
         public static readonly StyledProperty<int> FrameCountProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FrameCount), 156);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FrameCount), 156);
 
         public static readonly StyledProperty<int> ColumnCountProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(ColumnCount), 13);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(ColumnCount), 13);
 
         public static readonly StyledProperty<int> FrameWidthProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FrameWidth), 128);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FrameWidth), 128);
 
         public static readonly StyledProperty<int> FrameHeightProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FrameHeight), 128);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FrameHeight), 128);
 
         public static readonly StyledProperty<int> FramePaddingProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FramePadding), 12);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FramePadding), 12);
 
         public static readonly StyledProperty<int> FrameStartXProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FrameStartX), 12);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FrameStartX), 12);
 
         public static readonly StyledProperty<int> FrameStartYProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, int>(nameof(FrameStartY), 12);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, int>(nameof(FrameStartY), 12);
 
         public static readonly StyledProperty<double> KnobDiameterProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, double>(nameof(KnobDiameter), 128d);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, double>(nameof(KnobDiameter), 128d);
 
         public static readonly StyledProperty<double> DragPixelsForFullRangeProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, double>(nameof(DragPixelsForFullRange), 220d);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, double>(nameof(DragPixelsForFullRange), 220d);
 
         public static readonly StyledProperty<bool> ReverseFrameOrderProperty =
-            AvaloniaProperty.Register<SpriteKnobSlider, bool>(nameof(ReverseFrameOrder), true);
+            AvaloniaProperty.Register<SpriteSheetPreviewKnob, bool>(nameof(ReverseFrameOrder), true);
 
-        public static readonly DirectProperty<SpriteKnobSlider, IImage?> CurrentFrameProperty =
-            AvaloniaProperty.RegisterDirect<SpriteKnobSlider, IImage?>(
+        public static readonly DirectProperty<SpriteSheetPreviewKnob, IImage?> CurrentFrameProperty =
+            AvaloniaProperty.RegisterDirect<SpriteSheetPreviewKnob, IImage?>(
                 nameof(CurrentFrame),
                 knob => knob.CurrentFrame);
 
-        public static readonly DirectProperty<SpriteKnobSlider, double> EffectiveKnobDiameterProperty =
-            AvaloniaProperty.RegisterDirect<SpriteKnobSlider, double>(
+        public static readonly DirectProperty<SpriteSheetPreviewKnob, double> EffectiveKnobDiameterProperty =
+            AvaloniaProperty.RegisterDirect<SpriteSheetPreviewKnob, double>(
                 nameof(EffectiveKnobDiameter),
                 knob => knob.EffectiveKnobDiameter);
 
@@ -142,7 +142,7 @@ namespace KnobForge.App.Controls
             private set => SetAndRaise(EffectiveKnobDiameterProperty, ref _effectiveKnobDiameter, value);
         }
 
-        public SpriteKnobSlider()
+        public SpriteSheetPreviewKnob()
         {
             Focusable = true;
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
@@ -243,6 +243,7 @@ namespace KnobForge.App.Controls
             {
                 e.Pointer.Capture(null);
             }
+
             e.Handled = true;
         }
 
@@ -300,6 +301,7 @@ namespace KnobForge.App.Controls
             {
                 normalized = 1d - normalized;
             }
+
             int index = (int)Math.Round(normalized * (_frames.Count - 1));
             index = Math.Clamp(index, 0, _frames.Count - 1);
             CurrentFrame = _frames[index];
@@ -347,8 +349,7 @@ namespace KnobForge.App.Controls
                     break;
                 }
 
-                var cropRect = new PixelRect(x, y, frameWidth, frameHeight);
-                frames.Add(new CroppedBitmap(sheet, cropRect));
+                frames.Add(new CroppedBitmap(sheet, new PixelRect(x, y, frameWidth, frameHeight)));
             }
 
             return frames;

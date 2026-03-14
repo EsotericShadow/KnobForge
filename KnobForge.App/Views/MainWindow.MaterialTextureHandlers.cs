@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using KnobForge.App.Controls;
 using KnobForge.Core.Scene;
 
 namespace KnobForge.App.Views
@@ -62,12 +63,12 @@ namespace KnobForge.App.Views
 
         private void OnMaterialNormalMapStrengthChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) || _materialNormalMapStrengthSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) || _materialNormalMapStrengthInput == null)
             {
                 return;
             }
 
-            material.NormalMapStrength = Math.Clamp((float)_materialNormalMapStrengthSlider.Value, 0f, 2f);
+            material.NormalMapStrength = Math.Clamp((float)_materialNormalMapStrengthInput.Value, 0f, 2f);
             ApplyMaterialTextureValuesToUi(material);
             NotifyProjectStateChanged();
         }
@@ -145,7 +146,7 @@ namespace KnobForge.App.Views
                 _materialNormalMapPathText == null ||
                 _materialRoughnessMapPathText == null ||
                 _materialMetallicMapPathText == null ||
-                _materialNormalMapStrengthSlider == null ||
+                _materialNormalMapStrengthInput == null ||
                 _materialNormalMapStrengthPanel == null)
             {
                 return;
@@ -159,7 +160,7 @@ namespace KnobForge.App.Views
                 _materialNormalMapPathText.Text = FormatMaterialTexturePath(material.NormalMapPath);
                 _materialRoughnessMapPathText.Text = FormatMaterialTexturePath(material.RoughnessMapPath);
                 _materialMetallicMapPathText.Text = FormatMaterialTexturePath(material.MetallicMapPath);
-                _materialNormalMapStrengthSlider.Value = Math.Clamp(material.NormalMapStrength, 0f, 2f);
+                _materialNormalMapStrengthInput.Value = Math.Clamp(material.NormalMapStrength, 0f, 2f);
                 _materialNormalMapStrengthPanel.IsVisible = material.HasNormalMap;
             }
             finally

@@ -221,28 +221,28 @@ namespace KnobForge.App.Views
             if (_collarEnabledCheckBox == null ||
                 _collarPresetCombo == null ||
                 _collarMeshPathTextBox == null ||
-                _collarScaleSlider == null ||
-                _collarBodyLengthSlider == null ||
-                _collarBodyThicknessSlider == null ||
-                _collarHeadLengthSlider == null ||
-                _collarHeadThicknessSlider == null ||
-                _collarRotateSlider == null ||
+                _collarScaleInput == null ||
+                _collarBodyLengthInput == null ||
+                _collarBodyThicknessInput == null ||
+                _collarHeadLengthInput == null ||
+                _collarHeadThicknessInput == null ||
+                _collarRotateInput == null ||
                 _collarMirrorXCheckBox == null ||
                 _collarMirrorYCheckBox == null ||
                 _collarMirrorZCheckBox == null ||
-                _collarOffsetXSlider == null ||
-                _collarOffsetYSlider == null ||
-                _collarElevationSlider == null ||
-                _collarInflateSlider == null ||
-                _collarMaterialBaseRSlider == null ||
-                _collarMaterialBaseGSlider == null ||
-                _collarMaterialBaseBSlider == null ||
-                _collarMaterialMetallicSlider == null ||
-                _collarMaterialRoughnessSlider == null ||
-                _collarMaterialPearlescenceSlider == null ||
-                _collarMaterialRustSlider == null ||
-                _collarMaterialWearSlider == null ||
-                _collarMaterialGunkSlider == null)
+                _collarOffsetXInput == null ||
+                _collarOffsetYInput == null ||
+                _collarElevationInput == null ||
+                _collarInflateInput == null ||
+                _collarMaterialBaseRInput == null ||
+                _collarMaterialBaseGInput == null ||
+                _collarMaterialBaseBInput == null ||
+                _collarMaterialMetallicInput == null ||
+                _collarMaterialRoughnessInput == null ||
+                _collarMaterialPearlescenceInput == null ||
+                _collarMaterialRustInput == null ||
+                _collarMaterialWearInput == null ||
+                _collarMaterialGunkInput == null)
             {
                 return;
             }
@@ -255,130 +255,81 @@ namespace KnobForge.App.Views
             bool customImportedPreset = importedPreset && selectedOption.AllowsCustomPathEntry;
             _collarMeshPathTextBox.IsEnabled = importedPreset;
             _collarMeshPathTextBox.IsReadOnly = importedPreset && !customImportedPreset;
-            _collarScaleSlider.IsEnabled = importedPreset;
-            _collarBodyLengthSlider.IsEnabled = importedPreset;
-            _collarBodyThicknessSlider.IsEnabled = importedPreset;
-            _collarHeadLengthSlider.IsEnabled = importedPreset;
-            _collarHeadThicknessSlider.IsEnabled = importedPreset;
-            _collarRotateSlider.IsEnabled = importedPreset;
+            _collarScaleInput.IsEnabled = importedPreset;
+            _collarBodyLengthInput.IsEnabled = importedPreset;
+            _collarBodyThicknessInput.IsEnabled = importedPreset;
+            _collarHeadLengthInput.IsEnabled = importedPreset;
+            _collarHeadThicknessInput.IsEnabled = importedPreset;
+            _collarRotateInput.IsEnabled = importedPreset;
             _collarMirrorXCheckBox.IsEnabled = importedPreset;
             _collarMirrorYCheckBox.IsEnabled = importedPreset;
             _collarMirrorZCheckBox.IsEnabled = importedPreset;
-            _collarOffsetXSlider.IsEnabled = importedPreset;
-            _collarOffsetYSlider.IsEnabled = importedPreset;
-            _collarElevationSlider.IsEnabled = hasModel;
-            _collarInflateSlider.IsEnabled = importedPreset;
-            if (_collarScaleInputTextBox != null)
-            {
-                _collarScaleInputTextBox.IsEnabled = _collarScaleSlider.IsEnabled;
-            }
-
-            if (_collarBodyLengthInputTextBox != null)
-            {
-                _collarBodyLengthInputTextBox.IsEnabled = _collarBodyLengthSlider.IsEnabled;
-            }
-
-            if (_collarBodyThicknessInputTextBox != null)
-            {
-                _collarBodyThicknessInputTextBox.IsEnabled = _collarBodyThicknessSlider.IsEnabled;
-            }
-
-            if (_collarHeadLengthInputTextBox != null)
-            {
-                _collarHeadLengthInputTextBox.IsEnabled = _collarHeadLengthSlider.IsEnabled;
-            }
-
-            if (_collarHeadThicknessInputTextBox != null)
-            {
-                _collarHeadThicknessInputTextBox.IsEnabled = _collarHeadThicknessSlider.IsEnabled;
-            }
-
-            if (_collarRotateInputTextBox != null)
-            {
-                _collarRotateInputTextBox.IsEnabled = _collarRotateSlider.IsEnabled;
-            }
-
-            if (_collarOffsetXInputTextBox != null)
-            {
-                _collarOffsetXInputTextBox.IsEnabled = _collarOffsetXSlider.IsEnabled;
-            }
-
-            if (_collarOffsetYInputTextBox != null)
-            {
-                _collarOffsetYInputTextBox.IsEnabled = _collarOffsetYSlider.IsEnabled;
-            }
-
-            if (_collarElevationInputTextBox != null)
-            {
-                _collarElevationInputTextBox.IsEnabled = _collarElevationSlider.IsEnabled;
-            }
-
-            if (_collarInflateInputTextBox != null)
-            {
-                _collarInflateInputTextBox.IsEnabled = _collarInflateSlider.IsEnabled;
-            }
+            _collarOffsetXInput.IsEnabled = importedPreset;
+            _collarOffsetYInput.IsEnabled = importedPreset;
+            _collarElevationInput.IsEnabled = hasModel;
+            _collarInflateInput.IsEnabled = importedPreset;
 
             bool collarMaterialEnabled = hasModel;
-            _collarMaterialBaseRSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialBaseGSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialBaseBSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialMetallicSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialRoughnessSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialPearlescenceSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialRustSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialWearSlider.IsEnabled = collarMaterialEnabled;
-            _collarMaterialGunkSlider.IsEnabled = collarMaterialEnabled;
+            _collarMaterialBaseRInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialBaseGInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialBaseBInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialMetallicInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialRoughnessInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialPearlescenceInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialRustInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialWearInput.IsEnabled = collarMaterialEnabled;
+            _collarMaterialGunkInput.IsEnabled = collarMaterialEnabled;
             UpdateCollarMeshPathFeedback(preset, _collarMeshPathTextBox.Text, customImportedPreset);
         }
 
         private void RefreshInspectorFromProject(InspectorRefreshTabPolicy tabPolicy = InspectorRefreshTabPolicy.PreserveCurrentTab)
         {
             if (_lightingModeCombo == null || _lightListBox == null ||
-                _removeLightButton == null || _rotationSlider == null || _lightTypeCombo == null ||
-                _lightXSlider == null || _lightYSlider == null || _lightZSlider == null ||
-                _directionSlider == null || _intensitySlider == null || _falloffSlider == null ||
-                _lightRSlider == null || _lightGSlider == null || _lightBSlider == null ||
-                _diffuseBoostSlider == null || _specularBoostSlider == null || _specularPowerSlider == null ||
-                _modelRadiusSlider == null || _modelHeightSlider == null || _modelTopScaleSlider == null ||
-                _modelBevelSlider == null || _referenceStyleCombo == null || _referenceStyleSaveNameTextBox == null || _saveReferenceProfileButton == null || _bodyStyleCombo == null || _bevelCurveSlider == null || _crownProfileSlider == null ||
-                _bodyTaperSlider == null || _bodyBulgeSlider == null || _modelSegmentsSlider == null ||
-                _spiralRidgeHeightSlider == null || _spiralRidgeWidthSlider == null || _spiralTurnsSlider == null ||
-                _gripStyleCombo == null || _gripTypeCombo == null || _gripStartSlider == null || _gripHeightSlider == null ||
-                _gripDensitySlider == null || _gripPitchSlider == null || _gripDepthSlider == null ||
-                _gripWidthSlider == null || _gripSharpnessSlider == null ||
+                _removeLightButton == null || _rotationInput == null || _lightTypeCombo == null ||
+                _lightXInput == null || _lightYInput == null || _lightZInput == null ||
+                _directionInput == null || _intensityInput == null || _falloffInput == null ||
+                _lightRInput == null || _lightGInput == null || _lightBInput == null ||
+                _diffuseBoostInput == null || _specularBoostInput == null || _specularPowerInput == null ||
+                _modelRadiusInput == null || _modelHeightInput == null || _modelTopScaleInput == null ||
+                _modelBevelInput == null || _referenceStyleCombo == null || _referenceStyleSaveNameTextBox == null || _saveReferenceProfileButton == null || _bodyStyleCombo == null || _bevelCurveInput == null || _crownProfileInput == null ||
+                _bodyTaperInput == null || _bodyBulgeInput == null || _modelSegmentsInput == null ||
+                _spiralRidgeHeightInput == null || _spiralRidgeWidthInput == null || _spiralTurnsInput == null ||
+                _gripStyleCombo == null || _gripTypeCombo == null || _gripStartInput == null || _gripHeightInput == null ||
+                _gripDensityInput == null || _gripPitchInput == null || _gripDepthInput == null ||
+                _gripWidthInput == null || _gripSharpnessInput == null ||
                 _collarEnabledCheckBox == null || _collarPresetCombo == null || _collarMeshPathTextBox == null ||
-                _collarScaleSlider == null || _collarBodyLengthSlider == null || _collarBodyThicknessSlider == null ||
-                _collarHeadLengthSlider == null || _collarHeadThicknessSlider == null ||
-                _collarRotateSlider == null || _collarMirrorXCheckBox == null || _collarMirrorYCheckBox == null || _collarMirrorZCheckBox == null ||
-                _collarOffsetXSlider == null || _collarOffsetYSlider == null || _collarElevationSlider == null || _collarInflateSlider == null ||
-                _collarMaterialBaseRSlider == null || _collarMaterialBaseGSlider == null || _collarMaterialBaseBSlider == null ||
-                _collarMaterialMetallicSlider == null || _collarMaterialRoughnessSlider == null || _collarMaterialPearlescenceSlider == null ||
-                _collarMaterialRustSlider == null || _collarMaterialWearSlider == null || _collarMaterialGunkSlider == null ||
+                _collarScaleInput == null || _collarBodyLengthInput == null || _collarBodyThicknessInput == null ||
+                _collarHeadLengthInput == null || _collarHeadThicknessInput == null ||
+                _collarRotateInput == null || _collarMirrorXCheckBox == null || _collarMirrorYCheckBox == null || _collarMirrorZCheckBox == null ||
+                _collarOffsetXInput == null || _collarOffsetYInput == null || _collarElevationInput == null || _collarInflateInput == null ||
+                _collarMaterialBaseRInput == null || _collarMaterialBaseGInput == null || _collarMaterialBaseBInput == null ||
+                _collarMaterialMetallicInput == null || _collarMaterialRoughnessInput == null || _collarMaterialPearlescenceInput == null ||
+                _collarMaterialRustInput == null || _collarMaterialWearInput == null || _collarMaterialGunkInput == null ||
                 _indicatorEnabledCheckBox == null || _indicatorShapeCombo == null || _indicatorReliefCombo == null ||
-                _indicatorProfileCombo == null || _indicatorWidthSlider == null || _indicatorLengthSlider == null ||
-                _indicatorPositionSlider == null ||
-                _indicatorThicknessSlider == null || _indicatorRoundnessSlider == null || _indicatorColorBlendSlider == null ||
-                _indicatorColorRSlider == null || _indicatorColorGSlider == null || _indicatorColorBSlider == null ||
-                _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null || _materialRegionCombo == null ||
-                _materialMetallicSlider == null || _materialRoughnessSlider == null || _materialPearlescenceSlider == null ||
-                _materialRustSlider == null || _materialWearSlider == null || _materialGunkSlider == null ||
-                _materialBrushStrengthSlider == null || _materialBrushDensitySlider == null || _materialCharacterSlider == null ||
-                _spiralNormalInfluenceCheckBox == null || _basisDebugModeCombo == null || _microLodFadeStartSlider == null || _microLodFadeEndSlider == null || _microRoughnessLodBoostSlider == null ||
-                _envIntensitySlider == null || _envRoughnessMixSlider == null ||
-                _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
-                _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null ||
-                _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthSlider == null || _shadowSoftnessSlider == null ||
-                _shadowDistanceSlider == null || _shadowScaleSlider == null || _shadowQualitySlider == null ||
-                _shadowGraySlider == null || _shadowDiffuseInfluenceSlider == null ||
-                _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _paintChannelTargetValueSlider == null || _scratchAbrasionTypeCombo == null ||
-                _paintLayerVisibleCheckBox == null || _paintLayerBlendModeCombo == null || _paintLayerOpacitySlider == null || _paintLayerOpacityValueText == null ||
+                _indicatorProfileCombo == null || _indicatorWidthInput == null || _indicatorLengthInput == null ||
+                _indicatorPositionInput == null ||
+                _indicatorThicknessInput == null || _indicatorRoundnessInput == null || _indicatorColorBlendInput == null ||
+                _indicatorColorRInput == null || _indicatorColorGInput == null || _indicatorColorBInput == null ||
+                _materialBaseRInput == null || _materialBaseGInput == null || _materialBaseBInput == null || _materialRegionCombo == null ||
+                _materialMetallicInput == null || _materialRoughnessInput == null || _materialPearlescenceInput == null ||
+                _materialRustInput == null || _materialWearInput == null || _materialGunkInput == null ||
+                _materialBrushStrengthInput == null || _materialBrushDensityInput == null || _materialCharacterInput == null ||
+                _spiralNormalInfluenceCheckBox == null || _basisDebugModeCombo == null || _microLodFadeStartInput == null || _microLodFadeEndInput == null || _microRoughnessLodBoostInput == null ||
+                _envIntensityInput == null || _envRoughnessMixInput == null ||
+                _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
+                _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null ||
+                _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthInput == null || _shadowSoftnessInput == null ||
+                _shadowDistanceInput == null || _shadowScaleInput == null || _shadowQualityInput == null ||
+                _shadowGrayInput == null || _shadowDiffuseInfluenceInput == null ||
+                _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _paintChannelTargetValueInput == null || _scratchAbrasionTypeCombo == null ||
+                _paintLayerVisibleCheckBox == null || _paintLayerBlendModeCombo == null || _paintLayerOpacityInput == null ||
                 _paintMaskResolutionCombo == null || _paintMaskResolutionMemoryText == null ||
-                _brushSizeSlider == null || _brushOpacitySlider == null || _brushDarknessSlider == null || _brushSpreadSlider == null ||
-                _paintCoatMetallicSlider == null || _paintCoatRoughnessSlider == null ||
-                _clearCoatAmountSlider == null || _clearCoatRoughnessSlider == null || _anisotropyAngleSlider == null ||
-                _scratchWidthSlider == null || _scratchDepthSlider == null || _scratchResistanceSlider == null || _scratchDepthRampSlider == null ||
-                _scratchExposeColorRSlider == null || _scratchExposeColorGSlider == null || _scratchExposeColorBSlider == null ||
-                _scratchExposeMetallicSlider == null || _scratchExposeRoughnessSlider == null)
+                _brushSizeInput == null || _brushOpacityInput == null || _brushDarknessInput == null || _brushSpreadInput == null ||
+                _paintCoatMetallicInput == null || _paintCoatRoughnessInput == null ||
+                _clearCoatAmountInput == null || _clearCoatRoughnessInput == null || _anisotropyAngleInput == null ||
+                _scratchWidthInput == null || _scratchDepthInput == null || _scratchResistanceInput == null || _scratchDepthRampInput == null ||
+                _scratchExposeColorRInput == null || _scratchExposeColorGInput == null || _scratchExposeColorBInput == null ||
+                _scratchExposeMetallicInput == null || _scratchExposeRoughnessInput == null)
             {
                 return;
             }
@@ -424,16 +375,16 @@ namespace KnobForge.App.Views
                 {
                     SelectReferenceStyleOptionForModel(model);
                     _bodyStyleCombo.SelectedItem = model.BodyStyle;
-                    _rotationSlider.Value = model.RotationRadians;
-                    _modelRadiusSlider.Value = model.Radius;
-                    _modelHeightSlider.Value = model.Height;
-                    _modelTopScaleSlider.Value = model.TopRadiusScale;
-                    _modelBevelSlider.Value = model.Bevel;
-                    _bevelCurveSlider.Value = model.BevelCurve;
-                    _crownProfileSlider.Value = model.CrownProfile;
-                    _bodyTaperSlider.Value = model.BodyTaper;
-                    _bodyBulgeSlider.Value = model.BodyBulge;
-                    _modelSegmentsSlider.Value = model.RadialSegments;
+                    _rotationInput.Value = RadiansToDegrees(model.RotationRadians);
+                    _modelRadiusInput.Value = model.Radius;
+                    _modelHeightInput.Value = model.Height;
+                    _modelTopScaleInput.Value = model.TopRadiusScale;
+                    _modelBevelInput.Value = model.Bevel;
+                    _bevelCurveInput.Value = model.BevelCurve;
+                    _crownProfileInput.Value = model.CrownProfile;
+                    _bodyTaperInput.Value = model.BodyTaper;
+                    _bodyBulgeInput.Value = model.BodyBulge;
+                    _modelSegmentsInput.Value = model.RadialSegments;
                     RebuildSliderMeshOptions();
                     RebuildToggleMeshOptions();
                     if (_sliderAssemblyModeCombo != null)
@@ -453,38 +404,120 @@ namespace KnobForge.App.Views
                             ResolveSliderMeshOption(_sliderThumbMeshOptions, project.SliderThumbImportedMeshPath);
                     }
 
-                    if (_sliderBackplateWidthSlider != null)
+                    if (_sliderBackplateWidthInput != null)
                     {
-                        _sliderBackplateWidthSlider.Value = project.SliderBackplateWidth;
+                        _sliderBackplateWidthInput.Value = project.SliderBackplateWidth;
                     }
 
-                    if (_sliderBackplateHeightSlider != null)
+                    if (_sliderBackplateHeightInput != null)
                     {
-                        _sliderBackplateHeightSlider.Value = project.SliderBackplateHeight;
+                        _sliderBackplateHeightInput.Value = project.SliderBackplateHeight;
                     }
 
-                    if (_sliderBackplateThicknessSlider != null)
+                    if (_sliderBackplateThicknessInput != null)
                     {
-                        _sliderBackplateThicknessSlider.Value = project.SliderBackplateThickness;
+                        _sliderBackplateThicknessInput.Value = project.SliderBackplateThickness;
                     }
 
-                    if (_sliderThumbWidthSlider != null)
+                    if (_sliderThumbWidthInput != null)
                     {
-                        _sliderThumbWidthSlider.Value = project.SliderThumbWidth;
+                        _sliderThumbWidthInput.Value = project.SliderThumbWidth;
                     }
 
-                    if (_sliderThumbHeightSlider != null)
+                    if (_sliderThumbHeightInput != null)
                     {
-                        _sliderThumbHeightSlider.Value = project.SliderThumbHeight;
+                        _sliderThumbHeightInput.Value = project.SliderThumbHeight;
                     }
 
-                    if (_sliderThumbDepthSlider != null)
+                    if (_sliderThumbDepthInput != null)
                     {
-                        _sliderThumbDepthSlider.Value = project.SliderThumbDepth;
+                        _sliderThumbDepthInput.Value = project.SliderThumbDepth;
                     }
-                    if (_pushButtonPressAmountSlider != null)
+                    if (_sliderThumbProfileCombo != null)
                     {
-                        _pushButtonPressAmountSlider.Value = project.PushButtonPressAmountNormalized;
+                        _sliderThumbProfileCombo.SelectedItem = project.SliderThumbProfile;
+                    }
+                    if (_sliderTrackStyleCombo != null)
+                    {
+                        _sliderTrackStyleCombo.SelectedItem = project.SliderTrackStyle;
+                    }
+                    if (_sliderTrackWidthInput != null)
+                    {
+                        _sliderTrackWidthInput.Value = project.SliderTrackWidth;
+                    }
+                    if (_sliderTrackDepthInput != null)
+                    {
+                        _sliderTrackDepthInput.Value = project.SliderTrackDepth;
+                    }
+                    if (_sliderRailHeightInput != null)
+                    {
+                        _sliderRailHeightInput.Value = project.SliderRailHeight;
+                    }
+                    if (_sliderRailSpacingInput != null)
+                    {
+                        _sliderRailSpacingInput.Value = project.SliderRailSpacing;
+                    }
+                    if (_sliderThumbRidgeCountInput != null)
+                    {
+                        _sliderThumbRidgeCountInput.Value = project.SliderThumbRidgeCount;
+                    }
+                    if (_sliderThumbRidgeDepthInput != null)
+                    {
+                        _sliderThumbRidgeDepthInput.Value = project.SliderThumbRidgeDepth;
+                    }
+                    if (_sliderThumbCornerRadiusInput != null)
+                    {
+                        _sliderThumbCornerRadiusInput.Value = project.SliderThumbCornerRadius;
+                    }
+                    if (_pushButtonPressAmountInput != null)
+                    {
+                        _pushButtonPressAmountInput.Value = project.PushButtonPressAmountNormalized;
+                    }
+                    if (_pushButtonBaseMeshCombo != null)
+                    {
+                        _pushButtonBaseMeshCombo.SelectedItem =
+                            ResolvePushButtonMeshOption(_pushButtonBaseMeshOptions, project.PushButtonBaseImportedMeshPath);
+                    }
+                    if (_pushButtonCapMeshCombo != null)
+                    {
+                        _pushButtonCapMeshCombo.SelectedItem =
+                            ResolvePushButtonMeshOption(_pushButtonCapMeshOptions, project.PushButtonCapImportedMeshPath);
+                    }
+                    if (_pushButtonCapProfileCombo != null)
+                    {
+                        _pushButtonCapProfileCombo.SelectedItem = project.PushButtonCapProfile;
+                    }
+                    if (_pushButtonBezelProfileCombo != null)
+                    {
+                        _pushButtonBezelProfileCombo.SelectedItem = project.PushButtonBezelProfile;
+                    }
+                    if (_pushButtonSkirtStyleCombo != null)
+                    {
+                        _pushButtonSkirtStyleCombo.SelectedItem = project.PushButtonSkirtStyle;
+                    }
+                    if (_pushButtonBezelChamferSizeInput != null)
+                    {
+                        _pushButtonBezelChamferSizeInput.Value = project.PushButtonBezelChamferSize;
+                    }
+                    if (_pushButtonCapOverhangInput != null)
+                    {
+                        _pushButtonCapOverhangInput.Value = project.PushButtonCapOverhang;
+                    }
+                    if (_pushButtonCapSegmentsInput != null)
+                    {
+                        _pushButtonCapSegmentsInput.Value = project.PushButtonCapSegments;
+                    }
+                    if (_pushButtonBezelSegmentsInput != null)
+                    {
+                        _pushButtonBezelSegmentsInput.Value = project.PushButtonBezelSegments;
+                    }
+                    if (_pushButtonSkirtHeightInput != null)
+                    {
+                        _pushButtonSkirtHeightInput.Value = project.PushButtonSkirtHeight;
+                    }
+                    if (_pushButtonSkirtRadiusInput != null)
+                    {
+                        _pushButtonSkirtRadiusInput.Value = project.PushButtonSkirtRadius;
                     }
                     if (_toggleAssemblyModeCombo != null)
                     {
@@ -508,56 +541,56 @@ namespace KnobForge.App.Views
                         _toggleStateCountCombo.SelectedItem = project.ToggleStateCount;
                     }
 
-                    if (_toggleStateIndexSlider != null)
+                    if (_toggleStateIndexInput != null)
                     {
                         int maxStateIndex = project.ToggleStateCount == ToggleAssemblyStateCount.ThreePosition ? 2 : 1;
-                        _toggleStateIndexSlider.Maximum = maxStateIndex;
-                        _toggleStateIndexSlider.Value = Math.Clamp(project.ToggleStateIndex, 0, maxStateIndex);
+                        _toggleStateIndexInput.Maximum = maxStateIndex;
+                        _toggleStateIndexInput.Value = Math.Clamp(project.ToggleStateIndex, 0, maxStateIndex);
                     }
 
-                    if (_toggleMaxAngleSlider != null)
+                    if (_toggleMaxAngleInput != null)
                     {
-                        _toggleMaxAngleSlider.Value = project.ToggleMaxAngleDeg;
+                        _toggleMaxAngleInput.Value = project.ToggleMaxAngleDeg;
                     }
 
-                    if (_togglePlateWidthSlider != null)
+                    if (_togglePlateWidthInput != null)
                     {
-                        _togglePlateWidthSlider.Value = project.TogglePlateWidth;
+                        _togglePlateWidthInput.Value = project.TogglePlateWidth;
                     }
 
-                    if (_togglePlateHeightSlider != null)
+                    if (_togglePlateHeightInput != null)
                     {
-                        _togglePlateHeightSlider.Value = project.TogglePlateHeight;
+                        _togglePlateHeightInput.Value = project.TogglePlateHeight;
                     }
 
-                    if (_togglePlateThicknessSlider != null)
+                    if (_togglePlateThicknessInput != null)
                     {
-                        _togglePlateThicknessSlider.Value = project.TogglePlateThickness;
+                        _togglePlateThicknessInput.Value = project.TogglePlateThickness;
                     }
 
-                    if (_togglePlateOffsetYSlider != null)
+                    if (_togglePlateOffsetYInput != null)
                     {
-                        _togglePlateOffsetYSlider.Value = project.TogglePlateOffsetY;
+                        _togglePlateOffsetYInput.Value = project.TogglePlateOffsetY;
                     }
 
-                    if (_togglePlateOffsetZSlider != null)
+                    if (_togglePlateOffsetZInput != null)
                     {
-                        _togglePlateOffsetZSlider.Value = project.TogglePlateOffsetZ;
+                        _togglePlateOffsetZInput.Value = project.TogglePlateOffsetZ;
                     }
 
-                    if (_toggleBushingRadiusSlider != null)
+                    if (_toggleBushingRadiusInput != null)
                     {
-                        _toggleBushingRadiusSlider.Value = project.ToggleBushingRadius;
+                        _toggleBushingRadiusInput.Value = project.ToggleBushingRadius;
                     }
 
-                    if (_toggleBushingHeightSlider != null)
+                    if (_toggleBushingHeightInput != null)
                     {
-                        _toggleBushingHeightSlider.Value = project.ToggleBushingHeight;
+                        _toggleBushingHeightInput.Value = project.ToggleBushingHeight;
                     }
 
-                    if (_toggleBushingSidesSlider != null)
+                    if (_toggleBushingSidesInput != null)
                     {
-                        _toggleBushingSidesSlider.Value = project.ToggleBushingSides;
+                        _toggleBushingSidesInput.Value = project.ToggleBushingSides;
                     }
 
                     if (_toggleLowerBushingShapeCombo != null)
@@ -570,84 +603,84 @@ namespace KnobForge.App.Views
                         _toggleUpperBushingShapeCombo.SelectedItem = project.ToggleUpperBushingShape;
                     }
 
-                    if (_toggleLowerBushingRadiusScaleSlider != null)
+                    if (_toggleLowerBushingRadiusScaleInput != null)
                     {
-                        _toggleLowerBushingRadiusScaleSlider.Value = project.ToggleLowerBushingRadiusScale;
+                        _toggleLowerBushingRadiusScaleInput.Value = project.ToggleLowerBushingRadiusScale;
                     }
 
-                    if (_toggleLowerBushingHeightRatioSlider != null)
+                    if (_toggleLowerBushingHeightRatioInput != null)
                     {
-                        _toggleLowerBushingHeightRatioSlider.Value = project.ToggleLowerBushingHeightRatio;
+                        _toggleLowerBushingHeightRatioInput.Value = project.ToggleLowerBushingHeightRatio;
                     }
 
-                    if (_toggleUpperBushingRadiusScaleSlider != null)
+                    if (_toggleUpperBushingRadiusScaleInput != null)
                     {
-                        _toggleUpperBushingRadiusScaleSlider.Value = project.ToggleUpperBushingRadiusScale;
+                        _toggleUpperBushingRadiusScaleInput.Value = project.ToggleUpperBushingRadiusScale;
                     }
 
-                    if (_toggleUpperBushingHeightRatioSlider != null)
+                    if (_toggleUpperBushingHeightRatioInput != null)
                     {
-                        _toggleUpperBushingHeightRatioSlider.Value = project.ToggleUpperBushingHeightRatio;
+                        _toggleUpperBushingHeightRatioInput.Value = project.ToggleUpperBushingHeightRatio;
                     }
 
-                    if (_toggleUpperBushingKnurlAmountSlider != null)
+                    if (_toggleUpperBushingKnurlAmountInput != null)
                     {
-                        _toggleUpperBushingKnurlAmountSlider.Value = project.ToggleUpperBushingKnurlAmount;
+                        _toggleUpperBushingKnurlAmountInput.Value = project.ToggleUpperBushingKnurlAmount;
                     }
 
-                    if (_toggleUpperBushingKnurlDensitySlider != null)
+                    if (_toggleUpperBushingKnurlDensityInput != null)
                     {
-                        _toggleUpperBushingKnurlDensitySlider.Value = project.ToggleUpperBushingKnurlDensity;
+                        _toggleUpperBushingKnurlDensityInput.Value = project.ToggleUpperBushingKnurlDensity;
                     }
 
-                    if (_toggleUpperBushingKnurlDepthSlider != null)
+                    if (_toggleUpperBushingKnurlDepthInput != null)
                     {
-                        _toggleUpperBushingKnurlDepthSlider.Value = project.ToggleUpperBushingKnurlDepth;
+                        _toggleUpperBushingKnurlDepthInput.Value = project.ToggleUpperBushingKnurlDepth;
                     }
 
-                    if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+                    if (_toggleUpperBushingAnisotropyStrengthInput != null)
                     {
-                        _toggleUpperBushingAnisotropyStrengthSlider.Value = project.ToggleUpperBushingAnisotropyStrength;
+                        _toggleUpperBushingAnisotropyStrengthInput.Value = project.ToggleUpperBushingAnisotropyStrength;
                     }
 
-                    if (_toggleUpperBushingAnisotropyDensitySlider != null)
+                    if (_toggleUpperBushingAnisotropyDensityInput != null)
                     {
-                        _toggleUpperBushingAnisotropyDensitySlider.Value = project.ToggleUpperBushingAnisotropyDensity;
+                        _toggleUpperBushingAnisotropyDensityInput.Value = project.ToggleUpperBushingAnisotropyDensity;
                     }
 
-                    if (_toggleUpperBushingAnisotropyAngleSlider != null)
+                    if (_toggleUpperBushingAnisotropyAngleInput != null)
                     {
-                        _toggleUpperBushingAnisotropyAngleSlider.Value = project.ToggleUpperBushingAnisotropyAngleDegrees;
+                        _toggleUpperBushingAnisotropyAngleInput.Value = project.ToggleUpperBushingAnisotropyAngleDegrees;
                     }
 
-                    if (_toggleUpperBushingSurfaceCharacterSlider != null)
+                    if (_toggleUpperBushingSurfaceCharacterInput != null)
                     {
-                        _toggleUpperBushingSurfaceCharacterSlider.Value = project.ToggleUpperBushingSurfaceCharacter;
+                        _toggleUpperBushingSurfaceCharacterInput.Value = project.ToggleUpperBushingSurfaceCharacter;
                     }
 
-                    if (_togglePivotHousingRadiusSlider != null)
+                    if (_togglePivotHousingRadiusInput != null)
                     {
-                        _togglePivotHousingRadiusSlider.Value = project.TogglePivotHousingRadius;
+                        _togglePivotHousingRadiusInput.Value = project.TogglePivotHousingRadius;
                     }
 
-                    if (_togglePivotHousingDepthSlider != null)
+                    if (_togglePivotHousingDepthInput != null)
                     {
-                        _togglePivotHousingDepthSlider.Value = project.TogglePivotHousingDepth;
+                        _togglePivotHousingDepthInput.Value = project.TogglePivotHousingDepth;
                     }
 
-                    if (_togglePivotHousingBevelSlider != null)
+                    if (_togglePivotHousingBevelInput != null)
                     {
-                        _togglePivotHousingBevelSlider.Value = project.TogglePivotHousingBevel;
+                        _togglePivotHousingBevelInput.Value = project.TogglePivotHousingBevel;
                     }
 
-                    if (_togglePivotBallRadiusSlider != null)
+                    if (_togglePivotBallRadiusInput != null)
                     {
-                        _togglePivotBallRadiusSlider.Value = project.TogglePivotBallRadius;
+                        _togglePivotBallRadiusInput.Value = project.TogglePivotBallRadius;
                     }
 
-                    if (_togglePivotClearanceSlider != null)
+                    if (_togglePivotClearanceInput != null)
                     {
-                        _togglePivotClearanceSlider.Value = project.TogglePivotClearance;
+                        _togglePivotClearanceInput.Value = project.TogglePivotClearance;
                     }
 
                     if (_toggleInvertBaseWindingCheckBox != null)
@@ -660,44 +693,44 @@ namespace KnobForge.App.Views
                         _toggleInvertLeverWindingCheckBox.IsChecked = project.ToggleInvertLeverFrontFaceWinding;
                     }
 
-                    if (_toggleLeverLengthSlider != null)
+                    if (_toggleLeverLengthInput != null)
                     {
-                        _toggleLeverLengthSlider.Value = project.ToggleLeverLength;
+                        _toggleLeverLengthInput.Value = project.ToggleLeverLength;
                     }
 
-                    if (_toggleLeverRadiusSlider != null)
+                    if (_toggleLeverRadiusInput != null)
                     {
-                        _toggleLeverRadiusSlider.Value = project.ToggleLeverRadius;
+                        _toggleLeverRadiusInput.Value = project.ToggleLeverRadius;
                     }
 
-                    if (_toggleLeverTopRadiusSlider != null)
+                    if (_toggleLeverTopRadiusInput != null)
                     {
-                        _toggleLeverTopRadiusSlider.Value = project.ToggleLeverTopRadius;
+                        _toggleLeverTopRadiusInput.Value = project.ToggleLeverTopRadius;
                     }
 
-                    if (_toggleLeverSidesSlider != null)
+                    if (_toggleLeverSidesInput != null)
                     {
-                        _toggleLeverSidesSlider.Value = project.ToggleLeverSides;
+                        _toggleLeverSidesInput.Value = project.ToggleLeverSides;
                     }
 
-                    if (_toggleLeverPivotOffsetSlider != null)
+                    if (_toggleLeverPivotOffsetInput != null)
                     {
-                        _toggleLeverPivotOffsetSlider.Value = project.ToggleLeverPivotOffset;
+                        _toggleLeverPivotOffsetInput.Value = project.ToggleLeverPivotOffset;
                     }
 
-                    if (_toggleTipRadiusSlider != null)
+                    if (_toggleTipRadiusInput != null)
                     {
-                        _toggleTipRadiusSlider.Value = project.ToggleTipRadius;
+                        _toggleTipRadiusInput.Value = project.ToggleTipRadius;
                     }
 
-                    if (_toggleTipLatitudeSegmentsSlider != null)
+                    if (_toggleTipLatitudeSegmentsInput != null)
                     {
-                        _toggleTipLatitudeSegmentsSlider.Value = project.ToggleTipLatitudeSegments;
+                        _toggleTipLatitudeSegmentsInput.Value = project.ToggleTipLatitudeSegments;
                     }
 
-                    if (_toggleTipLongitudeSegmentsSlider != null)
+                    if (_toggleTipLongitudeSegmentsInput != null)
                     {
-                        _toggleTipLongitudeSegmentsSlider.Value = project.ToggleTipLongitudeSegments;
+                        _toggleTipLongitudeSegmentsInput.Value = project.ToggleTipLongitudeSegments;
                     }
 
                     if (_toggleTipSleeveEnabledCheckBox != null)
@@ -705,29 +738,29 @@ namespace KnobForge.App.Views
                         _toggleTipSleeveEnabledCheckBox.IsChecked = project.ToggleTipSleeveEnabled;
                     }
 
-                    if (_toggleTipSleeveLengthSlider != null)
+                    if (_toggleTipSleeveLengthInput != null)
                     {
-                        _toggleTipSleeveLengthSlider.Value = project.ToggleTipSleeveLength;
+                        _toggleTipSleeveLengthInput.Value = project.ToggleTipSleeveLength;
                     }
 
-                    if (_toggleTipSleeveThicknessSlider != null)
+                    if (_toggleTipSleeveThicknessInput != null)
                     {
-                        _toggleTipSleeveThicknessSlider.Value = project.ToggleTipSleeveThickness;
+                        _toggleTipSleeveThicknessInput.Value = project.ToggleTipSleeveThickness;
                     }
 
-                    if (_toggleTipSleeveOuterRadiusSlider != null)
+                    if (_toggleTipSleeveOuterRadiusInput != null)
                     {
-                        _toggleTipSleeveOuterRadiusSlider.Value = project.ToggleTipSleeveOuterRadius;
+                        _toggleTipSleeveOuterRadiusInput.Value = project.ToggleTipSleeveOuterRadius;
                     }
 
-                    if (_toggleTipSleeveCoverageSlider != null)
+                    if (_toggleTipSleeveCoverageInput != null)
                     {
-                        _toggleTipSleeveCoverageSlider.Value = project.ToggleTipSleeveCoverage;
+                        _toggleTipSleeveCoverageInput.Value = project.ToggleTipSleeveCoverage;
                     }
 
-                    if (_toggleTipSleeveSidesSlider != null)
+                    if (_toggleTipSleeveSidesInput != null)
                     {
-                        _toggleTipSleeveSidesSlider.Value = project.ToggleTipSleeveSides;
+                        _toggleTipSleeveSidesInput.Value = project.ToggleTipSleeveSides;
                     }
 
                     if (_toggleTipSleeveStyleCombo != null)
@@ -740,87 +773,87 @@ namespace KnobForge.App.Views
                         _toggleTipSleeveTipStyleCombo.SelectedItem = project.ToggleTipSleeveTipStyle;
                     }
 
-                    if (_toggleTipSleevePatternCountSlider != null)
+                    if (_toggleTipSleevePatternCountInput != null)
                     {
-                        _toggleTipSleevePatternCountSlider.Value = project.ToggleTipSleevePatternCount;
+                        _toggleTipSleevePatternCountInput.Value = project.ToggleTipSleevePatternCount;
                     }
 
-                    if (_toggleTipSleevePatternDepthSlider != null)
+                    if (_toggleTipSleevePatternDepthInput != null)
                     {
-                        _toggleTipSleevePatternDepthSlider.Value = project.ToggleTipSleevePatternDepth;
+                        _toggleTipSleevePatternDepthInput.Value = project.ToggleTipSleevePatternDepth;
                     }
 
-                    if (_toggleTipSleeveTipAmountSlider != null)
+                    if (_toggleTipSleeveTipAmountInput != null)
                     {
-                        _toggleTipSleeveTipAmountSlider.Value = project.ToggleTipSleeveTipAmount;
+                        _toggleTipSleeveTipAmountInput.Value = project.ToggleTipSleeveTipAmount;
                     }
 
-                    if (_toggleTipSleeveColorRSlider != null)
+                    if (_toggleTipSleeveColorRInput != null)
                     {
-                        _toggleTipSleeveColorRSlider.Value = project.ToggleTipSleeveColor.X;
+                        _toggleTipSleeveColorRInput.Value = project.ToggleTipSleeveColor.X;
                     }
 
-                    if (_toggleTipSleeveColorGSlider != null)
+                    if (_toggleTipSleeveColorGInput != null)
                     {
-                        _toggleTipSleeveColorGSlider.Value = project.ToggleTipSleeveColor.Y;
+                        _toggleTipSleeveColorGInput.Value = project.ToggleTipSleeveColor.Y;
                     }
 
-                    if (_toggleTipSleeveColorBSlider != null)
+                    if (_toggleTipSleeveColorBInput != null)
                     {
-                        _toggleTipSleeveColorBSlider.Value = project.ToggleTipSleeveColor.Z;
+                        _toggleTipSleeveColorBInput.Value = project.ToggleTipSleeveColor.Z;
                     }
 
-                    if (_toggleTipSleeveMetallicSlider != null)
+                    if (_toggleTipSleeveMetallicInput != null)
                     {
-                        _toggleTipSleeveMetallicSlider.Value = project.ToggleTipSleeveMetallic;
+                        _toggleTipSleeveMetallicInput.Value = project.ToggleTipSleeveMetallic;
                     }
 
-                    if (_toggleTipSleeveRoughnessSlider != null)
+                    if (_toggleTipSleeveRoughnessInput != null)
                     {
-                        _toggleTipSleeveRoughnessSlider.Value = project.ToggleTipSleeveRoughness;
+                        _toggleTipSleeveRoughnessInput.Value = project.ToggleTipSleeveRoughness;
                     }
 
-                    if (_toggleTipSleevePearlescenceSlider != null)
+                    if (_toggleTipSleevePearlescenceInput != null)
                     {
-                        _toggleTipSleevePearlescenceSlider.Value = project.ToggleTipSleevePearlescence;
+                        _toggleTipSleevePearlescenceInput.Value = project.ToggleTipSleevePearlescence;
                     }
 
-                    if (_toggleTipSleeveDiffuseStrengthSlider != null)
+                    if (_toggleTipSleeveDiffuseStrengthInput != null)
                     {
-                        _toggleTipSleeveDiffuseStrengthSlider.Value = project.ToggleTipSleeveDiffuseStrength;
+                        _toggleTipSleeveDiffuseStrengthInput.Value = project.ToggleTipSleeveDiffuseStrength;
                     }
 
-                    if (_toggleTipSleeveSpecularStrengthSlider != null)
+                    if (_toggleTipSleeveSpecularStrengthInput != null)
                     {
-                        _toggleTipSleeveSpecularStrengthSlider.Value = project.ToggleTipSleeveSpecularStrength;
+                        _toggleTipSleeveSpecularStrengthInput.Value = project.ToggleTipSleeveSpecularStrength;
                     }
 
-                    if (_toggleTipSleeveRustSlider != null)
+                    if (_toggleTipSleeveRustInput != null)
                     {
-                        _toggleTipSleeveRustSlider.Value = project.ToggleTipSleeveRustAmount;
+                        _toggleTipSleeveRustInput.Value = project.ToggleTipSleeveRustAmount;
                     }
 
-                    if (_toggleTipSleeveWearSlider != null)
+                    if (_toggleTipSleeveWearInput != null)
                     {
-                        _toggleTipSleeveWearSlider.Value = project.ToggleTipSleeveWearAmount;
+                        _toggleTipSleeveWearInput.Value = project.ToggleTipSleeveWearAmount;
                     }
 
-                    if (_toggleTipSleeveGunkSlider != null)
+                    if (_toggleTipSleeveGunkInput != null)
                     {
-                        _toggleTipSleeveGunkSlider.Value = project.ToggleTipSleeveGunkAmount;
+                        _toggleTipSleeveGunkInput.Value = project.ToggleTipSleeveGunkAmount;
                     }
-                    _spiralRidgeHeightSlider.Value = model.SpiralRidgeHeight;
-                    _spiralRidgeWidthSlider.Value = model.SpiralRidgeWidth;
-                    _spiralTurnsSlider.Value = model.SpiralTurns;
+                    _spiralRidgeHeightInput.Value = model.SpiralRidgeHeight;
+                    _spiralRidgeWidthInput.Value = model.SpiralRidgeWidth;
+                    _spiralTurnsInput.Value = model.SpiralTurns;
                     _gripStyleCombo.SelectedItem = model.GripStyle;
                     _gripTypeCombo.SelectedItem = model.GripType;
-                    _gripStartSlider.Value = model.GripStart;
-                    _gripHeightSlider.Value = model.GripHeight;
-                    _gripDensitySlider.Value = model.GripDensity;
-                    _gripPitchSlider.Value = model.GripPitch;
-                    _gripDepthSlider.Value = model.GripDepth;
-                    _gripWidthSlider.Value = model.GripWidth;
-                    _gripSharpnessSlider.Value = model.GripSharpness;
+                    _gripStartInput.Value = model.GripStart;
+                    _gripHeightInput.Value = model.GripHeight;
+                    _gripDensityInput.Value = model.GripDensity;
+                    _gripPitchInput.Value = model.GripPitch;
+                    _gripDepthInput.Value = model.GripDepth;
+                    _gripWidthInput.Value = model.GripWidth;
+                    _gripSharpnessInput.Value = model.GripSharpness;
                     if (collar != null)
                     {
                         bool importedCollarUsesMaterialNode =
@@ -843,28 +876,28 @@ namespace KnobForge.App.Views
                             collarOption.ResolveImportedMeshPath(collar.ImportedMeshPath));
                         collar.ImportedMeshPath = resolvedImportedMeshPath;
                         _collarMeshPathTextBox.Text = resolvedImportedMeshPath;
-                        _collarScaleSlider.Value = collar.ImportedScale;
-                        _collarBodyLengthSlider.Value = collar.ImportedBodyLengthScale;
-                        _collarBodyThicknessSlider.Value = collar.ImportedBodyThicknessScale;
-                        _collarHeadLengthSlider.Value = collar.ImportedHeadLengthScale;
-                        _collarHeadThicknessSlider.Value = collar.ImportedHeadThicknessScale;
-                        _collarRotateSlider.Value = RadiansToDegrees(collar.ImportedRotationRadians);
+                        _collarScaleInput.Value = collar.ImportedScale;
+                        _collarBodyLengthInput.Value = collar.ImportedBodyLengthScale;
+                        _collarBodyThicknessInput.Value = collar.ImportedBodyThicknessScale;
+                        _collarHeadLengthInput.Value = collar.ImportedHeadLengthScale;
+                        _collarHeadThicknessInput.Value = collar.ImportedHeadThicknessScale;
+                        _collarRotateInput.Value = RadiansToDegrees(collar.ImportedRotationRadians);
                         _collarMirrorXCheckBox.IsChecked = collar.ImportedMirrorX;
                         _collarMirrorYCheckBox.IsChecked = collar.ImportedMirrorY;
                         _collarMirrorZCheckBox.IsChecked = collar.ImportedMirrorZ;
-                        _collarOffsetXSlider.Value = collar.ImportedOffsetXRatio;
-                        _collarOffsetYSlider.Value = collar.ImportedOffsetYRatio;
-                        _collarElevationSlider.Value = collar.ElevationRatio;
-                        _collarInflateSlider.Value = collar.ImportedInflateRatio;
-                        _collarMaterialBaseRSlider.Value = collarBaseColor.X;
-                        _collarMaterialBaseGSlider.Value = collarBaseColor.Y;
-                        _collarMaterialBaseBSlider.Value = collarBaseColor.Z;
-                        _collarMaterialMetallicSlider.Value = collarMetallic;
-                        _collarMaterialRoughnessSlider.Value = collarRoughness;
-                        _collarMaterialPearlescenceSlider.Value = collarPearlescence;
-                        _collarMaterialRustSlider.Value = collarRust;
-                        _collarMaterialWearSlider.Value = collarWear;
-                        _collarMaterialGunkSlider.Value = collarGunk;
+                        _collarOffsetXInput.Value = collar.ImportedOffsetXRatio;
+                        _collarOffsetYInput.Value = collar.ImportedOffsetYRatio;
+                        _collarElevationInput.Value = collar.ElevationRatio;
+                        _collarInflateInput.Value = collar.ImportedInflateRatio;
+                        _collarMaterialBaseRInput.Value = collarBaseColor.X;
+                        _collarMaterialBaseGInput.Value = collarBaseColor.Y;
+                        _collarMaterialBaseBInput.Value = collarBaseColor.Z;
+                        _collarMaterialMetallicInput.Value = collarMetallic;
+                        _collarMaterialRoughnessInput.Value = collarRoughness;
+                        _collarMaterialPearlescenceInput.Value = collarPearlescence;
+                        _collarMaterialRustInput.Value = collarRust;
+                        _collarMaterialWearInput.Value = collarWear;
+                        _collarMaterialGunkInput.Value = collarGunk;
                     }
                     else
                     {
@@ -873,28 +906,28 @@ namespace KnobForge.App.Views
                         _collarPresetCombo.SelectedItem = noneOption;
                         _lastSelectableCollarPresetOption = noneOption;
                         _collarMeshPathTextBox.Text = string.Empty;
-                        _collarScaleSlider.Value = 1.0;
-                        _collarBodyLengthSlider.Value = 1.0;
-                        _collarBodyThicknessSlider.Value = 1.0;
-                        _collarHeadLengthSlider.Value = 1.0;
-                        _collarHeadThicknessSlider.Value = 1.0;
-                        _collarRotateSlider.Value = 0.0;
+                        _collarScaleInput.Value = 1.0;
+                        _collarBodyLengthInput.Value = 1.0;
+                        _collarBodyThicknessInput.Value = 1.0;
+                        _collarHeadLengthInput.Value = 1.0;
+                        _collarHeadThicknessInput.Value = 1.0;
+                        _collarRotateInput.Value = 0.0;
                         _collarMirrorXCheckBox.IsChecked = false;
                         _collarMirrorYCheckBox.IsChecked = false;
                         _collarMirrorZCheckBox.IsChecked = false;
-                        _collarOffsetXSlider.Value = 0.0;
-                        _collarOffsetYSlider.Value = 0.0;
-                        _collarElevationSlider.Value = 0.0;
-                        _collarInflateSlider.Value = 0.0;
-                        _collarMaterialBaseRSlider.Value = 0.74;
-                        _collarMaterialBaseGSlider.Value = 0.74;
-                        _collarMaterialBaseBSlider.Value = 0.70;
-                        _collarMaterialMetallicSlider.Value = 0.96;
-                        _collarMaterialRoughnessSlider.Value = 0.32;
-                        _collarMaterialPearlescenceSlider.Value = 0.0;
-                        _collarMaterialRustSlider.Value = 0.0;
-                        _collarMaterialWearSlider.Value = 0.0;
-                        _collarMaterialGunkSlider.Value = 0.0;
+                        _collarOffsetXInput.Value = 0.0;
+                        _collarOffsetYInput.Value = 0.0;
+                        _collarElevationInput.Value = 0.0;
+                        _collarInflateInput.Value = 0.0;
+                        _collarMaterialBaseRInput.Value = 0.74;
+                        _collarMaterialBaseGInput.Value = 0.74;
+                        _collarMaterialBaseBInput.Value = 0.70;
+                        _collarMaterialMetallicInput.Value = 0.96;
+                        _collarMaterialRoughnessInput.Value = 0.32;
+                        _collarMaterialPearlescenceInput.Value = 0.0;
+                        _collarMaterialRustInput.Value = 0.0;
+                        _collarMaterialWearInput.Value = 0.0;
+                        _collarMaterialGunkInput.Value = 0.0;
                     }
                     _indicatorEnabledCheckBox.IsChecked = model.IndicatorEnabled;
                     if (_indicatorCadWallsCheckBox != null)
@@ -904,134 +937,134 @@ namespace KnobForge.App.Views
                     _indicatorShapeCombo.SelectedItem = model.IndicatorShape;
                     _indicatorReliefCombo.SelectedItem = model.IndicatorRelief;
                     _indicatorProfileCombo.SelectedItem = model.IndicatorProfile;
-                    _indicatorWidthSlider.Value = model.IndicatorWidthRatio;
-                    _indicatorLengthSlider.Value = model.IndicatorLengthRatioTop;
-                    _indicatorPositionSlider.Value = model.IndicatorPositionRatio;
-                    _indicatorThicknessSlider.Value = model.IndicatorThicknessRatio;
-                    _indicatorRoundnessSlider.Value = model.IndicatorRoundness;
-                    _indicatorColorBlendSlider.Value = model.IndicatorColorBlend;
-                    _indicatorColorRSlider.Value = model.IndicatorColor.X;
-                    _indicatorColorGSlider.Value = model.IndicatorColor.Y;
-                    _indicatorColorBSlider.Value = model.IndicatorColor.Z;
+                    _indicatorWidthInput.Value = model.IndicatorWidthRatio;
+                    _indicatorLengthInput.Value = model.IndicatorLengthRatioTop;
+                    _indicatorPositionInput.Value = model.IndicatorPositionRatio;
+                    _indicatorThicknessInput.Value = model.IndicatorThicknessRatio;
+                    _indicatorRoundnessInput.Value = model.IndicatorRoundness;
+                    _indicatorColorBlendInput.Value = model.IndicatorColorBlend;
+                    _indicatorColorRInput.Value = model.IndicatorColor.X;
+                    _indicatorColorGInput.Value = model.IndicatorColor.Y;
+                    _indicatorColorBInput.Value = model.IndicatorColor.Z;
                     if (_indicatorAssemblyEnabledCheckBox != null)
                     {
                         _indicatorAssemblyEnabledCheckBox.IsChecked = project.IndicatorAssemblyEnabled;
                     }
-                    if (_indicatorBaseWidthSlider != null)
+                    if (_indicatorBaseWidthInput != null)
                     {
-                        _indicatorBaseWidthSlider.Value = project.IndicatorBaseWidth;
+                        _indicatorBaseWidthInput.Value = project.IndicatorBaseWidth;
                     }
-                    if (_indicatorBaseHeightSlider != null)
+                    if (_indicatorBaseHeightInput != null)
                     {
-                        _indicatorBaseHeightSlider.Value = project.IndicatorBaseHeight;
+                        _indicatorBaseHeightInput.Value = project.IndicatorBaseHeight;
                     }
-                    if (_indicatorBaseThicknessSlider != null)
+                    if (_indicatorBaseThicknessInput != null)
                     {
-                        _indicatorBaseThicknessSlider.Value = project.IndicatorBaseThickness;
+                        _indicatorBaseThicknessInput.Value = project.IndicatorBaseThickness;
                     }
-                    if (_indicatorHousingRadiusSlider != null)
+                    if (_indicatorHousingRadiusInput != null)
                     {
-                        _indicatorHousingRadiusSlider.Value = project.IndicatorHousingRadius;
+                        _indicatorHousingRadiusInput.Value = project.IndicatorHousingRadius;
                     }
-                    if (_indicatorHousingHeightSlider != null)
+                    if (_indicatorHousingHeightInput != null)
                     {
-                        _indicatorHousingHeightSlider.Value = project.IndicatorHousingHeight;
+                        _indicatorHousingHeightInput.Value = project.IndicatorHousingHeight;
                     }
-                    if (_indicatorLensRadiusSlider != null)
+                    if (_indicatorLensRadiusInput != null)
                     {
-                        _indicatorLensRadiusSlider.Value = project.IndicatorLensRadius;
+                        _indicatorLensRadiusInput.Value = project.IndicatorLensRadius;
                     }
-                    if (_indicatorLensHeightSlider != null)
+                    if (_indicatorLensHeightInput != null)
                     {
-                        _indicatorLensHeightSlider.Value = project.IndicatorLensHeight;
+                        _indicatorLensHeightInput.Value = project.IndicatorLensHeight;
                     }
-                    if (_indicatorLensTransmissionSlider != null)
+                    if (_indicatorLensTransmissionInput != null)
                     {
-                        _indicatorLensTransmissionSlider.Value = project.IndicatorLensTransmission;
+                        _indicatorLensTransmissionInput.Value = project.IndicatorLensTransmission;
                     }
-                    if (_indicatorLensIorSlider != null)
+                    if (_indicatorLensIorInput != null)
                     {
-                        _indicatorLensIorSlider.Value = project.IndicatorLensIor;
+                        _indicatorLensIorInput.Value = project.IndicatorLensIor;
                     }
-                    if (_indicatorLensThicknessSlider != null)
+                    if (_indicatorLensThicknessInput != null)
                     {
-                        _indicatorLensThicknessSlider.Value = project.IndicatorLensThickness;
+                        _indicatorLensThicknessInput.Value = project.IndicatorLensThickness;
                     }
-                    if (_indicatorLensAbsorptionSlider != null)
+                    if (_indicatorLensAbsorptionInput != null)
                     {
-                        _indicatorLensAbsorptionSlider.Value = project.IndicatorLensAbsorption;
+                        _indicatorLensAbsorptionInput.Value = project.IndicatorLensAbsorption;
                     }
-                    if (_indicatorLensSurfaceRoughnessSlider != null)
+                    if (_indicatorLensSurfaceRoughnessInput != null)
                     {
-                        _indicatorLensSurfaceRoughnessSlider.Value = project.IndicatorLensSurfaceRoughness;
+                        _indicatorLensSurfaceRoughnessInput.Value = project.IndicatorLensSurfaceRoughness;
                     }
-                    if (_indicatorLensSurfaceSpecularSlider != null)
+                    if (_indicatorLensSurfaceSpecularInput != null)
                     {
-                        _indicatorLensSurfaceSpecularSlider.Value = project.IndicatorLensSurfaceSpecularStrength;
+                        _indicatorLensSurfaceSpecularInput.Value = project.IndicatorLensSurfaceSpecularStrength;
                     }
-                    if (_indicatorLensTintRSlider != null)
+                    if (_indicatorLensTintRInput != null)
                     {
-                        _indicatorLensTintRSlider.Value = project.IndicatorLensTint.X;
+                        _indicatorLensTintRInput.Value = project.IndicatorLensTint.X;
                     }
-                    if (_indicatorLensTintGSlider != null)
+                    if (_indicatorLensTintGInput != null)
                     {
-                        _indicatorLensTintGSlider.Value = project.IndicatorLensTint.Y;
+                        _indicatorLensTintGInput.Value = project.IndicatorLensTint.Y;
                     }
-                    if (_indicatorLensTintBSlider != null)
+                    if (_indicatorLensTintBInput != null)
                     {
-                        _indicatorLensTintBSlider.Value = project.IndicatorLensTint.Z;
+                        _indicatorLensTintBInput.Value = project.IndicatorLensTint.Z;
                     }
-                    if (_indicatorReflectorBaseRadiusSlider != null)
+                    if (_indicatorReflectorBaseRadiusInput != null)
                     {
-                        _indicatorReflectorBaseRadiusSlider.Value = project.IndicatorReflectorBaseRadius;
+                        _indicatorReflectorBaseRadiusInput.Value = project.IndicatorReflectorBaseRadius;
                     }
-                    if (_indicatorReflectorTopRadiusSlider != null)
+                    if (_indicatorReflectorTopRadiusInput != null)
                     {
-                        _indicatorReflectorTopRadiusSlider.Value = project.IndicatorReflectorTopRadius;
+                        _indicatorReflectorTopRadiusInput.Value = project.IndicatorReflectorTopRadius;
                     }
-                    if (_indicatorReflectorDepthSlider != null)
+                    if (_indicatorReflectorDepthInput != null)
                     {
-                        _indicatorReflectorDepthSlider.Value = project.IndicatorReflectorDepth;
+                        _indicatorReflectorDepthInput.Value = project.IndicatorReflectorDepth;
                     }
-                    if (_indicatorEmitterRadiusSlider != null)
+                    if (_indicatorEmitterRadiusInput != null)
                     {
-                        _indicatorEmitterRadiusSlider.Value = project.IndicatorEmitterRadius;
+                        _indicatorEmitterRadiusInput.Value = project.IndicatorEmitterRadius;
                     }
-                    if (_indicatorEmitterSpreadSlider != null)
+                    if (_indicatorEmitterSpreadInput != null)
                     {
-                        _indicatorEmitterSpreadSlider.Value = project.IndicatorEmitterSpread;
+                        _indicatorEmitterSpreadInput.Value = project.IndicatorEmitterSpread;
                     }
-                    if (_indicatorEmitterDepthSlider != null)
+                    if (_indicatorEmitterDepthInput != null)
                     {
-                        _indicatorEmitterDepthSlider.Value = project.IndicatorEmitterDepth;
+                        _indicatorEmitterDepthInput.Value = project.IndicatorEmitterDepth;
                     }
-                    if (_indicatorEmitterCountSlider != null)
+                    if (_indicatorEmitterCountInput != null)
                     {
-                        _indicatorEmitterCountSlider.Value = project.IndicatorEmitterCount;
+                        _indicatorEmitterCountInput.Value = project.IndicatorEmitterCount;
                     }
-                    if (_indicatorRadialSegmentsSlider != null)
+                    if (_indicatorRadialSegmentsInput != null)
                     {
-                        _indicatorRadialSegmentsSlider.Value = project.IndicatorRadialSegments;
+                        _indicatorRadialSegmentsInput.Value = project.IndicatorRadialSegments;
                     }
-                    if (_indicatorLensLatitudeSegmentsSlider != null)
+                    if (_indicatorLensLatitudeSegmentsInput != null)
                     {
-                        _indicatorLensLatitudeSegmentsSlider.Value = project.IndicatorLensLatitudeSegments;
+                        _indicatorLensLatitudeSegmentsInput.Value = project.IndicatorLensLatitudeSegments;
                     }
-                    if (_indicatorLensLongitudeSegmentsSlider != null)
+                    if (_indicatorLensLongitudeSegmentsInput != null)
                     {
-                        _indicatorLensLongitudeSegmentsSlider.Value = project.IndicatorLensLongitudeSegments;
+                        _indicatorLensLongitudeSegmentsInput.Value = project.IndicatorLensLongitudeSegments;
                     }
                     if (_indicatorQuickLightOnCheckBox != null)
                     {
                         _indicatorQuickLightOnCheckBox.IsChecked = project.DynamicLightRig.Enabled;
                     }
-                    if (_indicatorQuickBrightnessSlider != null)
+                    if (_indicatorQuickBrightnessInput != null)
                     {
-                        _indicatorQuickBrightnessSlider.Value = project.DynamicLightRig.MasterIntensity;
+                        _indicatorQuickBrightnessInput.Value = project.DynamicLightRig.MasterIntensity;
                     }
-                    if (_indicatorQuickGlowSlider != null)
+                    if (_indicatorQuickGlowInput != null)
                     {
-                        _indicatorQuickGlowSlider.Value = project.DynamicLightRig.EmissiveGlow;
+                        _indicatorQuickGlowInput.Value = project.DynamicLightRig.EmissiveGlow;
                     }
                     if (_indicatorDynamicLightsEnabledCheckBox != null)
                     {
@@ -1041,25 +1074,25 @@ namespace KnobForge.App.Views
                     {
                         _indicatorLightAnimationModeCombo.SelectedItem = project.DynamicLightRig.AnimationMode;
                     }
-                    if (_indicatorLightAnimationSpeedSlider != null)
+                    if (_indicatorLightAnimationSpeedInput != null)
                     {
-                        _indicatorLightAnimationSpeedSlider.Value = project.DynamicLightRig.AnimationSpeed;
+                        _indicatorLightAnimationSpeedInput.Value = project.DynamicLightRig.AnimationSpeed;
                     }
-                    if (_indicatorLightFlickerAmountSlider != null)
+                    if (_indicatorLightFlickerAmountInput != null)
                     {
-                        _indicatorLightFlickerAmountSlider.Value = project.DynamicLightRig.FlickerAmount;
+                        _indicatorLightFlickerAmountInput.Value = project.DynamicLightRig.FlickerAmount;
                     }
-                    if (_indicatorLightFlickerDropoutSlider != null)
+                    if (_indicatorLightFlickerDropoutInput != null)
                     {
-                        _indicatorLightFlickerDropoutSlider.Value = project.DynamicLightRig.FlickerDropoutChance;
+                        _indicatorLightFlickerDropoutInput.Value = project.DynamicLightRig.FlickerDropoutChance;
                     }
-                    if (_indicatorLightFlickerSmoothingSlider != null)
+                    if (_indicatorLightFlickerSmoothingInput != null)
                     {
-                        _indicatorLightFlickerSmoothingSlider.Value = project.DynamicLightRig.FlickerSmoothing;
+                        _indicatorLightFlickerSmoothingInput.Value = project.DynamicLightRig.FlickerSmoothing;
                     }
-                    if (_indicatorLightFlickerSeedSlider != null)
+                    if (_indicatorLightFlickerSeedInput != null)
                     {
-                        _indicatorLightFlickerSeedSlider.Value = project.DynamicLightRig.FlickerSeed;
+                        _indicatorLightFlickerSeedInput.Value = project.DynamicLightRig.FlickerSeed;
                     }
                     RefreshIndicatorEmitterSourceControlsFromProject();
                 }
@@ -1075,15 +1108,15 @@ namespace KnobForge.App.Views
                 _indicatorShapeCombo.IsEnabled = hasModel && !indicatorProject;
                 _indicatorReliefCombo.IsEnabled = hasModel && !indicatorProject;
                 _indicatorProfileCombo.IsEnabled = hasModel && !indicatorProject;
-                _indicatorWidthSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorLengthSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorPositionSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorThicknessSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorRoundnessSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorColorBlendSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorColorRSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorColorGSlider.IsEnabled = hasModel && !indicatorProject;
-                _indicatorColorBSlider.IsEnabled = hasModel && !indicatorProject;
+                _indicatorWidthInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorLengthInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorPositionInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorThicknessInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorRoundnessInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorBlendInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorRInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorGInput.IsEnabled = hasModel && !indicatorProject;
+                _indicatorColorBInput.IsEnabled = hasModel && !indicatorProject;
                 if (_indicatorAssemblyEnabledCheckBox != null)
                 {
                     _indicatorAssemblyEnabledCheckBox.IsEnabled = hasModel && indicatorProject;
@@ -1092,81 +1125,81 @@ namespace KnobForge.App.Views
                 {
                     _indicatorQuickLightOnCheckBox.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorQuickBrightnessSlider != null)
+                if (_indicatorQuickBrightnessInput != null)
                 {
-                    _indicatorQuickBrightnessSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorQuickBrightnessInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorQuickGlowSlider != null)
+                if (_indicatorQuickGlowInput != null)
                 {
-                    _indicatorQuickGlowSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorQuickGlowInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorBaseWidthSlider != null)
+                if (_indicatorBaseWidthInput != null)
                 {
-                    _indicatorBaseWidthSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorBaseWidthInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorBaseHeightSlider != null)
+                if (_indicatorBaseHeightInput != null)
                 {
-                    _indicatorBaseHeightSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorBaseHeightInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorBaseThicknessSlider != null)
+                if (_indicatorBaseThicknessInput != null)
                 {
-                    _indicatorBaseThicknessSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorBaseThicknessInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorHousingRadiusSlider != null)
+                if (_indicatorHousingRadiusInput != null)
                 {
-                    _indicatorHousingRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorHousingRadiusInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorHousingHeightSlider != null)
+                if (_indicatorHousingHeightInput != null)
                 {
-                    _indicatorHousingHeightSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorHousingHeightInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLensRadiusSlider != null)
+                if (_indicatorLensRadiusInput != null)
                 {
-                    _indicatorLensRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLensRadiusInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLensHeightSlider != null)
+                if (_indicatorLensHeightInput != null)
                 {
-                    _indicatorLensHeightSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLensHeightInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorReflectorBaseRadiusSlider != null)
+                if (_indicatorReflectorBaseRadiusInput != null)
                 {
-                    _indicatorReflectorBaseRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorReflectorBaseRadiusInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorReflectorTopRadiusSlider != null)
+                if (_indicatorReflectorTopRadiusInput != null)
                 {
-                    _indicatorReflectorTopRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorReflectorTopRadiusInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorReflectorDepthSlider != null)
+                if (_indicatorReflectorDepthInput != null)
                 {
-                    _indicatorReflectorDepthSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorReflectorDepthInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorEmitterRadiusSlider != null)
+                if (_indicatorEmitterRadiusInput != null)
                 {
-                    _indicatorEmitterRadiusSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorEmitterRadiusInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorEmitterSpreadSlider != null)
+                if (_indicatorEmitterSpreadInput != null)
                 {
-                    _indicatorEmitterSpreadSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorEmitterSpreadInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorEmitterDepthSlider != null)
+                if (_indicatorEmitterDepthInput != null)
                 {
-                    _indicatorEmitterDepthSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorEmitterDepthInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorEmitterCountSlider != null)
+                if (_indicatorEmitterCountInput != null)
                 {
-                    _indicatorEmitterCountSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorEmitterCountInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorRadialSegmentsSlider != null)
+                if (_indicatorRadialSegmentsInput != null)
                 {
-                    _indicatorRadialSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorRadialSegmentsInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLensLatitudeSegmentsSlider != null)
+                if (_indicatorLensLatitudeSegmentsInput != null)
                 {
-                    _indicatorLensLatitudeSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLensLatitudeSegmentsInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLensLongitudeSegmentsSlider != null)
+                if (_indicatorLensLongitudeSegmentsInput != null)
                 {
-                    _indicatorLensLongitudeSegmentsSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLensLongitudeSegmentsInput.IsEnabled = hasModel && indicatorProject;
                 }
                 if (_indicatorAssemblyResetDefaultsButton != null)
                 {
@@ -1180,25 +1213,25 @@ namespace KnobForge.App.Views
                 {
                     _indicatorLightAnimationModeCombo.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLightAnimationSpeedSlider != null)
+                if (_indicatorLightAnimationSpeedInput != null)
                 {
-                    _indicatorLightAnimationSpeedSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLightAnimationSpeedInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLightFlickerAmountSlider != null)
+                if (_indicatorLightFlickerAmountInput != null)
                 {
-                    _indicatorLightFlickerAmountSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLightFlickerAmountInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLightFlickerDropoutSlider != null)
+                if (_indicatorLightFlickerDropoutInput != null)
                 {
-                    _indicatorLightFlickerDropoutSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLightFlickerDropoutInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLightFlickerSmoothingSlider != null)
+                if (_indicatorLightFlickerSmoothingInput != null)
                 {
-                    _indicatorLightFlickerSmoothingSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLightFlickerSmoothingInput.IsEnabled = hasModel && indicatorProject;
                 }
-                if (_indicatorLightFlickerSeedSlider != null)
+                if (_indicatorLightFlickerSeedInput != null)
                 {
-                    _indicatorLightFlickerSeedSlider.IsEnabled = hasModel && indicatorProject;
+                    _indicatorLightFlickerSeedInput.IsEnabled = hasModel && indicatorProject;
                 }
                 if (_indicatorLightPresetNeutralButton != null)
                 {
@@ -1248,58 +1281,62 @@ namespace KnobForge.App.Views
                 {
                     _indicatorEmitterSourceNameTextBox.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+                if (_indicatorEmitterSourcePhaseOffsetInput != null)
                 {
-                    _indicatorEmitterSourcePhaseOffsetSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourcePhaseOffsetInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceXSlider != null)
+                if (_indicatorEmitterSourceXInput != null)
                 {
-                    _indicatorEmitterSourceXSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceXInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceYSlider != null)
+                if (_indicatorEmitterSourceYInput != null)
                 {
-                    _indicatorEmitterSourceYSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceYInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceZSlider != null)
+                if (_indicatorEmitterSourceZInput != null)
                 {
-                    _indicatorEmitterSourceZSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceZInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceIntensitySlider != null)
+                if (_indicatorEmitterSourceIntensityInput != null)
                 {
-                    _indicatorEmitterSourceIntensitySlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceIntensityInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceRadiusSlider != null)
+                if (_indicatorEmitterSourceRadiusInput != null)
                 {
-                    _indicatorEmitterSourceRadiusSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceRadiusInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceFalloffSlider != null)
+                if (_indicatorEmitterSourceFalloffInput != null)
                 {
-                    _indicatorEmitterSourceFalloffSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceFalloffInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceRSlider != null)
+                if (_indicatorEmitterSourceRInput != null)
                 {
-                    _indicatorEmitterSourceRSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceRInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceGSlider != null)
+                if (_indicatorEmitterSourceGInput != null)
                 {
-                    _indicatorEmitterSourceGSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceGInput.IsEnabled = hasModel && hasEmitterSources;
                 }
-                if (_indicatorEmitterSourceBSlider != null)
+                if (_indicatorEmitterSourceBInput != null)
                 {
-                    _indicatorEmitterSourceBSlider.IsEnabled = hasModel && hasEmitterSources;
+                    _indicatorEmitterSourceBInput.IsEnabled = hasModel && hasEmitterSources;
                 }
 
                 bool hasMaterial = material != null;
-                _materialBaseRSlider.IsEnabled = hasMaterial;
-                _materialBaseGSlider.IsEnabled = hasMaterial;
-                _materialBaseBSlider.IsEnabled = hasMaterial;
+                if (_assemblyMaterialPresetCombo != null)
+                {
+                    _assemblyMaterialPresetCombo.IsEnabled = hasMaterial;
+                }
+                _materialBaseRInput.IsEnabled = hasMaterial;
+                _materialBaseGInput.IsEnabled = hasMaterial;
+                _materialBaseBInput.IsEnabled = hasMaterial;
                 _materialRegionCombo.IsEnabled = hasMaterial;
-                _materialMetallicSlider.IsEnabled = hasMaterial;
-                _materialRoughnessSlider.IsEnabled = hasMaterial;
-                _materialPearlescenceSlider.IsEnabled = hasMaterial;
-                _materialRustSlider.IsEnabled = hasMaterial;
-                _materialWearSlider.IsEnabled = hasMaterial;
-                _materialGunkSlider.IsEnabled = hasMaterial;
+                _materialMetallicInput.IsEnabled = hasMaterial;
+                _materialRoughnessInput.IsEnabled = hasMaterial;
+                _materialPearlescenceInput.IsEnabled = hasMaterial;
+                _materialRustInput.IsEnabled = hasMaterial;
+                _materialWearInput.IsEnabled = hasMaterial;
+                _materialGunkInput.IsEnabled = hasMaterial;
                 _materialAlbedoMapBrowseButton!.IsEnabled = hasMaterial;
                 _materialAlbedoMapClearButton!.IsEnabled = hasMaterial;
                 _materialNormalMapBrowseButton!.IsEnabled = hasMaterial;
@@ -1308,15 +1345,15 @@ namespace KnobForge.App.Views
                 _materialRoughnessMapClearButton!.IsEnabled = hasMaterial;
                 _materialMetallicMapBrowseButton!.IsEnabled = hasMaterial;
                 _materialMetallicMapClearButton!.IsEnabled = hasMaterial;
-                _materialNormalMapStrengthSlider!.IsEnabled = hasMaterial && material?.HasNormalMap == true;
-                _materialBrushStrengthSlider.IsEnabled = hasMaterial;
-                _materialBrushDensitySlider.IsEnabled = hasMaterial;
-                _materialCharacterSlider.IsEnabled = hasMaterial;
+                _materialNormalMapStrengthInput!.IsEnabled = hasMaterial && material?.HasNormalMap == true;
+                _materialBrushStrengthInput.IsEnabled = hasMaterial;
+                _materialBrushDensityInput.IsEnabled = hasMaterial;
+                _materialCharacterInput.IsEnabled = hasMaterial;
                 _spiralNormalInfluenceCheckBox.IsEnabled = hasMaterial;
                 _basisDebugModeCombo.IsEnabled = hasMaterial;
-                _microLodFadeStartSlider.IsEnabled = hasMaterial;
-                _microLodFadeEndSlider.IsEnabled = hasMaterial;
-                _microRoughnessLodBoostSlider.IsEnabled = hasMaterial;
+                _microLodFadeStartInput.IsEnabled = hasMaterial;
+                _microLodFadeEndInput.IsEnabled = hasMaterial;
+                _microRoughnessLodBoostInput.IsEnabled = hasMaterial;
                 _brushPaintEnabledCheckBox.IsEnabled = hasModel;
                 _brushPaintChannelCombo.IsEnabled = hasModel;
                 _brushTypeCombo.IsEnabled = hasModel;
@@ -1343,38 +1380,122 @@ namespace KnobForge.App.Views
                     _sliderThumbMeshCombo.IsEnabled = hasModel;
                 }
 
-                if (_sliderBackplateWidthSlider != null)
+                if (_sliderBackplateWidthInput != null)
                 {
-                    _sliderBackplateWidthSlider.IsEnabled = hasModel;
+                    _sliderBackplateWidthInput.IsEnabled = hasModel;
                 }
 
-                if (_sliderBackplateHeightSlider != null)
+                if (_sliderBackplateHeightInput != null)
                 {
-                    _sliderBackplateHeightSlider.IsEnabled = hasModel;
+                    _sliderBackplateHeightInput.IsEnabled = hasModel;
                 }
 
-                if (_sliderBackplateThicknessSlider != null)
+                if (_sliderBackplateThicknessInput != null)
                 {
-                    _sliderBackplateThicknessSlider.IsEnabled = hasModel;
+                    _sliderBackplateThicknessInput.IsEnabled = hasModel;
                 }
 
-                if (_sliderThumbWidthSlider != null)
+                if (_sliderThumbWidthInput != null)
                 {
-                    _sliderThumbWidthSlider.IsEnabled = hasModel;
+                    _sliderThumbWidthInput.IsEnabled = hasModel;
                 }
 
-                if (_sliderThumbHeightSlider != null)
+                if (_sliderThumbHeightInput != null)
                 {
-                    _sliderThumbHeightSlider.IsEnabled = hasModel;
+                    _sliderThumbHeightInput.IsEnabled = hasModel;
                 }
 
-                if (_sliderThumbDepthSlider != null)
+                if (_sliderThumbDepthInput != null)
                 {
-                    _sliderThumbDepthSlider.IsEnabled = hasModel;
+                    _sliderThumbDepthInput.IsEnabled = hasModel;
                 }
-                if (_pushButtonPressAmountSlider != null)
+                if (_sliderThumbProfileCombo != null)
                 {
-                    _pushButtonPressAmountSlider.IsEnabled = hasModel;
+                    _sliderThumbProfileCombo.IsEnabled = hasModel;
+                }
+                if (_sliderTrackStyleCombo != null)
+                {
+                    _sliderTrackStyleCombo.IsEnabled = hasModel;
+                }
+                if (_sliderTrackWidthInput != null)
+                {
+                    _sliderTrackWidthInput.IsEnabled = hasModel;
+                }
+                if (_sliderTrackDepthInput != null)
+                {
+                    _sliderTrackDepthInput.IsEnabled = hasModel;
+                }
+                if (_sliderRailHeightInput != null)
+                {
+                    _sliderRailHeightInput.IsEnabled = hasModel;
+                }
+                if (_sliderRailSpacingInput != null)
+                {
+                    _sliderRailSpacingInput.IsEnabled = hasModel;
+                }
+                if (_sliderThumbRidgeCountInput != null)
+                {
+                    _sliderThumbRidgeCountInput.IsEnabled = hasModel;
+                }
+                if (_sliderThumbRidgeDepthInput != null)
+                {
+                    _sliderThumbRidgeDepthInput.IsEnabled = hasModel;
+                }
+                if (_sliderThumbCornerRadiusInput != null)
+                {
+                    _sliderThumbCornerRadiusInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonPressAmountInput != null)
+                {
+                    _pushButtonPressAmountInput.IsEnabled = hasModel;
+                }
+                if (_refreshPushButtonLibraryButton != null)
+                {
+                    _refreshPushButtonLibraryButton.IsEnabled = hasModel;
+                }
+                if (_pushButtonBaseMeshCombo != null)
+                {
+                    _pushButtonBaseMeshCombo.IsEnabled = hasModel;
+                }
+                if (_pushButtonCapMeshCombo != null)
+                {
+                    _pushButtonCapMeshCombo.IsEnabled = hasModel;
+                }
+                if (_pushButtonCapProfileCombo != null)
+                {
+                    _pushButtonCapProfileCombo.IsEnabled = hasModel;
+                }
+                if (_pushButtonBezelProfileCombo != null)
+                {
+                    _pushButtonBezelProfileCombo.IsEnabled = hasModel;
+                }
+                if (_pushButtonSkirtStyleCombo != null)
+                {
+                    _pushButtonSkirtStyleCombo.IsEnabled = hasModel;
+                }
+                if (_pushButtonBezelChamferSizeInput != null)
+                {
+                    _pushButtonBezelChamferSizeInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonCapOverhangInput != null)
+                {
+                    _pushButtonCapOverhangInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonCapSegmentsInput != null)
+                {
+                    _pushButtonCapSegmentsInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonBezelSegmentsInput != null)
+                {
+                    _pushButtonBezelSegmentsInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonSkirtHeightInput != null)
+                {
+                    _pushButtonSkirtHeightInput.IsEnabled = hasModel;
+                }
+                if (_pushButtonSkirtRadiusInput != null)
+                {
+                    _pushButtonSkirtRadiusInput.IsEnabled = hasModel;
                 }
                 if (_toggleAssemblyModeCombo != null)
                 {
@@ -1401,54 +1522,54 @@ namespace KnobForge.App.Views
                     _toggleStateCountCombo.IsEnabled = hasModel;
                 }
 
-                if (_toggleStateIndexSlider != null)
+                if (_toggleStateIndexInput != null)
                 {
-                    _toggleStateIndexSlider.IsEnabled = hasModel;
+                    _toggleStateIndexInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleMaxAngleSlider != null)
+                if (_toggleMaxAngleInput != null)
                 {
-                    _toggleMaxAngleSlider.IsEnabled = hasModel;
+                    _toggleMaxAngleInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePlateWidthSlider != null)
+                if (_togglePlateWidthInput != null)
                 {
-                    _togglePlateWidthSlider.IsEnabled = hasModel;
+                    _togglePlateWidthInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePlateHeightSlider != null)
+                if (_togglePlateHeightInput != null)
                 {
-                    _togglePlateHeightSlider.IsEnabled = hasModel;
+                    _togglePlateHeightInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePlateThicknessSlider != null)
+                if (_togglePlateThicknessInput != null)
                 {
-                    _togglePlateThicknessSlider.IsEnabled = hasModel;
+                    _togglePlateThicknessInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePlateOffsetYSlider != null)
+                if (_togglePlateOffsetYInput != null)
                 {
-                    _togglePlateOffsetYSlider.IsEnabled = hasModel;
+                    _togglePlateOffsetYInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePlateOffsetZSlider != null)
+                if (_togglePlateOffsetZInput != null)
                 {
-                    _togglePlateOffsetZSlider.IsEnabled = hasModel;
+                    _togglePlateOffsetZInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleBushingRadiusSlider != null)
+                if (_toggleBushingRadiusInput != null)
                 {
-                    _toggleBushingRadiusSlider.IsEnabled = hasModel;
+                    _toggleBushingRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleBushingHeightSlider != null)
+                if (_toggleBushingHeightInput != null)
                 {
-                    _toggleBushingHeightSlider.IsEnabled = hasModel;
+                    _toggleBushingHeightInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleBushingSidesSlider != null)
+                if (_toggleBushingSidesInput != null)
                 {
-                    _toggleBushingSidesSlider.IsEnabled = hasModel;
+                    _toggleBushingSidesInput.IsEnabled = hasModel;
                 }
 
                 if (_toggleLowerBushingShapeCombo != null)
@@ -1461,124 +1582,124 @@ namespace KnobForge.App.Views
                     _toggleUpperBushingShapeCombo.IsEnabled = hasModel;
                 }
 
-                if (_toggleLowerBushingRadiusScaleSlider != null)
+                if (_toggleLowerBushingRadiusScaleInput != null)
                 {
-                    _toggleLowerBushingRadiusScaleSlider.IsEnabled = hasModel;
+                    _toggleLowerBushingRadiusScaleInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLowerBushingHeightRatioSlider != null)
+                if (_toggleLowerBushingHeightRatioInput != null)
                 {
-                    _toggleLowerBushingHeightRatioSlider.IsEnabled = hasModel;
+                    _toggleLowerBushingHeightRatioInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingRadiusScaleSlider != null)
+                if (_toggleUpperBushingRadiusScaleInput != null)
                 {
-                    _toggleUpperBushingRadiusScaleSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingRadiusScaleInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingHeightRatioSlider != null)
+                if (_toggleUpperBushingHeightRatioInput != null)
                 {
-                    _toggleUpperBushingHeightRatioSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingHeightRatioInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingKnurlAmountSlider != null)
+                if (_toggleUpperBushingKnurlAmountInput != null)
                 {
-                    _toggleUpperBushingKnurlAmountSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingKnurlAmountInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingKnurlDensitySlider != null)
+                if (_toggleUpperBushingKnurlDensityInput != null)
                 {
-                    _toggleUpperBushingKnurlDensitySlider.IsEnabled = hasModel;
+                    _toggleUpperBushingKnurlDensityInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingKnurlDepthSlider != null)
+                if (_toggleUpperBushingKnurlDepthInput != null)
                 {
-                    _toggleUpperBushingKnurlDepthSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingKnurlDepthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+                if (_toggleUpperBushingAnisotropyStrengthInput != null)
                 {
-                    _toggleUpperBushingAnisotropyStrengthSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingAnisotropyStrengthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingAnisotropyDensitySlider != null)
+                if (_toggleUpperBushingAnisotropyDensityInput != null)
                 {
-                    _toggleUpperBushingAnisotropyDensitySlider.IsEnabled = hasModel;
+                    _toggleUpperBushingAnisotropyDensityInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingAnisotropyAngleSlider != null)
+                if (_toggleUpperBushingAnisotropyAngleInput != null)
                 {
-                    _toggleUpperBushingAnisotropyAngleSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingAnisotropyAngleInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleUpperBushingSurfaceCharacterSlider != null)
+                if (_toggleUpperBushingSurfaceCharacterInput != null)
                 {
-                    _toggleUpperBushingSurfaceCharacterSlider.IsEnabled = hasModel;
+                    _toggleUpperBushingSurfaceCharacterInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePivotHousingRadiusSlider != null)
+                if (_togglePivotHousingRadiusInput != null)
                 {
-                    _togglePivotHousingRadiusSlider.IsEnabled = hasModel;
+                    _togglePivotHousingRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePivotHousingDepthSlider != null)
+                if (_togglePivotHousingDepthInput != null)
                 {
-                    _togglePivotHousingDepthSlider.IsEnabled = hasModel;
+                    _togglePivotHousingDepthInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePivotHousingBevelSlider != null)
+                if (_togglePivotHousingBevelInput != null)
                 {
-                    _togglePivotHousingBevelSlider.IsEnabled = hasModel;
+                    _togglePivotHousingBevelInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePivotBallRadiusSlider != null)
+                if (_togglePivotBallRadiusInput != null)
                 {
-                    _togglePivotBallRadiusSlider.IsEnabled = hasModel;
+                    _togglePivotBallRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_togglePivotClearanceSlider != null)
+                if (_togglePivotClearanceInput != null)
                 {
-                    _togglePivotClearanceSlider.IsEnabled = hasModel;
+                    _togglePivotClearanceInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLeverLengthSlider != null)
+                if (_toggleLeverLengthInput != null)
                 {
-                    _toggleLeverLengthSlider.IsEnabled = hasModel;
+                    _toggleLeverLengthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLeverRadiusSlider != null)
+                if (_toggleLeverRadiusInput != null)
                 {
-                    _toggleLeverRadiusSlider.IsEnabled = hasModel;
+                    _toggleLeverRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLeverTopRadiusSlider != null)
+                if (_toggleLeverTopRadiusInput != null)
                 {
-                    _toggleLeverTopRadiusSlider.IsEnabled = hasModel;
+                    _toggleLeverTopRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLeverSidesSlider != null)
+                if (_toggleLeverSidesInput != null)
                 {
-                    _toggleLeverSidesSlider.IsEnabled = hasModel;
+                    _toggleLeverSidesInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleLeverPivotOffsetSlider != null)
+                if (_toggleLeverPivotOffsetInput != null)
                 {
-                    _toggleLeverPivotOffsetSlider.IsEnabled = hasModel;
+                    _toggleLeverPivotOffsetInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipRadiusSlider != null)
+                if (_toggleTipRadiusInput != null)
                 {
-                    _toggleTipRadiusSlider.IsEnabled = hasModel;
+                    _toggleTipRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipLatitudeSegmentsSlider != null)
+                if (_toggleTipLatitudeSegmentsInput != null)
                 {
-                    _toggleTipLatitudeSegmentsSlider.IsEnabled = hasModel;
+                    _toggleTipLatitudeSegmentsInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipLongitudeSegmentsSlider != null)
+                if (_toggleTipLongitudeSegmentsInput != null)
                 {
-                    _toggleTipLongitudeSegmentsSlider.IsEnabled = hasModel;
+                    _toggleTipLongitudeSegmentsInput.IsEnabled = hasModel;
                 }
 
                 if (_toggleTipSleeveEnabledCheckBox != null)
@@ -1586,29 +1707,29 @@ namespace KnobForge.App.Views
                     _toggleTipSleeveEnabledCheckBox.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveLengthSlider != null)
+                if (_toggleTipSleeveLengthInput != null)
                 {
-                    _toggleTipSleeveLengthSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveLengthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveThicknessSlider != null)
+                if (_toggleTipSleeveThicknessInput != null)
                 {
-                    _toggleTipSleeveThicknessSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveThicknessInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveOuterRadiusSlider != null)
+                if (_toggleTipSleeveOuterRadiusInput != null)
                 {
-                    _toggleTipSleeveOuterRadiusSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveOuterRadiusInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveCoverageSlider != null)
+                if (_toggleTipSleeveCoverageInput != null)
                 {
-                    _toggleTipSleeveCoverageSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveCoverageInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveSidesSlider != null)
+                if (_toggleTipSleeveSidesInput != null)
                 {
-                    _toggleTipSleeveSidesSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveSidesInput.IsEnabled = hasModel;
                 }
 
                 if (_toggleTipSleeveStyleCombo != null)
@@ -1621,182 +1742,93 @@ namespace KnobForge.App.Views
                     _toggleTipSleeveTipStyleCombo.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleevePatternCountSlider != null)
+                if (_toggleTipSleevePatternCountInput != null)
                 {
-                    _toggleTipSleevePatternCountSlider.IsEnabled = hasModel;
+                    _toggleTipSleevePatternCountInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleevePatternDepthSlider != null)
+                if (_toggleTipSleevePatternDepthInput != null)
                 {
-                    _toggleTipSleevePatternDepthSlider.IsEnabled = hasModel;
+                    _toggleTipSleevePatternDepthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveTipAmountSlider != null)
+                if (_toggleTipSleeveTipAmountInput != null)
                 {
-                    _toggleTipSleeveTipAmountSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveTipAmountInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveColorRSlider != null)
+                if (_toggleTipSleeveColorRInput != null)
                 {
-                    _toggleTipSleeveColorRSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveColorRInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveColorGSlider != null)
+                if (_toggleTipSleeveColorGInput != null)
                 {
-                    _toggleTipSleeveColorGSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveColorGInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveColorBSlider != null)
+                if (_toggleTipSleeveColorBInput != null)
                 {
-                    _toggleTipSleeveColorBSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveColorBInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveMetallicSlider != null)
+                if (_toggleTipSleeveMetallicInput != null)
                 {
-                    _toggleTipSleeveMetallicSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveMetallicInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveRoughnessSlider != null)
+                if (_toggleTipSleeveRoughnessInput != null)
                 {
-                    _toggleTipSleeveRoughnessSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveRoughnessInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleevePearlescenceSlider != null)
+                if (_toggleTipSleevePearlescenceInput != null)
                 {
-                    _toggleTipSleevePearlescenceSlider.IsEnabled = hasModel;
+                    _toggleTipSleevePearlescenceInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveDiffuseStrengthSlider != null)
+                if (_toggleTipSleeveDiffuseStrengthInput != null)
                 {
-                    _toggleTipSleeveDiffuseStrengthSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveDiffuseStrengthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveSpecularStrengthSlider != null)
+                if (_toggleTipSleeveSpecularStrengthInput != null)
                 {
-                    _toggleTipSleeveSpecularStrengthSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveSpecularStrengthInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveRustSlider != null)
+                if (_toggleTipSleeveRustInput != null)
                 {
-                    _toggleTipSleeveRustSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveRustInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveWearSlider != null)
+                if (_toggleTipSleeveWearInput != null)
                 {
-                    _toggleTipSleeveWearSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveWearInput.IsEnabled = hasModel;
                 }
 
-                if (_toggleTipSleeveGunkSlider != null)
+                if (_toggleTipSleeveGunkInput != null)
                 {
-                    _toggleTipSleeveGunkSlider.IsEnabled = hasModel;
+                    _toggleTipSleeveGunkInput.IsEnabled = hasModel;
                 }
-                _brushSizeSlider.IsEnabled = hasModel;
-                _brushOpacitySlider.IsEnabled = hasModel;
-                _brushDarknessSlider.IsEnabled = hasModel;
-                _brushSpreadSlider.IsEnabled = hasModel;
-                _paintCoatMetallicSlider.IsEnabled = hasModel;
-                _paintCoatRoughnessSlider.IsEnabled = hasModel;
-                _clearCoatAmountSlider.IsEnabled = hasModel;
-                _clearCoatRoughnessSlider.IsEnabled = hasModel;
-                _anisotropyAngleSlider.IsEnabled = hasModel;
-                _scratchWidthSlider.IsEnabled = hasModel;
-                _scratchDepthSlider.IsEnabled = hasModel;
-                _scratchResistanceSlider.IsEnabled = hasModel;
-                _scratchDepthRampSlider.IsEnabled = hasModel;
-                _scratchExposeColorRSlider.IsEnabled = hasModel;
-                _scratchExposeColorGSlider.IsEnabled = hasModel;
-                _scratchExposeColorBSlider.IsEnabled = hasModel;
-                _scratchExposeMetallicSlider.IsEnabled = hasModel;
-                _scratchExposeRoughnessSlider.IsEnabled = hasModel;
-                if (_brushSizeInputTextBox != null)
-                {
-                    _brushSizeInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_brushOpacityInputTextBox != null)
-                {
-                    _brushOpacityInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_brushDarknessInputTextBox != null)
-                {
-                    _brushDarknessInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_brushSpreadInputTextBox != null)
-                {
-                    _brushSpreadInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_paintCoatMetallicInputTextBox != null)
-                {
-                    _paintCoatMetallicInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_paintCoatRoughnessInputTextBox != null)
-                {
-                    _paintCoatRoughnessInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_clearCoatAmountInputTextBox != null)
-                {
-                    _clearCoatAmountInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_clearCoatRoughnessInputTextBox != null)
-                {
-                    _clearCoatRoughnessInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_anisotropyAngleInputTextBox != null)
-                {
-                    _anisotropyAngleInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchWidthInputTextBox != null)
-                {
-                    _scratchWidthInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchDepthInputTextBox != null)
-                {
-                    _scratchDepthInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchResistanceInputTextBox != null)
-                {
-                    _scratchResistanceInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchDepthRampInputTextBox != null)
-                {
-                    _scratchDepthRampInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchExposeColorRInputTextBox != null)
-                {
-                    _scratchExposeColorRInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchExposeColorGInputTextBox != null)
-                {
-                    _scratchExposeColorGInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchExposeColorBInputTextBox != null)
-                {
-                    _scratchExposeColorBInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchExposeMetallicInputTextBox != null)
-                {
-                    _scratchExposeMetallicInputTextBox.IsEnabled = hasModel;
-                }
-
-                if (_scratchExposeRoughnessInputTextBox != null)
-                {
-                    _scratchExposeRoughnessInputTextBox.IsEnabled = hasModel;
-                }
+                _brushSizeInput.IsEnabled = hasModel;
+                _brushOpacityInput.IsEnabled = hasModel;
+                _brushDarknessInput.IsEnabled = hasModel;
+                _brushSpreadInput.IsEnabled = hasModel;
+                _paintCoatMetallicInput.IsEnabled = hasModel;
+                _paintCoatRoughnessInput.IsEnabled = hasModel;
+                _clearCoatAmountInput.IsEnabled = hasModel;
+                _clearCoatRoughnessInput.IsEnabled = hasModel;
+                _anisotropyAngleInput.IsEnabled = hasModel;
+                _scratchWidthInput.IsEnabled = hasModel;
+                _scratchDepthInput.IsEnabled = hasModel;
+                _scratchResistanceInput.IsEnabled = hasModel;
+                _scratchDepthRampInput.IsEnabled = hasModel;
+                _scratchExposeColorRInput.IsEnabled = hasModel;
+                _scratchExposeColorGInput.IsEnabled = hasModel;
+                _scratchExposeColorBInput.IsEnabled = hasModel;
+                _scratchExposeMetallicInput.IsEnabled = hasModel;
+                _scratchExposeRoughnessInput.IsEnabled = hasModel;
                 if (_clearPaintMaskButton != null)
                 {
                     _clearPaintMaskButton.IsEnabled = hasModel;
@@ -1807,99 +1839,117 @@ namespace KnobForge.App.Views
                 if (material != null)
                 {
                     ApplyMaterialRegionValuesToSliders(material);
-                    _materialPearlescenceSlider.Value = material.Pearlescence;
-                    _materialRustSlider.Value = material.RustAmount;
-                    _materialWearSlider.Value = material.WearAmount;
-                    _materialGunkSlider.Value = material.GunkAmount;
-                    _materialBrushStrengthSlider.Value = material.RadialBrushStrength;
-                    _materialBrushDensitySlider.Value = material.RadialBrushDensity;
-                    _materialCharacterSlider.Value = material.SurfaceCharacter;
+                    _materialPearlescenceInput.Value = material.Pearlescence;
+                    _materialRustInput.Value = material.RustAmount;
+                    _materialWearInput.Value = material.WearAmount;
+                    _materialGunkInput.Value = material.GunkAmount;
+                    _materialBrushStrengthInput.Value = material.RadialBrushStrength;
+                    _materialBrushDensityInput.Value = material.RadialBrushDensity;
+                    _materialCharacterInput.Value = material.SurfaceCharacter;
                 }
+
+                RefreshMaterialGraphEditorUi(material);
 
                 _spiralNormalInfluenceCheckBox.IsChecked = project.SpiralNormalInfluenceEnabled;
                 _basisDebugModeCombo.SelectedItem = project.BasisDebug;
-                _microLodFadeStartSlider.Value = project.SpiralNormalLodFadeStart;
-                _microLodFadeEndSlider.Value = project.SpiralNormalLodFadeEnd;
-                _microRoughnessLodBoostSlider.Value = project.SpiralRoughnessLodBoost;
+                _microLodFadeStartInput.Value = project.SpiralNormalLodFadeStart;
+                _microLodFadeEndInput.Value = project.SpiralNormalLodFadeEnd;
+                _microRoughnessLodBoostInput.Value = project.SpiralRoughnessLodBoost;
 
-                _envIntensitySlider.Value = project.EnvironmentIntensity;
-                _envRoughnessMixSlider.Value = project.EnvironmentRoughnessMix;
-                _envTopRSlider.Value = project.EnvironmentTopColor.X;
-                _envTopGSlider.Value = project.EnvironmentTopColor.Y;
-                _envTopBSlider.Value = project.EnvironmentTopColor.Z;
-                _envBottomRSlider.Value = project.EnvironmentBottomColor.X;
-                _envBottomGSlider.Value = project.EnvironmentBottomColor.Y;
-                _envBottomBSlider.Value = project.EnvironmentBottomColor.Z;
+                Vector3 effectiveEnvTop = project.EnvironmentTopColor;
+                Vector3 effectiveEnvBottom = project.EnvironmentBottomColor;
+                float effectiveEnvIntensity = project.EnvironmentIntensity;
+                float effectiveEnvRoughnessMix = project.EnvironmentRoughnessMix;
+                if (project.EnvironmentPreset != EnvironmentPreset.Custom &&
+                    TryGetEnvironmentPresetDefinition(project.EnvironmentPreset, out EnvironmentPresetDefinition environmentPreset))
+                {
+                    effectiveEnvTop = environmentPreset.TopColor;
+                    effectiveEnvBottom = environmentPreset.BottomColor;
+                    effectiveEnvIntensity = environmentPreset.Intensity;
+                    effectiveEnvRoughnessMix = environmentPreset.RoughnessMix;
+                }
+
+                _envIntensityInput.Value = effectiveEnvIntensity;
+                _envRoughnessMixInput.Value = effectiveEnvRoughnessMix;
+                _envTopRInput.Value = effectiveEnvTop.X;
+                _envTopGInput.Value = effectiveEnvTop.Y;
+                _envTopBInput.Value = effectiveEnvTop.Z;
+                _envBottomRInput.Value = effectiveEnvBottom.X;
+                _envBottomGInput.Value = effectiveEnvBottom.Y;
+                _envBottomBInput.Value = effectiveEnvBottom.Z;
+                SelectEnvironmentPresetOption(project.EnvironmentPreset);
                 if (_envTonemapCombo != null)
                 {
                     _envTonemapCombo.SelectedItem = project.ToneMappingOperator;
                 }
-                if (_envExposureSlider != null)
+                if (_envExposureInput != null)
                 {
-                    _envExposureSlider.Value = project.EnvironmentExposure;
+                    _envExposureInput.Value = project.EnvironmentExposure;
                 }
-                if (_envBloomStrengthSlider != null)
+                if (_envBloomStrengthInput != null)
                 {
-                    _envBloomStrengthSlider.Value = project.EnvironmentBloomStrength;
+                    _envBloomStrengthInput.Value = project.EnvironmentBloomStrength;
                 }
-                if (_envBloomThresholdSlider != null)
+                if (_envBloomThresholdInput != null)
                 {
-                    _envBloomThresholdSlider.Value = project.EnvironmentBloomThreshold;
+                    _envBloomThresholdInput.Value = project.EnvironmentBloomThreshold;
                 }
-                if (_envBloomKneeSlider != null)
+                if (_envBloomKneeInput != null)
                 {
-                    _envBloomKneeSlider.Value = project.EnvironmentBloomKnee;
+                    _envBloomKneeInput.Value = project.EnvironmentBloomKnee;
                 }
+                SelectBloomKernelShapeOption(project.BloomKernelShape);
+                UpdateEnvironmentManualControlsAppearance(project.EnvironmentPreset);
                 if (_envHdriPathTextBox != null)
                 {
                     _envHdriPathTextBox.Text = project.EnvironmentHdriPath;
                 }
-                if (_envHdriBlendSlider != null)
+                if (_envHdriBlendInput != null)
                 {
-                    _envHdriBlendSlider.Value = project.EnvironmentHdriBlend;
+                    _envHdriBlendInput.Value = project.EnvironmentHdriBlend;
                 }
-                if (_envHdriRotationSlider != null)
+                if (_envHdriRotationInput != null)
                 {
-                    _envHdriRotationSlider.Value = project.EnvironmentHdriRotationDegrees;
+                    _envHdriRotationInput.Value = project.EnvironmentHdriRotationDegrees;
                 }
                 _shadowEnabledCheckBox.IsChecked = project.ShadowsEnabled;
                 _shadowSourceModeCombo.SelectedItem = project.ShadowMode;
-                _shadowStrengthSlider.Value = project.ShadowStrength;
-                _shadowSoftnessSlider.Value = project.ShadowSoftness;
-                _shadowDistanceSlider.Value = project.ShadowDistance;
-                _shadowScaleSlider.Value = project.ShadowScale;
-                _shadowQualitySlider.Value = project.ShadowQuality;
-                _shadowGraySlider.Value = project.ShadowGray;
-                _shadowDiffuseInfluenceSlider.Value = project.ShadowDiffuseInfluence;
+                _shadowStrengthInput.Value = project.ShadowStrength;
+                _shadowSoftnessInput.Value = project.ShadowSoftness;
+                _shadowDistanceInput.Value = project.ShadowDistance;
+                _shadowScaleInput.Value = project.ShadowScale;
+                _shadowQualityInput.Value = project.ShadowQuality;
+                _shadowGrayInput.Value = project.ShadowGray;
+                _shadowDiffuseInfluenceInput.Value = project.ShadowDiffuseInfluence;
                 _brushPaintEnabledCheckBox.IsChecked = project.BrushPaintingEnabled;
                 _paintMaskResolutionCombo.SelectedItem = project.PaintMaskSize;
                 _brushPaintChannelCombo.SelectedItem = project.BrushChannel;
                 _brushTypeCombo.SelectedItem = project.BrushType;
                 _brushPaintColorPicker.Color = ToAvaloniaColor(project.PaintColor);
-                _paintChannelTargetValueSlider.Value = project.BrushChannel == PaintChannel.Roughness
+                _paintChannelTargetValueInput.Value = project.BrushChannel == PaintChannel.Roughness
                     ? project.RoughnessPaintTarget
                     : project.BrushChannel == PaintChannel.Metallic
                         ? project.MetallicPaintTarget
                         : 0d;
                 _scratchAbrasionTypeCombo.SelectedItem = project.ScratchAbrasionType;
-                _brushSizeSlider.Value = project.BrushSizePx;
-                _brushOpacitySlider.Value = project.BrushOpacity;
-                _brushDarknessSlider.Value = project.BrushDarkness;
-                _brushSpreadSlider.Value = project.BrushSpread;
-                _paintCoatMetallicSlider.Value = project.PaintCoatMetallic;
-                _paintCoatRoughnessSlider.Value = project.PaintCoatRoughness;
-                _clearCoatAmountSlider.Value = project.ClearCoatAmount;
-                _clearCoatRoughnessSlider.Value = project.ClearCoatRoughness;
-                _anisotropyAngleSlider.Value = project.AnisotropyAngleDegrees;
-                _scratchWidthSlider.Value = project.ScratchWidthPx;
-                _scratchDepthSlider.Value = project.ScratchDepth;
-                _scratchResistanceSlider.Value = project.ScratchDragResistance;
-                _scratchDepthRampSlider.Value = project.ScratchDepthRamp;
-                _scratchExposeColorRSlider.Value = project.ScratchExposeColor.X;
-                _scratchExposeColorGSlider.Value = project.ScratchExposeColor.Y;
-                _scratchExposeColorBSlider.Value = project.ScratchExposeColor.Z;
-                _scratchExposeMetallicSlider.Value = project.ScratchExposeMetallic;
-                _scratchExposeRoughnessSlider.Value = project.ScratchExposeRoughness;
+                _brushSizeInput.Value = project.BrushSizePx;
+                _brushOpacityInput.Value = project.BrushOpacity;
+                _brushDarknessInput.Value = project.BrushDarkness;
+                _brushSpreadInput.Value = project.BrushSpread;
+                _paintCoatMetallicInput.Value = project.PaintCoatMetallic;
+                _paintCoatRoughnessInput.Value = project.PaintCoatRoughness;
+                _clearCoatAmountInput.Value = project.ClearCoatAmount;
+                _clearCoatRoughnessInput.Value = project.ClearCoatRoughness;
+                _anisotropyAngleInput.Value = project.AnisotropyAngleDegrees;
+                _scratchWidthInput.Value = project.ScratchWidthPx;
+                _scratchDepthInput.Value = project.ScratchDepth;
+                _scratchResistanceInput.Value = project.ScratchDragResistance;
+                _scratchDepthRampInput.Value = project.ScratchDepthRamp;
+                _scratchExposeColorRInput.Value = project.ScratchExposeColor.X;
+                _scratchExposeColorGInput.Value = project.ScratchExposeColor.Y;
+                _scratchExposeColorBInput.Value = project.ScratchExposeColor.Z;
+                _scratchExposeMetallicInput.Value = project.ScratchExposeMetallic;
+                _scratchExposeRoughnessInput.Value = project.ScratchExposeRoughness;
                 UpdatePaintResolutionUi();
                 UpdateBrushContextUi();
                 _metalViewport?.RefreshPaintHud();
@@ -1908,34 +1958,34 @@ namespace KnobForge.App.Views
                 bool hasLight = selectedLight != null;
 
                 _lightTypeCombo.IsEnabled = hasLight;
-                _lightXSlider.IsEnabled = hasLight;
-                _lightYSlider.IsEnabled = hasLight;
-                _lightZSlider.IsEnabled = hasLight;
-                _directionSlider.IsEnabled = hasLight;
-                _intensitySlider.IsEnabled = hasLight;
-                _falloffSlider.IsEnabled = hasLight;
-                _lightRSlider.IsEnabled = hasLight;
-                _lightGSlider.IsEnabled = hasLight;
-                _lightBSlider.IsEnabled = hasLight;
-                _diffuseBoostSlider.IsEnabled = hasLight;
-                _specularBoostSlider.IsEnabled = hasLight;
-                _specularPowerSlider.IsEnabled = hasLight;
+                _lightXInput.IsEnabled = hasLight;
+                _lightYInput.IsEnabled = hasLight;
+                _lightZInput.IsEnabled = hasLight;
+                _directionInput.IsEnabled = hasLight;
+                _intensityInput.IsEnabled = hasLight;
+                _falloffInput.IsEnabled = hasLight;
+                _lightRInput.IsEnabled = hasLight;
+                _lightGInput.IsEnabled = hasLight;
+                _lightBInput.IsEnabled = hasLight;
+                _diffuseBoostInput.IsEnabled = hasLight;
+                _specularBoostInput.IsEnabled = hasLight;
+                _specularPowerInput.IsEnabled = hasLight;
 
                 if (selectedLight != null)
                 {
                     _lightTypeCombo.SelectedItem = selectedLight.Type;
-                    _lightXSlider.Value = selectedLight.X;
-                    _lightYSlider.Value = selectedLight.Y;
-                    _lightZSlider.Value = selectedLight.Z;
-                    _directionSlider.Value = RadiansToDegrees(selectedLight.DirectionRadians);
-                    _intensitySlider.Value = selectedLight.Intensity;
-                    _falloffSlider.Value = selectedLight.Falloff;
-                    _lightRSlider.Value = selectedLight.Color.Red;
-                    _lightGSlider.Value = selectedLight.Color.Green;
-                    _lightBSlider.Value = selectedLight.Color.Blue;
-                    _diffuseBoostSlider.Value = selectedLight.DiffuseBoost;
-                    _specularBoostSlider.Value = selectedLight.SpecularBoost;
-                    _specularPowerSlider.Value = selectedLight.SpecularPower;
+                    _lightXInput.Value = selectedLight.X;
+                    _lightYInput.Value = selectedLight.Y;
+                    _lightZInput.Value = selectedLight.Z;
+                    _directionInput.Value = RadiansToDegrees(selectedLight.DirectionRadians);
+                    _intensityInput.Value = selectedLight.Intensity;
+                    _falloffInput.Value = selectedLight.Falloff;
+                    _lightRInput.Value = selectedLight.Color.Red;
+                    _lightGInput.Value = selectedLight.Color.Green;
+                    _lightBInput.Value = selectedLight.Color.Blue;
+                    _diffuseBoostInput.Value = selectedLight.DiffuseBoost;
+                    _specularBoostInput.Value = selectedLight.SpecularBoost;
+                    _specularPowerInput.Value = selectedLight.SpecularPower;
                 }
 
                 ApplyInspectorTabPolicy(tabPolicy, preservedTab);

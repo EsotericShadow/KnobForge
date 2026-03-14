@@ -87,7 +87,7 @@ public static class ToggleAssemblyMeshBuilder
     private static readonly string[] BaseDirectoryNames = { "base_models", "bases", "base" };
     private static readonly string[] LeverDirectoryNames = { "lever_models", "levers", "lever" };
 
-    public static ToggleAssemblyConfig ResolveConfig(KnobProject? project)
+    public static ToggleAssemblyConfig ResolveConfig(KnobProject? project, RenderQualityTier quality = RenderQualityTier.Normal)
     {
         if (project is null || project.ProjectType != InteractorProjectType.FlipSwitch)
         {
@@ -127,7 +127,7 @@ public static class ToggleAssemblyMeshBuilder
         float leverLength = ResolveDimensionOverride(project.ToggleLeverLength, knobRadius * 0.90f);
         float leverBottomRadius = ResolveDimensionOverride(project.ToggleLeverRadius, knobRadius * 0.065f);
         float leverTopRadius = ResolveDimensionOverride(project.ToggleLeverTopRadius, leverBottomRadius * 0.52f);
-        int leverSides = Math.Clamp(project.ToggleLeverSides, 6, 64);
+        int leverSides = ScaleSegments(project.ToggleLeverSides, quality, 8, 96);
         float leverPivotOffset = project.ToggleLeverPivotOffset;
         float pivotBallRadius = ResolveDimensionOverride(
             project.TogglePivotBallRadius,
@@ -143,8 +143,8 @@ public static class ToggleAssemblyMeshBuilder
             project.TogglePivotHousingBevel,
             MathF.Max(0f, pivotHousingDepth * 0.22f));
         float tipRadius = ResolveDimensionOverride(project.ToggleTipRadius, knobRadius * 0.11f);
-        int tipLatitudeSegments = Math.Clamp(project.ToggleTipLatitudeSegments, 4, 64);
-        int tipLongitudeSegments = Math.Clamp(project.ToggleTipLongitudeSegments, 6, 128);
+        int tipLatitudeSegments = ScaleSegments(project.ToggleTipLatitudeSegments, quality, 4, 96);
+        int tipLongitudeSegments = ScaleSegments(project.ToggleTipLongitudeSegments, quality, 6, 160);
         bool tipSleeveEnabled = project.ToggleTipSleeveEnabled;
         float tipSleeveLength = ResolveDimensionOverride(project.ToggleTipSleeveLength, tipRadius * 1.15f);
         float tipSleeveThickness = ResolveDimensionOverride(project.ToggleTipSleeveThickness, MathF.Max(0.75f, tipRadius * 0.18f));
@@ -216,6 +216,18 @@ public static class ToggleAssemblyMeshBuilder
             BaseImportedMeshTicks: 0L,
             LeverImportedMeshPath: string.Empty,
             LeverImportedMeshTicks: 0L);
+    }
+
+    private static int ScaleSegments(int baseCount, RenderQualityTier quality, int minimum, int maximum)
+    {
+        float scale = quality switch
+        {
+            RenderQualityTier.Draft => 0.5f,
+            RenderQualityTier.Production => 1.5f,
+            _ => 1f
+        };
+
+        return Math.Clamp((int)MathF.Round(baseCount * scale), minimum, maximum);
     }
 
     public static TogglePartMesh BuildBaseMesh(in ToggleAssemblyConfig config)
@@ -1463,7 +1475,7 @@ public static class ToggleAssemblyMeshBuilder
     {
         string desktopRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "KnobForge");
+            "Monozukuri");
         for (int i = 0; i < ToggleRootDirectoryCandidates.Length; i++)
         {
             string candidate = Path.Combine(desktopRoot, ToggleRootDirectoryCandidates[i]);

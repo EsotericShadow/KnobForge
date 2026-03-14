@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using SkiaSharp;
@@ -43,7 +44,7 @@ namespace KnobForge.App.Views
         private void OnRotationChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_rotationSlider == null || e.Property != Slider.ValueProperty)
+            if (_rotationInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -54,132 +55,132 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.RotationRadians = (float)_rotationSlider.Value;
+            model.RotationRadians = (float)DegreesToRadians(_rotationInput.Value);
             NotifyProjectStateChanged();
         }
 
         private void OnLightXChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property != Slider.ValueProperty) return;
+            if (e.Property != ValueInput.ValueProperty) return;
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _lightXSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _lightXInput == null)
             {
                 return;
             }
 
-            light.X = (float)_lightXSlider.Value;
+            light.X = (float)_lightXInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnLightYChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _lightYSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _lightYInput == null)
             {
                 return;
             }
 
-            light.Y = (float)_lightYSlider.Value;
+            light.Y = (float)_lightYInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnLightZChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _lightZSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _lightZInput == null)
             {
                 return;
             }
 
-            light.Z = (float)_lightZSlider.Value;
+            light.Z = (float)_lightZInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnDirectionChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _directionSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _directionInput == null)
             {
                 return;
             }
 
-            light.DirectionRadians = (float)DegreesToRadians(_directionSlider.Value);
+            light.DirectionRadians = (float)DegreesToRadians(_directionInput.Value);
             NotifyProjectStateChanged();
         }
 
         private void OnIntensityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _intensitySlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _intensityInput == null)
             {
                 return;
             }
 
-            light.Intensity = (float)_intensitySlider.Value;
+            light.Intensity = (float)_intensityInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnFalloffChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _falloffSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _falloffInput == null)
             {
                 return;
             }
 
-            light.Falloff = (float)_falloffSlider.Value;
+            light.Falloff = (float)_falloffInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnColorChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) ||
-                _lightRSlider == null || _lightGSlider == null || _lightBSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) ||
+                _lightRInput == null || _lightGInput == null || _lightBInput == null)
             {
                 return;
             }
 
             light.Color = new SKColor(
-                (byte)Math.Clamp((int)_lightRSlider.Value, 0, 255),
-                (byte)Math.Clamp((int)_lightGSlider.Value, 0, 255),
-                (byte)Math.Clamp((int)_lightBSlider.Value, 0, 255));
+                (byte)Math.Clamp((int)_lightRInput.Value, 0, 255),
+                (byte)Math.Clamp((int)_lightGInput.Value, 0, 255),
+                (byte)Math.Clamp((int)_lightBInput.Value, 0, 255));
             NotifyProjectStateChanged();
         }
 
         private void OnDiffuseBoostChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _diffuseBoostSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _diffuseBoostInput == null)
             {
                 return;
             }
 
-            light.DiffuseBoost = (float)_diffuseBoostSlider.Value;
+            light.DiffuseBoost = (float)_diffuseBoostInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnSpecularBoostChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _specularBoostSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _specularBoostInput == null)
             {
                 return;
             }
 
-            light.SpecularBoost = (float)_specularBoostSlider.Value;
+            light.SpecularBoost = (float)_specularBoostInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnSpecularPowerChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (!CanMutateSelectedLight(e, Slider.ValueProperty, out var light) || _specularPowerSlider == null)
+            if (!CanMutateSelectedLight(e, ValueInput.ValueProperty, out var light) || _specularPowerInput == null)
             {
                 return;
             }
 
-            light.SpecularPower = (float)_specularPowerSlider.Value;
+            light.SpecularPower = (float)_specularPowerInput.Value;
             NotifyProjectStateChanged();
         }
         private bool CanMutateSelectedLight(AvaloniaPropertyChangedEventArgs e, AvaloniaProperty expectedProperty, out KnobLight light)

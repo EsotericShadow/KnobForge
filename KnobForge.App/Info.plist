@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>KnobForge</string>
+    <string>Monozukuri</string>
     <key>CFBundleDisplayName</key>
-    <string>KnobForge</string>
+    <string>Monozukuri</string>
     <key>CFBundleIconFile</key>
     <string>KnobForge.icns</string>
     <key>CFBundleIconName</key>
@@ -13,7 +13,7 @@
     <key>CFBundleIdentifier</key>
     <string>com.knobforge.app</string>
     <key>CFBundleExecutable</key>
-    <string>KnobForge</string>
+    <string>Monozukuri</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleVersion</key>
@@ -31,7 +31,7 @@
     <array>
         <dict>
             <key>CFBundleTypeName</key>
-            <string>KnobForge Project</string>
+            <string>Monozukuri Project</string>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>CFBundleTypeIconFile</key>
@@ -51,7 +51,7 @@
             <key>UTTypeIdentifier</key>
             <string>com.knobforge.project</string>
             <key>UTTypeDescription</key>
-            <string>KnobForge Project</string>
+            <string>Monozukuri Project</string>
             <key>UTTypeIconFile</key>
             <string>KnobForge.icns</string>
             <key>UTTypeConformsTo</key>

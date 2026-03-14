@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using System;
 using System.Numerics;
@@ -17,26 +18,26 @@ namespace KnobForge.App.Views
                 _brushPaintChannelCombo == null ||
                 _brushTypeCombo == null ||
                 _brushPaintColorPicker == null ||
-                _paintChannelTargetValueSlider == null ||
+                _paintChannelTargetValueInput == null ||
                 _scratchAbrasionTypeCombo == null ||
-                _brushSizeSlider == null ||
-                _brushOpacitySlider == null ||
-                _brushDarknessSlider == null ||
-                _brushSpreadSlider == null ||
-                _paintCoatMetallicSlider == null ||
-                _paintCoatRoughnessSlider == null ||
-                _clearCoatAmountSlider == null ||
-                _clearCoatRoughnessSlider == null ||
-                _anisotropyAngleSlider == null ||
-                _scratchWidthSlider == null ||
-                _scratchDepthSlider == null ||
-                _scratchResistanceSlider == null ||
-                _scratchDepthRampSlider == null ||
-                _scratchExposeColorRSlider == null ||
-                _scratchExposeColorGSlider == null ||
-                _scratchExposeColorBSlider == null ||
-                _scratchExposeMetallicSlider == null ||
-                _scratchExposeRoughnessSlider == null)
+                _brushSizeInput == null ||
+                _brushOpacityInput == null ||
+                _brushDarknessInput == null ||
+                _brushSpreadInput == null ||
+                _paintCoatMetallicInput == null ||
+                _paintCoatRoughnessInput == null ||
+                _clearCoatAmountInput == null ||
+                _clearCoatRoughnessInput == null ||
+                _anisotropyAngleInput == null ||
+                _scratchWidthInput == null ||
+                _scratchDepthInput == null ||
+                _scratchResistanceInput == null ||
+                _scratchDepthRampInput == null ||
+                _scratchExposeColorRInput == null ||
+                _scratchExposeColorGInput == null ||
+                _scratchExposeColorBInput == null ||
+                _scratchExposeMetallicInput == null ||
+                _scratchExposeRoughnessInput == null)
             {
                 return;
             }
@@ -62,7 +63,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -77,13 +78,13 @@ namespace KnobForge.App.Views
             _project.ScratchAbrasionType = _scratchAbrasionTypeCombo.SelectedItem is ScratchAbrasionType abrasionType
                 ? abrasionType
                 : ScratchAbrasionType.Needle;
-            _project.BrushSizePx = (float)_brushSizeSlider.Value;
-            _project.BrushOpacity = (float)_brushOpacitySlider.Value;
-            _project.BrushDarkness = (float)_brushDarknessSlider.Value;
-            _project.BrushSpread = (float)_brushSpreadSlider.Value;
-            _project.PaintCoatMetallic = (float)_paintCoatMetallicSlider.Value;
-            _project.PaintCoatRoughness = (float)_paintCoatRoughnessSlider.Value;
-            float targetValue = (float)_paintChannelTargetValueSlider.Value;
+            _project.BrushSizePx = (float)_brushSizeInput.Value;
+            _project.BrushOpacity = (float)_brushOpacityInput.Value;
+            _project.BrushDarkness = (float)_brushDarknessInput.Value;
+            _project.BrushSpread = (float)_brushSpreadInput.Value;
+            _project.PaintCoatMetallic = (float)_paintCoatMetallicInput.Value;
+            _project.PaintCoatRoughness = (float)_paintCoatRoughnessInput.Value;
+            float targetValue = (float)_paintChannelTargetValueInput.Value;
             if (_project.BrushChannel == PaintChannel.Roughness)
             {
                 _project.RoughnessPaintTarget = targetValue;
@@ -92,20 +93,20 @@ namespace KnobForge.App.Views
             {
                 _project.MetallicPaintTarget = targetValue;
             }
-            _project.ClearCoatAmount = (float)_clearCoatAmountSlider.Value;
-            _project.ClearCoatRoughness = (float)_clearCoatRoughnessSlider.Value;
-            _project.AnisotropyAngleDegrees = (float)_anisotropyAngleSlider.Value;
+            _project.ClearCoatAmount = (float)_clearCoatAmountInput.Value;
+            _project.ClearCoatRoughness = (float)_clearCoatRoughnessInput.Value;
+            _project.AnisotropyAngleDegrees = (float)_anisotropyAngleInput.Value;
             _project.PaintColor = ToVector3(_brushPaintColorPicker.Color);
-            _project.ScratchWidthPx = (float)_scratchWidthSlider.Value;
-            _project.ScratchDepth = (float)_scratchDepthSlider.Value;
-            _project.ScratchDragResistance = (float)_scratchResistanceSlider.Value;
-            _project.ScratchDepthRamp = (float)_scratchDepthRampSlider.Value;
+            _project.ScratchWidthPx = (float)_scratchWidthInput.Value;
+            _project.ScratchDepth = (float)_scratchDepthInput.Value;
+            _project.ScratchDragResistance = (float)_scratchResistanceInput.Value;
+            _project.ScratchDepthRamp = (float)_scratchDepthRampInput.Value;
             _project.ScratchExposeColor = new Vector3(
-                (float)_scratchExposeColorRSlider.Value,
-                (float)_scratchExposeColorGSlider.Value,
-                (float)_scratchExposeColorBSlider.Value);
-            _project.ScratchExposeMetallic = (float)_scratchExposeMetallicSlider.Value;
-            _project.ScratchExposeRoughness = (float)_scratchExposeRoughnessSlider.Value;
+                (float)_scratchExposeColorRInput.Value,
+                (float)_scratchExposeColorGInput.Value,
+                (float)_scratchExposeColorBInput.Value);
+            _project.ScratchExposeMetallic = (float)_scratchExposeMetallicInput.Value;
+            _project.ScratchExposeRoughness = (float)_scratchExposeRoughnessInput.Value;
             UpdateBrushContextUi();
             NotifyRenderOnly();
             _metalViewport?.RefreshPaintHud();

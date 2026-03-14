@@ -15,7 +15,7 @@ BUILD_NUMBER="${BUILD_NUMBER:-1}"
 BUNDLE_IDENTIFIER="${BUNDLE_IDENTIFIER:-com.knobforge.app}"
 PUBLISH_DIR="${PUBLISH_DIR:-$ROOT_DIR/artifacts/macos/publish/$RID_SEGMENT}"
 APP_BUNDLE_DIR="${APP_BUNDLE_DIR:-$ROOT_DIR/artifacts/macos/KnobForge.app}"
-MACOS_EXECUTABLE_NAME="KnobForge"
+MACOS_EXECUTABLE_NAME="Monozukuri"
 PUBLISHED_APPHOST_NAME="KnobForge.App"
 APP_ICON_SOURCE="${APP_ICON_SOURCE:-$ROOT_DIR/icon.ico}"
 APP_ICON_FILENAME="${APP_ICON_FILENAME:-KnobForge.icns}"
@@ -109,7 +109,7 @@ PY
   echo ">>> WARNING: Unable to generate app icon from $APP_ICON_SOURCE."
 }
 
-echo ">>> Publishing KnobForge ($CONFIGURATION, $TARGET_FRAMEWORK, RID=${RID_SEGMENT})"
+echo ">>> Publishing Monozukuri ($CONFIGURATION, $TARGET_FRAMEWORK, RID=${RID_SEGMENT})"
 publish_args=(
   "$PROJECT_PATH"
   -c "$CONFIGURATION"

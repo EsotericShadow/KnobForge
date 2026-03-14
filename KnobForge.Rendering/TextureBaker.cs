@@ -1,5 +1,7 @@
 using KnobForge.Core;
 using KnobForge.Core.Export;
+using KnobForge.Core.MaterialGraph;
+using KnobForge.Core.MaterialGraph.Nodes;
 using KnobForge.Core.Scene;
 using SkiaSharp;
 using System;
@@ -41,6 +43,61 @@ public sealed class TextureBaker
             BakeSnapshot snapshot = CaptureSnapshot(project, material);
             int resolution = settings.Resolution;
             int pixelCount = checked(resolution * resolution);
+            string sanitizedBaseName = SanitizeFileNamePart(settings.BaseName, "bake");
+
+            if (material.Graph != null && material.Graph.FindOutputNode() != null)
+            {
+                List<string> graphErrors = material.Graph.Validate();
+                if (graphErrors.Count > 0)
+                {
+                    throw new InvalidOperationException($"Material graph is invalid: {string.Join("; ", graphErrors)}");
+                }
+
+                Dictionary<string, TextureData> graphTextures = LoadGraphTextures(material.Graph);
+                GraphBakeResult graphResult = GraphEvaluator.BakeGraph(
+                    material.Graph,
+                    resolution,
+                    resolution,
+                    graphTextures,
+                    progress,
+                    ct);
+
+                if (settings.BakeAlbedo)
+                {
+                    result.AlbedoPath = WritePng(
+                        Path.Combine(settings.OutputFolder, $"{sanitizedBaseName}_albedo.png"),
+                        graphResult.Albedo,
+                        resolution);
+                }
+
+                if (settings.BakeNormal)
+                {
+                    result.NormalPath = WritePng(
+                        Path.Combine(settings.OutputFolder, $"{sanitizedBaseName}_normal.png"),
+                        graphResult.Normal,
+                        resolution);
+                }
+
+                if (settings.BakeRoughness)
+                {
+                    result.RoughnessPath = WritePng(
+                        Path.Combine(settings.OutputFolder, $"{sanitizedBaseName}_roughness.png"),
+                        graphResult.Roughness,
+                        resolution);
+                }
+
+                if (settings.BakeMetallic)
+                {
+                    result.MetallicPath = WritePng(
+                        Path.Combine(settings.OutputFolder, $"{sanitizedBaseName}_metallic.png"),
+                        graphResult.Metallic,
+                        resolution);
+                }
+
+                result.MetadataPath = WriteMetadata(settings, result);
+                result.Success = true;
+                return result;
+            }
 
             byte[]? albedoBuffer = settings.BakeAlbedo ? new byte[checked(pixelCount * 4)] : null;
             byte[]? roughnessBuffer = settings.BakeRoughness ? new byte[checked(pixelCount * 4)] : null;
@@ -128,7 +185,6 @@ public sealed class TextureBaker
 
             progress?.Report(1f);
 
-            string sanitizedBaseName = SanitizeFileNamePart(settings.BaseName, "bake");
             if (albedoBuffer is not null)
             {
                 result.AlbedoPath = WritePng(
@@ -435,6 +491,33 @@ public sealed class TextureBaker
         }
     }
 
+    private static Dictionary<string, TextureData> LoadGraphTextures(MaterialGraph graph)
+    {
+        var textures = new Dictionary<string, TextureData>(StringComparer.Ordinal);
+        foreach (TextureMapNode textureNode in graph.Nodes.OfType<TextureMapNode>())
+        {
+            if (string.IsNullOrWhiteSpace(textureNode.FilePath) || textures.ContainsKey(textureNode.FilePath))
+            {
+                continue;
+            }
+
+            LoadedTexture? loaded = LoadTexture(textureNode.FilePath);
+            if (loaded == null)
+            {
+                continue;
+            }
+
+            textures[textureNode.FilePath] = new TextureData
+            {
+                Width = loaded.Width,
+                Height = loaded.Height,
+                Rgba8 = loaded.Pixels
+            };
+        }
+
+        return textures;
+    }
+
     private static Vector4 SampleBilinear(byte[] rgba8, int size, float u, float v)
     {
         if (rgba8.Length == 0 || size <= 0)
@@ -558,7 +641,7 @@ public sealed class TextureBaker
             },
             workflow = "metallic-roughness",
             normalSpace = "tangent",
-            source = "KnobForge"
+            source = "Monozukuri"
         };
         string json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
         {

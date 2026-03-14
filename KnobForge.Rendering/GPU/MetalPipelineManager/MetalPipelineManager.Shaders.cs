@@ -64,6 +64,7 @@ struct GpuUniforms
     GpuLight lights[MAX_LIGHTS];
     float4 dynamicLightParams;
     GpuLight dynamicLights[MAX_LIGHTS];
+    float4 environmentMapParams3;
 };
 
 struct VertexOut
@@ -149,7 +150,9 @@ static inline float3 EvaluateEnvironmentLighting(
     float envMapBlend,
     bool envMapAvailable,
     float envMapRotationRadians,
-    float3 envOrientation)
+    float3 envOrientation,
+    float roughness,
+    float maxMipLevel)
 {
     float3 dir = normalize(direction) * envOrientation;
     float3 gradient = EvaluateEnvironmentColor(dir, envBottom, envTop);
@@ -162,7 +165,8 @@ static inline float3 EvaluateEnvironmentLighting(
     float u = fract((azimuth * 0.15915494309) + 0.5);
     float v = clamp(acos(clamp(dir.y, -1.0, 1.0)) * 0.31830988618, 0.0, 1.0);
     constexpr sampler envSampler(filter::linear, mip_filter::linear, address::repeat);
-    float3 sampled = environmentMap.sample(envSampler, float2(u, v)).xyz;
+    float mipLevel = clamp(roughness, 0.0, 1.0) * max(0.0, maxMipLevel);
+    float3 sampled = environmentMap.sample(envSampler, float2(u, v), level(mipLevel)).xyz;
     return mix(gradient, sampled, clamp(envMapBlend, 0.0, 1.0));
 }
 
@@ -401,7 +405,8 @@ fragment float4 fragment_main(
     texture2d<float> normalMap [[texture(5)]],
     texture2d<float> roughnessMap [[texture(6)]],
     texture2d<float> metallicMap [[texture(7)]],
-    texture2d<float> paintMask2 [[texture(8)]])
+    texture2d<float> paintMask2 [[texture(8)]],
+    texture2d<float> brdfLut [[texture(9)]])
 {
     if (uniforms.shadowParams.x > 0.5)
     {
@@ -441,6 +446,8 @@ fragment float4 fragment_main(
     bool envMapAvailable = uniforms.environmentMapParams.y > 0.5;
     float envMapRotationRadians = uniforms.environmentMapParams.z;
     float3 envOrientation = uniforms.environmentMapParams2.xyz;
+    float maxMipLevel = max(0.0, uniforms.environmentMapParams3.x);
+    bool useBrdfLut = uniforms.environmentMapParams3.y > 0.5;
     if (dot(envOrientation, envOrientation) < 0.5)
     {
         envOrientation = float3(1.0, 1.0, 1.0);
@@ -918,15 +925,25 @@ fragment float4 fragment_main(
         envMapBlend,
         envMapAvailable,
         envMapRotationRadians,
-        envOrientation);
+        envOrientation,
+        roughness,
+        maxMipLevel);
     float envSpecWeight = 0.20 + 1.15 * metallic;
     float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
     float3 specTint = mix(float3(1.0), chromeTint, metallic);
-    float3 envSpecular = envColor * fresnelView * specTint * envSpecWeight;
+    float3 envF = fresnelView;
+    if (useBrdfLut)
+    {
+        constexpr sampler brdfSampler(filter::linear, address::clamp_to_edge);
+        float2 brdfUv = float2(clamp(NdotV, 0.0, 1.0), roughness);
+        float2 brdfScale = brdfLut.sample(brdfSampler, brdfUv).rg;
+        envF = F0 * brdfScale.x + float3(brdfScale.y);
+    }
+    float3 envSpecular = envColor * envF * specTint * envSpecWeight;
     float envDiffuseWeight = max(0.0, 1.0 - metallic);
     float3 envDiffuse = Hadamard(baseColor, envColor) * envDiffuseWeight;
     float envDiffuseEnergy = 0.35;
-    float roughEnergy = mix(1.12, 0.45, roughness * envRoughMix);
+    float roughEnergy = mix(1.0, 0.65, roughness * envRoughMix);
     float anisotropicEnergy = mix(1.0, 1.35, anisotropy);
     float envBrush = mix(1.0, 1.08, brushStrength * topMask * (0.35 + (0.65 * surfaceCharacter)));
     accum += envDiffuse * envIntensity * envDiffuseEnergy;
@@ -935,7 +952,18 @@ fragment float4 fragment_main(
     {
         float clearCoatFresnelView = clearCoatF0 + (1.0 - clearCoatF0) * pow(1.0 - NdotV, 5.0);
         float clearCoatEnvEnergy = mix(0.70, 0.24, clearCoatRoughness * envRoughMix);
-        accum += envColor * clearCoatFresnelView * envIntensity * clearCoatAmount * clearCoatEnvEnergy;
+        float3 clearCoatEnvColor = EvaluateEnvironmentLighting(
+            environmentMap,
+            R,
+            envBottom,
+            envTop,
+            envMapBlend,
+            envMapAvailable,
+            envMapRotationRadians,
+            envOrientation,
+            clearCoatRoughness,
+            maxMipLevel);
+        accum += clearCoatEnvColor * clearCoatFresnelView * envIntensity * clearCoatAmount * clearCoatEnvEnergy;
     }
 
     if (pearlescence > 1e-4)
@@ -976,7 +1004,9 @@ fragment float4 fragment_main(
             envMapBlend,
             envMapAvailable,
             envMapRotationRadians,
-            envOrientation);
+            envOrientation,
+            roughness * 0.5,
+            maxMipLevel);
         float3 refractedDirWide = normalize(mix(refractedDir, reflect(-viewDir, normal), 0.22 + 0.40 * roughness));
         float3 refractedEnvWide = EvaluateEnvironmentLighting(
             environmentMap,
@@ -986,7 +1016,9 @@ fragment float4 fragment_main(
             envMapBlend,
             envMapAvailable,
             envMapRotationRadians,
-            envOrientation);
+            envOrientation,
+            clamp(roughness + 0.25, 0.0, 1.0),
+            maxMipLevel);
         float3 transmittedEnv = refractedEnv * lensTint * absorptionFilter;
         float3 transmittedEnvWide = refractedEnvWide * lensTint * absorptionFilter;
         float3 transmittedBody = accum * lensTint * absorptionFilter * (0.10 + 0.30 * NdotV);
@@ -1110,7 +1142,8 @@ fragment float4 fragment_bloom_composite(
     }
 
     float4 baseColor = sourceTexture.sample(blitSampler, inVertex.uv);
-    float3 bloom = bloomTexture.sample(blitSampler, bloomUv).rgb;
+    float bloomScale = max(0.0, uniforms.postProcessParams2.z);
+    float3 bloom = bloomTexture.sample(blitSampler, bloomUv).rgb * bloomScale;
     float bloomAlpha = clamp(max(bloom.r, max(bloom.g, bloom.b)), 0.0, 1.0);
     float outAlpha = clamp(max(baseColor.a, bloomAlpha), 0.0, 1.0);
     return float4(baseColor.rgb + bloom, outAlpha);

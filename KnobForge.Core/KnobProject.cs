@@ -88,6 +88,23 @@ namespace KnobForge.Core
         Disabled = 2
     }
 
+    public enum SliderThumbProfile
+    {
+        Box = 0,
+        Rounded = 1,
+        Ridged = 2,
+        Pointer = 3,
+        BarHandle = 4
+    }
+
+    public enum SliderTrackStyle
+    {
+        None = 0,
+        Channel = 1,
+        VGroove = 2,
+        Rail = 3
+    }
+
     public enum ToggleAssemblyMode
     {
         Auto = 0,
@@ -124,6 +141,38 @@ namespace KnobForge.Core
         Flat = 0,
         Bevel = 1,
         Rounded = 2
+    }
+
+    public enum PushButtonCapProfile
+    {
+        Flat = 0,
+        Domed = 1,
+        Concave = 2,
+        Stepped = 3,
+        Mushroom = 4
+    }
+
+    public enum PushButtonBezelProfile
+    {
+        Straight = 0,
+        Chamfered = 1,
+        Filleted = 2,
+        Flared = 3
+    }
+
+    public enum PushButtonSkirtStyle
+    {
+        None = 0,
+        Ring = 1,
+        Collar = 2,
+        Flange = 3
+    }
+
+    public enum RenderQualityTier
+    {
+        Draft = 0,
+        Normal = 1,
+        Production = 2
     }
 
     public enum InteractorProjectType
@@ -211,7 +260,27 @@ namespace KnobForge.Core
         private float _sliderThumbHeight;
         private float _sliderThumbDepth;
         private float _sliderThumbPositionNormalized = 0.5f;
+        private SliderThumbProfile _sliderThumbProfile = SliderThumbProfile.Box;
+        private SliderTrackStyle _sliderTrackStyle = SliderTrackStyle.None;
+        private float _sliderTrackWidth;
+        private float _sliderTrackDepth;
+        private float _sliderRailHeight;
+        private float _sliderRailSpacing;
+        private int _sliderThumbRidgeCount;
+        private float _sliderThumbRidgeDepth;
+        private float _sliderThumbCornerRadius;
         private float _pushButtonPressAmountNormalized;
+        private PushButtonCapProfile _pushButtonCapProfile = PushButtonCapProfile.Flat;
+        private PushButtonBezelProfile _pushButtonBezelProfile = PushButtonBezelProfile.Straight;
+        private PushButtonSkirtStyle _pushButtonSkirtStyle = PushButtonSkirtStyle.None;
+        private float _pushButtonBezelChamferSize;
+        private float _pushButtonCapOverhang;
+        private int _pushButtonCapSegments;
+        private int _pushButtonBezelSegments;
+        private float _pushButtonSkirtHeight;
+        private float _pushButtonSkirtRadius;
+        private string _pushButtonBaseImportedMeshPath = string.Empty;
+        private string _pushButtonCapImportedMeshPath = string.Empty;
         private bool _indicatorAssemblyEnabled = true;
         private float _indicatorBaseWidth;
         private float _indicatorBaseHeight;
@@ -327,7 +396,9 @@ namespace KnobForge.Core
         public Vector3 EnvironmentBottomColor { get; set; } = new(0f, 0f, 0f);
         public float EnvironmentIntensity { get; set; } = 0.36f;
         public float EnvironmentRoughnessMix { get; set; } = 1.0f;
+        public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
         public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
+        public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
         public float EnvironmentExposure
         {
             get => _environmentExposure;
@@ -586,11 +657,115 @@ namespace KnobForge.Core
             get => _sliderThumbPositionNormalized;
             set => _sliderThumbPositionNormalized = Math.Clamp(value, 0f, 1f);
         }
+        public SliderThumbProfile SliderThumbProfile
+        {
+            get => _sliderThumbProfile;
+            set => _sliderThumbProfile = value;
+        }
+        public SliderTrackStyle SliderTrackStyle
+        {
+            get => _sliderTrackStyle;
+            set => _sliderTrackStyle = value;
+        }
+        public float SliderTrackWidth
+        {
+            get => _sliderTrackWidth;
+            set => _sliderTrackWidth = ClampSliderDimensionOverride(value);
+        }
+        public float SliderTrackDepth
+        {
+            get => _sliderTrackDepth;
+            set => _sliderTrackDepth = ClampSliderDimensionOverride(value);
+        }
+        public float SliderRailHeight
+        {
+            get => _sliderRailHeight;
+            set => _sliderRailHeight = ClampSliderDimensionOverride(value);
+        }
+        public float SliderRailSpacing
+        {
+            get => _sliderRailSpacing;
+            set => _sliderRailSpacing = ClampSliderDimensionOverride(value);
+        }
+        public int SliderThumbRidgeCount
+        {
+            get => _sliderThumbRidgeCount;
+            set => _sliderThumbRidgeCount = ClampSliderGeometrySegments(value, 3, 16);
+        }
+        public float SliderThumbRidgeDepth
+        {
+            get => _sliderThumbRidgeDepth;
+            set => _sliderThumbRidgeDepth = ClampSliderDimensionOverride(value);
+        }
+        public float SliderThumbCornerRadius
+        {
+            get => _sliderThumbCornerRadius;
+            set => _sliderThumbCornerRadius = ClampSliderDimensionOverride(value);
+        }
         public float PushButtonPressAmountNormalized
         {
             get => _pushButtonPressAmountNormalized;
             set => _pushButtonPressAmountNormalized = Math.Clamp(value, 0f, 1f);
         }
+        public PushButtonCapProfile PushButtonCapProfile
+        {
+            get => _pushButtonCapProfile;
+            set => _pushButtonCapProfile = value;
+        }
+        public PushButtonBezelProfile PushButtonBezelProfile
+        {
+            get => _pushButtonBezelProfile;
+            set => _pushButtonBezelProfile = value;
+        }
+        public PushButtonSkirtStyle PushButtonSkirtStyle
+        {
+            get => _pushButtonSkirtStyle;
+            set => _pushButtonSkirtStyle = value;
+        }
+        public float PushButtonBezelChamferSize
+        {
+            get => _pushButtonBezelChamferSize;
+            set => _pushButtonBezelChamferSize = ClampPushButtonDimensionOverride(value);
+        }
+        public float PushButtonCapOverhang
+        {
+            get => _pushButtonCapOverhang;
+            set => _pushButtonCapOverhang = ClampPushButtonDimensionOverride(value);
+        }
+        public int PushButtonCapSegments
+        {
+            get => _pushButtonCapSegments;
+            set => _pushButtonCapSegments = ClampPushButtonSegments(value, 28, 6, 128);
+        }
+        public int PushButtonBezelSegments
+        {
+            get => _pushButtonBezelSegments;
+            set => _pushButtonBezelSegments = ClampPushButtonSegments(value, 28, 6, 128);
+        }
+        public float PushButtonSkirtHeight
+        {
+            get => _pushButtonSkirtHeight;
+            set => _pushButtonSkirtHeight = ClampPushButtonDimensionOverride(value);
+        }
+        public float PushButtonSkirtRadius
+        {
+            get => _pushButtonSkirtRadius;
+            set => _pushButtonSkirtRadius = ClampPushButtonDimensionOverride(value);
+        }
+        public string PushButtonBaseImportedMeshPath
+        {
+            get => _pushButtonBaseImportedMeshPath;
+            set => _pushButtonBaseImportedMeshPath = NormalizeOptionalPath(value);
+        }
+        public string PushButtonCapImportedMeshPath
+        {
+            get => _pushButtonCapImportedMeshPath;
+            set => _pushButtonCapImportedMeshPath = NormalizeOptionalPath(value);
+        }
+        public ToggleMaterialPresetId ToggleMaterialPreset { get; set; } = ToggleMaterialPresetId.Custom;
+        public SliderMaterialPresetId SliderMaterialPreset { get; set; } = SliderMaterialPresetId.Custom;
+        public PushButtonMaterialPresetId PushButtonMaterialPreset { get; set; } = PushButtonMaterialPresetId.Custom;
+        public RenderQualityTier PreviewQuality { get; set; } = RenderQualityTier.Normal;
         public bool IndicatorAssemblyEnabled
         {
             get => _indicatorAssemblyEnabled;
@@ -1129,7 +1304,30 @@ namespace KnobForge.Core
         {
             ProjectType = projectType;
             SliderThumbPositionNormalized = 0.5f;
+            SliderThumbProfile = SliderThumbProfile.Box;
+            SliderTrackStyle = SliderTrackStyle.None;
+            SliderTrackWidth = 0f;
+            SliderTrackDepth = 0f;
+            SliderRailHeight = 0f;
+            SliderRailSpacing = 0f;
+            SliderThumbRidgeCount = 0;
+            SliderThumbRidgeDepth = 0f;
+            SliderThumbCornerRadius = 0f;
             PushButtonPressAmountNormalized = 0f;
+            PushButtonCapProfile = PushButtonCapProfile.Flat;
+            PushButtonBezelProfile = PushButtonBezelProfile.Straight;
+            PushButtonSkirtStyle = PushButtonSkirtStyle.None;
+            PushButtonBezelChamferSize = 0f;
+            PushButtonCapOverhang = 0f;
+            PushButtonCapSegments = 0;
+            PushButtonBezelSegments = 0;
+            PushButtonSkirtHeight = 0f;
+            PushButtonSkirtRadius = 0f;
+            PushButtonBaseImportedMeshPath = string.Empty;
+            PushButtonCapImportedMeshPath = string.Empty;
+            ToggleMaterialPreset = ToggleMaterialPresetId.Custom;
+            SliderMaterialPreset = SliderMaterialPresetId.Custom;
+            PushButtonMaterialPreset = PushButtonMaterialPresetId.Custom;
             ToggleStateBlendPosition = float.NaN;
             DynamicLightRig.Enabled = false;
             DynamicLightRig.AnimationMode = DynamicLightAnimationMode.Steady;
@@ -1542,7 +1740,7 @@ namespace KnobForge.Core
 
             string legacyImportedStlPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "KnobForge",
+                "Monozukuri",
                 "ouroboros.stl");
             if (File.Exists(legacyImportedStlPath))
             {
@@ -1560,6 +1758,36 @@ namespace KnobForge.Core
             }
 
             return Math.Clamp(value, 1f, 4096f);
+        }
+
+        private static int ClampSliderGeometrySegments(int value, int min, int max)
+        {
+            if (value <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Clamp(value, min, max);
+        }
+
+        private static float ClampPushButtonDimensionOverride(float value)
+        {
+            if (!float.IsFinite(value) || value <= 0f)
+            {
+                return 0f;
+            }
+
+            return Math.Clamp(value, 0.1f, 4096f);
+        }
+
+        private static int ClampPushButtonSegments(int value, int fallback, int min, int max)
+        {
+            if (value <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Clamp(value, min, max);
         }
 
         private static float ClampIndicatorDimension(float value)

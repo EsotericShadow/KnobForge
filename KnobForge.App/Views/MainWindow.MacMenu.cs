@@ -112,7 +112,7 @@ namespace KnobForge.App.Views
                 gesture: new KeyGesture(Key.R, KeyModifiers.Meta | KeyModifiers.Shift)));
             fileMenu.Add(new NativeMenuItemSeparator());
             fileMenu.Add(CreateActionMenuItem(
-                header: "Quit KnobForge",
+                header: "Quit Monozukuri",
                 onClick: QuitFromMenu,
                 gesture: new KeyGesture(Key.Q, KeyModifiers.Meta)));
 

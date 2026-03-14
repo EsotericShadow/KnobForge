@@ -28,8 +28,8 @@ fi
 
 APP_VERSION="$("$PLIST_BUDDY" -c "Print :CFBundleShortVersionString" "$INFO_PLIST" 2>/dev/null || echo "1.0.0")"
 BUILD_NUMBER="$("$PLIST_BUDDY" -c "Print :CFBundleVersion" "$INFO_PLIST" 2>/dev/null || echo "1")"
-PKG_BASENAME="KnobForge-${APP_VERSION}.pkg"
-UNSIGNED_PKG="$OUTPUT_DIR/KnobForge-${APP_VERSION}-unsigned.pkg"
+PKG_BASENAME="Monozukuri-${APP_VERSION}.pkg"
+UNSIGNED_PKG="$OUTPUT_DIR/Monozukuri-${APP_VERSION}-unsigned.pkg"
 FINAL_PKG="$OUTPUT_DIR/$PKG_BASENAME"
 
 mkdir -p "$OUTPUT_DIR"

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using System;
@@ -14,7 +15,7 @@ namespace KnobForge.App.Views
         private void OnModelRadiusChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_modelRadiusSlider == null || e.Property != Slider.ValueProperty)
+            if (_modelRadiusInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -25,14 +26,14 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.Radius = (float)_modelRadiusSlider.Value;
+            model.Radius = (float)_modelRadiusInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
         private void OnModelHeightChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_modelHeightSlider == null || e.Property != Slider.ValueProperty)
+            if (_modelHeightInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -43,14 +44,14 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.Height = (float)_modelHeightSlider.Value;
+            model.Height = (float)_modelHeightInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
         private void OnModelTopScaleChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_modelTopScaleSlider == null || e.Property != Slider.ValueProperty)
+            if (_modelTopScaleInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -61,14 +62,14 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.TopRadiusScale = (float)_modelTopScaleSlider.Value;
+            model.TopRadiusScale = (float)_modelTopScaleInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
         private void OnModelBevelChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_modelBevelSlider == null || e.Property != Slider.ValueProperty)
+            if (_modelBevelInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -79,7 +80,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.Bevel = (float)_modelBevelSlider.Value;
+            model.Bevel = (float)_modelBevelInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
@@ -475,11 +476,11 @@ namespace KnobForge.App.Views
         private void OnBodyDesignChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi ||
-                e.Property != Slider.ValueProperty ||
-                _bevelCurveSlider == null ||
-                _crownProfileSlider == null ||
-                _bodyTaperSlider == null ||
-                _bodyBulgeSlider == null)
+                e.Property != ValueInput.ValueProperty ||
+                _bevelCurveInput == null ||
+                _crownProfileInput == null ||
+                _bodyTaperInput == null ||
+                _bodyBulgeInput == null)
             {
                 return;
             }
@@ -490,17 +491,17 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.BevelCurve = (float)_bevelCurveSlider.Value;
-            model.CrownProfile = (float)_crownProfileSlider.Value;
-            model.BodyTaper = (float)_bodyTaperSlider.Value;
-            model.BodyBulge = (float)_bodyBulgeSlider.Value;
+            model.BevelCurve = (float)_bevelCurveInput.Value;
+            model.CrownProfile = (float)_crownProfileInput.Value;
+            model.BodyTaper = (float)_bodyTaperInput.Value;
+            model.BodyBulge = (float)_bodyBulgeInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
         private void OnModelSegmentsChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi) return;
-            if (_modelSegmentsSlider == null || e.Property != Slider.ValueProperty)
+            if (_modelSegmentsInput == null || e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -511,15 +512,15 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            int seg = Math.Clamp((int)Math.Round(_modelSegmentsSlider.Value), 12, 180);
+            int seg = Math.Clamp((int)Math.Round(_modelSegmentsInput.Value), 12, 180);
             model.RadialSegments = seg;
             RequestHeavyGeometryRefresh();
         }
 
         private void OnSpiralGeometryChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (_updatingUi || e.Property != Slider.ValueProperty ||
-                _spiralRidgeHeightSlider == null || _spiralRidgeWidthSlider == null || _spiralTurnsSlider == null)
+            if (_updatingUi || e.Property != ValueInput.ValueProperty ||
+                _spiralRidgeHeightInput == null || _spiralRidgeWidthInput == null || _spiralTurnsInput == null)
             {
                 return;
             }
@@ -530,9 +531,9 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            model.SpiralRidgeHeight = (float)_spiralRidgeHeightSlider.Value;
-            model.SpiralRidgeWidth = (float)_spiralRidgeWidthSlider.Value;
-            model.SpiralTurns = (float)_spiralTurnsSlider.Value;
+            model.SpiralRidgeHeight = (float)_spiralRidgeHeightInput.Value;
+            model.SpiralRidgeWidth = (float)_spiralRidgeWidthInput.Value;
+            model.SpiralTurns = (float)_spiralTurnsInput.Value;
             RequestHeavyGeometryRefresh();
         }
 
@@ -604,9 +605,9 @@ namespace KnobForge.App.Views
         private void OnGripSettingsChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi ||
-                _gripTypeCombo == null || _gripStartSlider == null || _gripHeightSlider == null ||
-                _gripDensitySlider == null || _gripPitchSlider == null || _gripDepthSlider == null ||
-                _gripWidthSlider == null || _gripSharpnessSlider == null)
+                _gripTypeCombo == null || _gripStartInput == null || _gripHeightInput == null ||
+                _gripDensityInput == null || _gripPitchInput == null || _gripDepthInput == null ||
+                _gripWidthInput == null || _gripSharpnessInput == null)
             {
                 return;
             }
@@ -618,7 +619,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -630,13 +631,13 @@ namespace KnobForge.App.Views
             }
 
             model.GripType = _gripTypeCombo.SelectedItem is GripType gripType ? gripType : GripType.None;
-            model.GripStart = (float)_gripStartSlider.Value;
-            model.GripHeight = (float)_gripHeightSlider.Value;
-            model.GripDensity = (float)_gripDensitySlider.Value;
-            model.GripPitch = (float)_gripPitchSlider.Value;
-            model.GripDepth = (float)_gripDepthSlider.Value;
-            model.GripWidth = (float)_gripWidthSlider.Value;
-            model.GripSharpness = (float)_gripSharpnessSlider.Value;
+            model.GripStart = (float)_gripStartInput.Value;
+            model.GripHeight = (float)_gripHeightInput.Value;
+            model.GripDensity = (float)_gripDensityInput.Value;
+            model.GripPitch = (float)_gripPitchInput.Value;
+            model.GripDepth = (float)_gripDepthInput.Value;
+            model.GripWidth = (float)_gripWidthInput.Value;
+            model.GripSharpness = (float)_gripSharpnessInput.Value;
             if (ReferenceEquals(sender, _gripTypeCombo))
             {
                 NotifyProjectStateChanged();

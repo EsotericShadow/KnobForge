@@ -123,7 +123,7 @@ namespace KnobForge.App.Views
         private readonly TextBox _viewpointPanYTextBox;
         private readonly ComboBox _rotaryPreviewVariantComboBox;
         private readonly Button _createRotaryPreviewButton;
-        private readonly SpriteKnobSlider _rotaryPreviewKnob;
+        private readonly SpriteSheetPreviewKnob _rotaryPreviewKnob;
         private readonly TextBlock _rotaryPreviewInfoTextBlock;
         private readonly TextBlock _rotaryPreviewValueTextBlock;
         private readonly Button _startRenderButton;
@@ -330,7 +330,7 @@ namespace KnobForge.App.Views
                 ?? throw new InvalidOperationException("RotaryPreviewVariantComboBox not found.");
             _createRotaryPreviewButton = this.FindControl<Button>("CreateRotaryPreviewButton")
                 ?? throw new InvalidOperationException("CreateRotaryPreviewButton not found.");
-            _rotaryPreviewKnob = this.FindControl<SpriteKnobSlider>("RotaryPreviewKnob")
+            _rotaryPreviewKnob = this.FindControl<SpriteSheetPreviewKnob>("RotaryPreviewKnob")
                 ?? throw new InvalidOperationException("RotaryPreviewKnob not found.");
             _rotaryPreviewInfoTextBlock = this.FindControl<TextBlock>("RotaryPreviewInfoTextBlock")
                 ?? throw new InvalidOperationException("RotaryPreviewInfoTextBlock not found.");

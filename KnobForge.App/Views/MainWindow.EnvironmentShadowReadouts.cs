@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using System;
@@ -13,85 +14,255 @@ namespace KnobForge.App.Views
         private void OnEnvironmentChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi ||
-                _envIntensitySlider == null || _envRoughnessMixSlider == null ||
-                _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
-                _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null)
+                _envIntensityInput == null || _envRoughnessMixInput == null ||
+                _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
+                _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null)
             {
                 return;
             }
 
-            bool isTonemapCombo = ReferenceEquals(sender, _envTonemapCombo);
-            if (isTonemapCombo)
+            bool isCombo =
+                ReferenceEquals(sender, _envTonemapCombo) ||
+                ReferenceEquals(sender, _envPresetCombo) ||
+                ReferenceEquals(sender, _envBloomKernelShapeCombo);
+            if (isCombo)
             {
                 if (e.Property != ComboBox.SelectedItemProperty)
                 {
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
 
-            CommitEnvironmentStateFromUi();
+            CommitEnvironmentStateFromUi(sender);
 
             NotifyRenderOnly();
         }
 
-        private void CommitEnvironmentStateFromUi()
+        private void CommitEnvironmentStateFromUi(object? sender = null)
         {
-            if (_envIntensitySlider == null || _envRoughnessMixSlider == null ||
-                _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
-                _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null)
+            if (_envIntensityInput == null || _envRoughnessMixInput == null ||
+                _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
+                _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null)
             {
                 return;
             }
 
-            _project.EnvironmentIntensity = (float)_envIntensitySlider.Value;
-            _project.EnvironmentRoughnessMix = (float)_envRoughnessMixSlider.Value;
-            _project.EnvironmentTopColor = new Vector3(
-                (float)_envTopRSlider.Value,
-                (float)_envTopGSlider.Value,
-                (float)_envTopBSlider.Value);
-            _project.EnvironmentBottomColor = new Vector3(
-                (float)_envBottomRSlider.Value,
-                (float)_envBottomGSlider.Value,
-                (float)_envBottomBSlider.Value);
+            EnvironmentPreset selectedPreset = ResolveSelectedEnvironmentPreset();
+            if (IsEnvironmentManualAppearanceSender(sender) && selectedPreset != EnvironmentPreset.Custom)
+            {
+                selectedPreset = EnvironmentPreset.Custom;
+                WithUiRefreshSuppressed(() => SelectEnvironmentPresetOption(EnvironmentPreset.Custom));
+            }
+
+            _project.EnvironmentPreset = selectedPreset;
+            if (selectedPreset != EnvironmentPreset.Custom)
+            {
+                ApplyEnvironmentPresetToProject(selectedPreset);
+                if (TryGetEnvironmentPresetDefinition(selectedPreset, out EnvironmentPresetDefinition preset))
+                {
+                    WithUiRefreshSuppressed(() =>
+                    {
+                        ApplyEnvironmentValuesToInputs(
+                            preset.TopColor,
+                            preset.BottomColor,
+                            preset.Intensity,
+                            preset.RoughnessMix);
+                    });
+                }
+            }
+            else
+            {
+                _project.EnvironmentIntensity = (float)_envIntensityInput.Value;
+                _project.EnvironmentRoughnessMix = (float)_envRoughnessMixInput.Value;
+                _project.EnvironmentTopColor = new Vector3(
+                    (float)_envTopRInput.Value,
+                    (float)_envTopGInput.Value,
+                    (float)_envTopBInput.Value);
+                _project.EnvironmentBottomColor = new Vector3(
+                    (float)_envBottomRInput.Value,
+                    (float)_envBottomGInput.Value,
+                    (float)_envBottomBInput.Value);
+            }
 
             if (_envTonemapCombo?.SelectedItem is TonemapOperator tonemapOperator)
             {
                 _project.ToneMappingOperator = tonemapOperator;
             }
 
-            if (_envExposureSlider != null)
+            if (_envExposureInput != null)
             {
-                _project.EnvironmentExposure = (float)_envExposureSlider.Value;
+                _project.EnvironmentExposure = (float)_envExposureInput.Value;
             }
 
-            if (_envBloomStrengthSlider != null)
+            if (_envBloomStrengthInput != null)
             {
-                _project.EnvironmentBloomStrength = (float)_envBloomStrengthSlider.Value;
+                _project.EnvironmentBloomStrength = (float)_envBloomStrengthInput.Value;
             }
 
-            if (_envBloomThresholdSlider != null)
+            if (_envBloomThresholdInput != null)
             {
-                _project.EnvironmentBloomThreshold = (float)_envBloomThresholdSlider.Value;
+                _project.EnvironmentBloomThreshold = (float)_envBloomThresholdInput.Value;
             }
 
-            if (_envBloomKneeSlider != null)
+            if (_envBloomKneeInput != null)
             {
-                _project.EnvironmentBloomKnee = (float)_envBloomKneeSlider.Value;
+                _project.EnvironmentBloomKnee = (float)_envBloomKneeInput.Value;
             }
 
-            if (_envHdriBlendSlider != null)
+            _project.BloomKernelShape = ResolveSelectedBloomKernelShape();
+
+            if (_envHdriBlendInput != null)
             {
-                _project.EnvironmentHdriBlend = (float)_envHdriBlendSlider.Value;
+                _project.EnvironmentHdriBlend = (float)_envHdriBlendInput.Value;
             }
 
-            if (_envHdriRotationSlider != null)
+            if (_envHdriRotationInput != null)
             {
-                _project.EnvironmentHdriRotationDegrees = (float)_envHdriRotationSlider.Value;
+                _project.EnvironmentHdriRotationDegrees = (float)_envHdriRotationInput.Value;
             }
+
+            UpdateEnvironmentManualControlsAppearance(_project.EnvironmentPreset);
+        }
+
+        private void RebuildEnvironmentPresetOptions()
+        {
+            _environmentPresetOptions.Clear();
+            _environmentPresetOptions.Add(new EnvironmentPresetOption
+            {
+                Preset = EnvironmentPreset.Custom,
+                Name = "Custom"
+            });
+
+            foreach (EnvironmentPresetDefinition definition in EnvironmentPresets.All)
+            {
+                _environmentPresetOptions.Add(new EnvironmentPresetOption
+                {
+                    Preset = definition.Preset,
+                    Name = definition.DisplayName
+                });
+            }
+        }
+
+        private void RebuildBloomKernelShapeOptions()
+        {
+            _bloomKernelShapeOptions.Clear();
+            _bloomKernelShapeOptions.Add(new BloomKernelShapeOption { Shape = BloomKernelShape.Soft, Name = "Soft" });
+            _bloomKernelShapeOptions.Add(new BloomKernelShapeOption { Shape = BloomKernelShape.Star4, Name = "Star 4" });
+            _bloomKernelShapeOptions.Add(new BloomKernelShapeOption { Shape = BloomKernelShape.Star6, Name = "Star 6" });
+            _bloomKernelShapeOptions.Add(new BloomKernelShapeOption { Shape = BloomKernelShape.AnamorphicStreak, Name = "Anamorphic streak" });
+        }
+
+        private EnvironmentPreset ResolveSelectedEnvironmentPreset()
+        {
+            if (_envPresetCombo?.SelectedItem is EnvironmentPresetOption option)
+            {
+                return option.Preset;
+            }
+
+            return EnvironmentPreset.Custom;
+        }
+
+        private BloomKernelShape ResolveSelectedBloomKernelShape()
+        {
+            if (_envBloomKernelShapeCombo?.SelectedItem is BloomKernelShapeOption option)
+            {
+                return option.Shape;
+            }
+
+            return BloomKernelShape.Soft;
+        }
+
+        private void SelectEnvironmentPresetOption(EnvironmentPreset preset)
+        {
+            if (_envPresetCombo == null)
+            {
+                return;
+            }
+
+            EnvironmentPresetOption? option = _environmentPresetOptions.Find(candidate => candidate.Preset == preset);
+            _envPresetCombo.SelectedItem = option ?? _environmentPresetOptions.Find(candidate => candidate.Preset == EnvironmentPreset.Custom);
+        }
+
+        private void SelectBloomKernelShapeOption(BloomKernelShape shape)
+        {
+            if (_envBloomKernelShapeCombo == null)
+            {
+                return;
+            }
+
+            BloomKernelShapeOption? option = _bloomKernelShapeOptions.Find(candidate => candidate.Shape == shape);
+            _envBloomKernelShapeCombo.SelectedItem = option ?? _bloomKernelShapeOptions.Find(candidate => candidate.Shape == BloomKernelShape.Soft);
+        }
+
+        private static bool TryGetEnvironmentPresetDefinition(EnvironmentPreset preset, out EnvironmentPresetDefinition definition)
+        {
+            EnvironmentPresetDefinition? resolved = EnvironmentPresets.Get(preset);
+            if (resolved.HasValue)
+            {
+                definition = resolved.Value;
+                return true;
+            }
+
+            definition = default;
+            return false;
+        }
+
+        private void ApplyEnvironmentPresetToProject(EnvironmentPreset preset)
+        {
+            if (!TryGetEnvironmentPresetDefinition(preset, out EnvironmentPresetDefinition definition))
+            {
+                return;
+            }
+
+            _project.EnvironmentTopColor = definition.TopColor;
+            _project.EnvironmentBottomColor = definition.BottomColor;
+            _project.EnvironmentIntensity = definition.Intensity;
+            _project.EnvironmentRoughnessMix = definition.RoughnessMix;
+        }
+
+        private void ApplyEnvironmentValuesToInputs(Vector3 topColor, Vector3 bottomColor, float intensity, float roughnessMix)
+        {
+            if (_envIntensityInput == null || _envRoughnessMixInput == null ||
+                _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
+                _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null)
+            {
+                return;
+            }
+
+            _envIntensityInput.Value = intensity;
+            _envRoughnessMixInput.Value = roughnessMix;
+            _envTopRInput.Value = topColor.X;
+            _envTopGInput.Value = topColor.Y;
+            _envTopBInput.Value = topColor.Z;
+            _envBottomRInput.Value = bottomColor.X;
+            _envBottomGInput.Value = bottomColor.Y;
+            _envBottomBInput.Value = bottomColor.Z;
+        }
+
+        private void UpdateEnvironmentManualControlsAppearance(EnvironmentPreset preset)
+        {
+            if (_environmentManualSettingsPanel == null)
+            {
+                return;
+            }
+
+            _environmentManualSettingsPanel.Opacity = preset == EnvironmentPreset.Custom ? 1.0 : 0.62;
+        }
+
+        private bool IsEnvironmentManualAppearanceSender(object? sender)
+        {
+            return ReferenceEquals(sender, _envIntensityInput) ||
+                   ReferenceEquals(sender, _envRoughnessMixInput) ||
+                   ReferenceEquals(sender, _envTopRInput) ||
+                   ReferenceEquals(sender, _envTopGInput) ||
+                   ReferenceEquals(sender, _envTopBInput) ||
+                   ReferenceEquals(sender, _envBottomRInput) ||
+                   ReferenceEquals(sender, _envBottomGInput) ||
+                   ReferenceEquals(sender, _envBottomBInput);
         }
 
         private void ApplyEnvironmentHdriPathFromUi()
@@ -121,13 +292,13 @@ namespace KnobForge.App.Views
             if (_updatingUi ||
                 _shadowEnabledCheckBox == null ||
                 _shadowSourceModeCombo == null ||
-                _shadowStrengthSlider == null ||
-                _shadowSoftnessSlider == null ||
-                _shadowDistanceSlider == null ||
-                _shadowScaleSlider == null ||
-                _shadowQualitySlider == null ||
-                _shadowGraySlider == null ||
-                _shadowDiffuseInfluenceSlider == null)
+                _shadowStrengthInput == null ||
+                _shadowSoftnessInput == null ||
+                _shadowDistanceInput == null ||
+                _shadowScaleInput == null ||
+                _shadowQualityInput == null ||
+                _shadowGrayInput == null ||
+                _shadowDiffuseInfluenceInput == null)
             {
                 return;
             }
@@ -146,7 +317,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -155,1115 +326,17 @@ namespace KnobForge.App.Views
             _project.ShadowMode = _shadowSourceModeCombo.SelectedItem is ShadowLightMode shadowMode
                 ? shadowMode
                 : ShadowLightMode.Weighted;
-            _project.ShadowStrength = (float)_shadowStrengthSlider.Value;
-            _project.ShadowSoftness = (float)_shadowSoftnessSlider.Value;
-            _project.ShadowDistance = (float)_shadowDistanceSlider.Value;
-            _project.ShadowScale = (float)_shadowScaleSlider.Value;
-            _project.ShadowQuality = (float)_shadowQualitySlider.Value;
-            _project.ShadowGray = (float)_shadowGraySlider.Value;
-            _project.ShadowDiffuseInfluence = (float)_shadowDiffuseInfluenceSlider.Value;
+            _project.ShadowStrength = (float)_shadowStrengthInput.Value;
+            _project.ShadowSoftness = (float)_shadowSoftnessInput.Value;
+            _project.ShadowDistance = (float)_shadowDistanceInput.Value;
+            _project.ShadowScale = (float)_shadowScaleInput.Value;
+            _project.ShadowQuality = (float)_shadowQualityInput.Value;
+            _project.ShadowGray = (float)_shadowGrayInput.Value;
+            _project.ShadowDiffuseInfluence = (float)_shadowDiffuseInfluenceInput.Value;
             NotifyRenderOnly();
         }
         private void UpdateReadouts()
         {
-            if (_rotationSlider != null && _rotationValueText != null)
-            {
-                _rotationValueText.Text = $"{RadiansToDegrees(_rotationSlider.Value):0.0} deg";
-            }
-
-            if (_lightXSlider != null && _lightXValueText != null)
-            {
-                _lightXValueText.Text = $"{_lightXSlider.Value:0}";
-            }
-
-            if (_lightYSlider != null && _lightYValueText != null)
-            {
-                _lightYValueText.Text = $"{_lightYSlider.Value:0}";
-            }
-
-            if (_lightZSlider != null && _lightZValueText != null)
-            {
-                _lightZValueText.Text = $"{_lightZSlider.Value:0}";
-            }
-
-            if (_directionSlider != null && _directionValueText != null)
-            {
-                _directionValueText.Text = $"{_directionSlider.Value:0.0} deg";
-            }
-
-            if (_intensitySlider != null && _intensityValueText != null)
-            {
-                _intensityValueText.Text = $"{_intensitySlider.Value:0.00}";
-            }
-
-            if (_falloffSlider != null && _falloffValueText != null)
-            {
-                _falloffValueText.Text = $"{_falloffSlider.Value:0.00}";
-            }
-
-            if (_lightRSlider != null && _lightRValueText != null)
-            {
-                _lightRValueText.Text = $"{_lightRSlider.Value:0}";
-            }
-
-            if (_lightGSlider != null && _lightGValueText != null)
-            {
-                _lightGValueText.Text = $"{_lightGSlider.Value:0}";
-            }
-
-            if (_lightBSlider != null && _lightBValueText != null)
-            {
-                _lightBValueText.Text = $"{_lightBSlider.Value:0}";
-            }
-
-            if (_diffuseBoostSlider != null && _diffuseBoostValueText != null)
-            {
-                _diffuseBoostValueText.Text = $"{_diffuseBoostSlider.Value:0.00}";
-            }
-
-            if (_specularBoostSlider != null && _specularBoostValueText != null)
-            {
-                _specularBoostValueText.Text = $"{_specularBoostSlider.Value:0.00}";
-            }
-
-            if (_specularPowerSlider != null && _specularPowerValueText != null)
-            {
-                _specularPowerValueText.Text = $"{_specularPowerSlider.Value:0.0}";
-            }
-
-            if (_modelRadiusSlider != null && _modelRadiusValueText != null)
-            {
-                _modelRadiusValueText.Text = $"{_modelRadiusSlider.Value:0}";
-            }
-
-            if (_modelHeightSlider != null && _modelHeightValueText != null)
-            {
-                _modelHeightValueText.Text = $"{_modelHeightSlider.Value:0}";
-            }
-
-            if (_modelTopScaleSlider != null && _modelTopScaleValueText != null)
-            {
-                _modelTopScaleValueText.Text = $"{_modelTopScaleSlider.Value:0.00}";
-            }
-
-            if (_modelBevelSlider != null && _modelBevelValueText != null)
-            {
-                _modelBevelValueText.Text = $"{_modelBevelSlider.Value:0}";
-            }
-
-            if (_bevelCurveSlider != null && _bevelCurveValueText != null)
-            {
-                _bevelCurveValueText.Text = $"{_bevelCurveSlider.Value:0.00}";
-            }
-
-            if (_crownProfileSlider != null && _crownProfileValueText != null)
-            {
-                double v = _crownProfileSlider.Value;
-                string shape = v < -0.02 ? "Concave" : v > 0.02 ? "Convex" : "Flat";
-                _crownProfileValueText.Text = $"{v:0.00} ({shape})";
-            }
-
-            if (_bodyTaperSlider != null && _bodyTaperValueText != null)
-            {
-                _bodyTaperValueText.Text = $"{_bodyTaperSlider.Value:0.00}";
-            }
-
-            if (_bodyBulgeSlider != null && _bodyBulgeValueText != null)
-            {
-                _bodyBulgeValueText.Text = $"{_bodyBulgeSlider.Value:0.00}";
-            }
-
-            if (_modelSegmentsSlider != null && _modelSegmentsValueText != null)
-            {
-                _modelSegmentsValueText.Text = $"{Math.Round(_modelSegmentsSlider.Value):0}";
-            }
-
-            if (_sliderBackplateWidthSlider != null && _sliderBackplateWidthValueText != null)
-            {
-                _sliderBackplateWidthValueText.Text = FormatSliderDimensionValue(_sliderBackplateWidthSlider.Value);
-            }
-
-            if (_sliderBackplateHeightSlider != null && _sliderBackplateHeightValueText != null)
-            {
-                _sliderBackplateHeightValueText.Text = FormatSliderDimensionValue(_sliderBackplateHeightSlider.Value);
-            }
-
-            if (_sliderBackplateThicknessSlider != null && _sliderBackplateThicknessValueText != null)
-            {
-                _sliderBackplateThicknessValueText.Text = FormatSliderDimensionValue(_sliderBackplateThicknessSlider.Value);
-            }
-
-            if (_sliderThumbWidthSlider != null && _sliderThumbWidthValueText != null)
-            {
-                _sliderThumbWidthValueText.Text = FormatSliderDimensionValue(_sliderThumbWidthSlider.Value);
-            }
-
-            if (_sliderThumbHeightSlider != null && _sliderThumbHeightValueText != null)
-            {
-                _sliderThumbHeightValueText.Text = FormatSliderDimensionValue(_sliderThumbHeightSlider.Value);
-            }
-
-            if (_sliderThumbDepthSlider != null && _sliderThumbDepthValueText != null)
-            {
-                _sliderThumbDepthValueText.Text = FormatSliderDimensionValue(_sliderThumbDepthSlider.Value);
-            }
-
-            if (_pushButtonPressAmountSlider != null && _pushButtonPressAmountValueText != null)
-            {
-                _pushButtonPressAmountValueText.Text = $"{_pushButtonPressAmountSlider.Value:0.00}";
-            }
-
-            if (_toggleStateIndexSlider != null && _toggleStateIndexValueText != null)
-            {
-                int stateCount = _toggleStateCountCombo?.SelectedItem is ToggleAssemblyStateCount selectedCount &&
-                                 selectedCount == ToggleAssemblyStateCount.ThreePosition
-                    ? 3
-                    : 2;
-                int stateIndex = Math.Clamp((int)Math.Round(_toggleStateIndexSlider.Value), 0, Math.Max(0, stateCount - 1));
-                _toggleStateIndexValueText.Text = FormatToggleStateValue(stateIndex, stateCount);
-            }
-
-            if (_toggleMaxAngleSlider != null && _toggleMaxAngleValueText != null)
-            {
-                _toggleMaxAngleValueText.Text = $"{_toggleMaxAngleSlider.Value:0.0} deg";
-            }
-
-            if (_togglePlateWidthSlider != null && _togglePlateWidthValueText != null)
-            {
-                _togglePlateWidthValueText.Text = FormatSliderDimensionValue(_togglePlateWidthSlider.Value);
-            }
-
-            if (_togglePlateHeightSlider != null && _togglePlateHeightValueText != null)
-            {
-                _togglePlateHeightValueText.Text = FormatSliderDimensionValue(_togglePlateHeightSlider.Value);
-            }
-
-            if (_togglePlateThicknessSlider != null && _togglePlateThicknessValueText != null)
-            {
-                _togglePlateThicknessValueText.Text = FormatSliderDimensionValue(_togglePlateThicknessSlider.Value);
-            }
-
-            if (_togglePlateOffsetYSlider != null && _togglePlateOffsetYValueText != null)
-            {
-                _togglePlateOffsetYValueText.Text = $"{_togglePlateOffsetYSlider.Value:0.0}px";
-            }
-
-            if (_togglePlateOffsetZSlider != null && _togglePlateOffsetZValueText != null)
-            {
-                _togglePlateOffsetZValueText.Text = $"{_togglePlateOffsetZSlider.Value:0.0}px";
-            }
-
-            if (_toggleBushingRadiusSlider != null && _toggleBushingRadiusValueText != null)
-            {
-                _toggleBushingRadiusValueText.Text = FormatSliderDimensionValue(_toggleBushingRadiusSlider.Value);
-            }
-
-            if (_toggleBushingHeightSlider != null && _toggleBushingHeightValueText != null)
-            {
-                _toggleBushingHeightValueText.Text = FormatSliderDimensionValue(_toggleBushingHeightSlider.Value);
-            }
-
-            if (_toggleBushingSidesSlider != null && _toggleBushingSidesValueText != null)
-            {
-                _toggleBushingSidesValueText.Text = $"{Math.Round(_toggleBushingSidesSlider.Value):0}";
-            }
-
-            if (_toggleLowerBushingRadiusScaleSlider != null && _toggleLowerBushingRadiusScaleValueText != null)
-            {
-                _toggleLowerBushingRadiusScaleValueText.Text = $"{_toggleLowerBushingRadiusScaleSlider.Value:0.00}x";
-            }
-
-            if (_toggleLowerBushingHeightRatioSlider != null && _toggleLowerBushingHeightRatioValueText != null)
-            {
-                _toggleLowerBushingHeightRatioValueText.Text = $"{_toggleLowerBushingHeightRatioSlider.Value:0.00}x";
-            }
-
-            if (_toggleUpperBushingRadiusScaleSlider != null && _toggleUpperBushingRadiusScaleValueText != null)
-            {
-                _toggleUpperBushingRadiusScaleValueText.Text = $"{_toggleUpperBushingRadiusScaleSlider.Value:0.00}x";
-            }
-
-            if (_toggleUpperBushingHeightRatioSlider != null && _toggleUpperBushingHeightRatioValueText != null)
-            {
-                _toggleUpperBushingHeightRatioValueText.Text = $"{_toggleUpperBushingHeightRatioSlider.Value:0.00}x";
-            }
-
-            if (_toggleUpperBushingKnurlAmountSlider != null && _toggleUpperBushingKnurlAmountValueText != null)
-            {
-                _toggleUpperBushingKnurlAmountValueText.Text = $"{_toggleUpperBushingKnurlAmountSlider.Value:0.00}";
-            }
-
-            if (_toggleUpperBushingKnurlDensitySlider != null && _toggleUpperBushingKnurlDensityValueText != null)
-            {
-                _toggleUpperBushingKnurlDensityValueText.Text = $"{Math.Round(_toggleUpperBushingKnurlDensitySlider.Value):0}";
-            }
-
-            if (_toggleUpperBushingKnurlDepthSlider != null && _toggleUpperBushingKnurlDepthValueText != null)
-            {
-                _toggleUpperBushingKnurlDepthValueText.Text = $"{_toggleUpperBushingKnurlDepthSlider.Value:0.00}";
-            }
-
-            if (_toggleUpperBushingAnisotropyStrengthSlider != null && _toggleUpperBushingAnisotropyStrengthValueText != null)
-            {
-                _toggleUpperBushingAnisotropyStrengthValueText.Text = $"{_toggleUpperBushingAnisotropyStrengthSlider.Value:0.00}";
-            }
-
-            if (_toggleUpperBushingAnisotropyDensitySlider != null && _toggleUpperBushingAnisotropyDensityValueText != null)
-            {
-                _toggleUpperBushingAnisotropyDensityValueText.Text = $"{Math.Round(_toggleUpperBushingAnisotropyDensitySlider.Value):0}";
-            }
-
-            if (_toggleUpperBushingAnisotropyAngleSlider != null && _toggleUpperBushingAnisotropyAngleValueText != null)
-            {
-                _toggleUpperBushingAnisotropyAngleValueText.Text = $"{_toggleUpperBushingAnisotropyAngleSlider.Value:0.0}deg";
-            }
-
-            if (_toggleUpperBushingSurfaceCharacterSlider != null && _toggleUpperBushingSurfaceCharacterValueText != null)
-            {
-                _toggleUpperBushingSurfaceCharacterValueText.Text = $"{_toggleUpperBushingSurfaceCharacterSlider.Value:0.00}";
-            }
-
-            if (_togglePivotHousingRadiusSlider != null && _togglePivotHousingRadiusValueText != null)
-            {
-                _togglePivotHousingRadiusValueText.Text = FormatSliderDimensionValue(_togglePivotHousingRadiusSlider.Value);
-            }
-
-            if (_togglePivotHousingDepthSlider != null && _togglePivotHousingDepthValueText != null)
-            {
-                _togglePivotHousingDepthValueText.Text = FormatSliderDimensionValue(_togglePivotHousingDepthSlider.Value);
-            }
-
-            if (_togglePivotHousingBevelSlider != null && _togglePivotHousingBevelValueText != null)
-            {
-                _togglePivotHousingBevelValueText.Text = FormatSliderDimensionValue(_togglePivotHousingBevelSlider.Value);
-            }
-
-            if (_togglePivotBallRadiusSlider != null && _togglePivotBallRadiusValueText != null)
-            {
-                _togglePivotBallRadiusValueText.Text = FormatSliderDimensionValue(_togglePivotBallRadiusSlider.Value);
-            }
-
-            if (_togglePivotClearanceSlider != null && _togglePivotClearanceValueText != null)
-            {
-                _togglePivotClearanceValueText.Text = $"{_togglePivotClearanceSlider.Value:0.00}px";
-            }
-
-            if (_toggleLeverLengthSlider != null && _toggleLeverLengthValueText != null)
-            {
-                _toggleLeverLengthValueText.Text = FormatSliderDimensionValue(_toggleLeverLengthSlider.Value);
-            }
-
-            if (_toggleLeverRadiusSlider != null && _toggleLeverRadiusValueText != null)
-            {
-                _toggleLeverRadiusValueText.Text = FormatSliderDimensionValue(_toggleLeverRadiusSlider.Value);
-            }
-
-            if (_toggleLeverTopRadiusSlider != null && _toggleLeverTopRadiusValueText != null)
-            {
-                _toggleLeverTopRadiusValueText.Text = FormatSliderDimensionValue(_toggleLeverTopRadiusSlider.Value);
-            }
-
-            if (_toggleLeverSidesSlider != null && _toggleLeverSidesValueText != null)
-            {
-                _toggleLeverSidesValueText.Text = $"{Math.Round(_toggleLeverSidesSlider.Value):0}";
-            }
-
-            if (_toggleLeverPivotOffsetSlider != null && _toggleLeverPivotOffsetValueText != null)
-            {
-                _toggleLeverPivotOffsetValueText.Text = $"{_toggleLeverPivotOffsetSlider.Value:0.0}px";
-            }
-
-            if (_toggleTipRadiusSlider != null && _toggleTipRadiusValueText != null)
-            {
-                _toggleTipRadiusValueText.Text = FormatSliderDimensionValue(_toggleTipRadiusSlider.Value);
-            }
-
-            if (_toggleTipLatitudeSegmentsSlider != null && _toggleTipLatitudeSegmentsValueText != null)
-            {
-                _toggleTipLatitudeSegmentsValueText.Text = $"{Math.Round(_toggleTipLatitudeSegmentsSlider.Value):0}";
-            }
-
-            if (_toggleTipLongitudeSegmentsSlider != null && _toggleTipLongitudeSegmentsValueText != null)
-            {
-                _toggleTipLongitudeSegmentsValueText.Text = $"{Math.Round(_toggleTipLongitudeSegmentsSlider.Value):0}";
-            }
-
-            if (_toggleTipSleeveLengthSlider != null && _toggleTipSleeveLengthValueText != null)
-            {
-                _toggleTipSleeveLengthValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveLengthSlider.Value);
-            }
-
-            if (_toggleTipSleeveThicknessSlider != null && _toggleTipSleeveThicknessValueText != null)
-            {
-                _toggleTipSleeveThicknessValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveThicknessSlider.Value);
-            }
-
-            if (_toggleTipSleeveOuterRadiusSlider != null && _toggleTipSleeveOuterRadiusValueText != null)
-            {
-                _toggleTipSleeveOuterRadiusValueText.Text = FormatSliderDimensionValue(_toggleTipSleeveOuterRadiusSlider.Value);
-            }
-
-            if (_toggleTipSleeveCoverageSlider != null && _toggleTipSleeveCoverageValueText != null)
-            {
-                _toggleTipSleeveCoverageValueText.Text = $"{_toggleTipSleeveCoverageSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveSidesSlider != null && _toggleTipSleeveSidesValueText != null)
-            {
-                _toggleTipSleeveSidesValueText.Text = $"{Math.Round(_toggleTipSleeveSidesSlider.Value):0}";
-            }
-
-            if (_toggleTipSleevePatternCountSlider != null && _toggleTipSleevePatternCountValueText != null)
-            {
-                _toggleTipSleevePatternCountValueText.Text = $"{Math.Round(_toggleTipSleevePatternCountSlider.Value):0}";
-            }
-
-            if (_toggleTipSleevePatternDepthSlider != null && _toggleTipSleevePatternDepthValueText != null)
-            {
-                _toggleTipSleevePatternDepthValueText.Text = $"{_toggleTipSleevePatternDepthSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveTipAmountSlider != null && _toggleTipSleeveTipAmountValueText != null)
-            {
-                _toggleTipSleeveTipAmountValueText.Text = $"{_toggleTipSleeveTipAmountSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveColorRSlider != null && _toggleTipSleeveColorRValueText != null)
-            {
-                _toggleTipSleeveColorRValueText.Text = $"{_toggleTipSleeveColorRSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveColorGSlider != null && _toggleTipSleeveColorGValueText != null)
-            {
-                _toggleTipSleeveColorGValueText.Text = $"{_toggleTipSleeveColorGSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveColorBSlider != null && _toggleTipSleeveColorBValueText != null)
-            {
-                _toggleTipSleeveColorBValueText.Text = $"{_toggleTipSleeveColorBSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveMetallicSlider != null && _toggleTipSleeveMetallicValueText != null)
-            {
-                _toggleTipSleeveMetallicValueText.Text = $"{_toggleTipSleeveMetallicSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveRoughnessSlider != null && _toggleTipSleeveRoughnessValueText != null)
-            {
-                _toggleTipSleeveRoughnessValueText.Text = $"{_toggleTipSleeveRoughnessSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleevePearlescenceSlider != null && _toggleTipSleevePearlescenceValueText != null)
-            {
-                _toggleTipSleevePearlescenceValueText.Text = $"{_toggleTipSleevePearlescenceSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveDiffuseStrengthSlider != null && _toggleTipSleeveDiffuseStrengthValueText != null)
-            {
-                _toggleTipSleeveDiffuseStrengthValueText.Text = $"{_toggleTipSleeveDiffuseStrengthSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveSpecularStrengthSlider != null && _toggleTipSleeveSpecularStrengthValueText != null)
-            {
-                _toggleTipSleeveSpecularStrengthValueText.Text = $"{_toggleTipSleeveSpecularStrengthSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveRustSlider != null && _toggleTipSleeveRustValueText != null)
-            {
-                _toggleTipSleeveRustValueText.Text = $"{_toggleTipSleeveRustSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveWearSlider != null && _toggleTipSleeveWearValueText != null)
-            {
-                _toggleTipSleeveWearValueText.Text = $"{_toggleTipSleeveWearSlider.Value:0.00}";
-            }
-
-            if (_toggleTipSleeveGunkSlider != null && _toggleTipSleeveGunkValueText != null)
-            {
-                _toggleTipSleeveGunkValueText.Text = $"{_toggleTipSleeveGunkSlider.Value:0.00}";
-            }
-
-            if (_spiralRidgeHeightSlider != null && _spiralRidgeHeightValueText != null)
-            {
-                _spiralRidgeHeightValueText.Text = $"{_spiralRidgeHeightSlider.Value:0.00}";
-            }
-
-            if (_spiralRidgeWidthSlider != null && _spiralRidgeWidthValueText != null)
-            {
-                _spiralRidgeWidthValueText.Text = $"{_spiralRidgeWidthSlider.Value:0.00}";
-            }
-
-            if (_spiralTurnsSlider != null && _spiralTurnsValueText != null)
-            {
-                _spiralTurnsValueText.Text = $"{_spiralTurnsSlider.Value:0.00}";
-            }
-
-            if (_gripStartSlider != null && _gripStartValueText != null)
-            {
-                _gripStartValueText.Text = $"{_gripStartSlider.Value:0.00}";
-            }
-
-            if (_gripHeightSlider != null && _gripHeightValueText != null)
-            {
-                _gripHeightValueText.Text = $"{_gripHeightSlider.Value:0.00}";
-            }
-
-            if (_gripDensitySlider != null && _gripDensityValueText != null)
-            {
-                _gripDensityValueText.Text = $"{_gripDensitySlider.Value:0.0}";
-            }
-
-            if (_gripPitchSlider != null && _gripPitchValueText != null)
-            {
-                _gripPitchValueText.Text = $"{_gripPitchSlider.Value:0.00}";
-            }
-
-            if (_gripDepthSlider != null && _gripDepthValueText != null)
-            {
-                _gripDepthValueText.Text = $"{_gripDepthSlider.Value:0.00}";
-            }
-
-            if (_gripWidthSlider != null && _gripWidthValueText != null)
-            {
-                _gripWidthValueText.Text = $"{_gripWidthSlider.Value:0.00}";
-            }
-
-            if (_gripSharpnessSlider != null && _gripSharpnessValueText != null)
-            {
-                _gripSharpnessValueText.Text = $"{_gripSharpnessSlider.Value:0.00}";
-            }
-
-            if (_collarScaleSlider != null && _collarScaleValueText != null)
-            {
-                _collarScaleValueText.Text = $"{_collarScaleSlider.Value:0.00}";
-            }
-
-            if (_collarBodyLengthSlider != null && _collarBodyLengthValueText != null)
-            {
-                _collarBodyLengthValueText.Text = $"{_collarBodyLengthSlider.Value:0.00}";
-            }
-
-            if (_collarBodyThicknessSlider != null && _collarBodyThicknessValueText != null)
-            {
-                _collarBodyThicknessValueText.Text = $"{_collarBodyThicknessSlider.Value:0.00}";
-            }
-
-            if (_collarHeadLengthSlider != null && _collarHeadLengthValueText != null)
-            {
-                _collarHeadLengthValueText.Text = $"{_collarHeadLengthSlider.Value:0.00}";
-            }
-
-            if (_collarHeadThicknessSlider != null && _collarHeadThicknessValueText != null)
-            {
-                _collarHeadThicknessValueText.Text = $"{_collarHeadThicknessSlider.Value:0.00}";
-            }
-
-            if (_collarRotateSlider != null && _collarRotateValueText != null)
-            {
-                _collarRotateValueText.Text = $"{_collarRotateSlider.Value:0.0} deg";
-            }
-
-            if (_collarOffsetXSlider != null && _collarOffsetXValueText != null)
-            {
-                _collarOffsetXValueText.Text = $"{_collarOffsetXSlider.Value:0.00}";
-            }
-
-            if (_collarOffsetYSlider != null && _collarOffsetYValueText != null)
-            {
-                _collarOffsetYValueText.Text = $"{_collarOffsetYSlider.Value:0.00}";
-            }
-
-            if (_collarElevationSlider != null && _collarElevationValueText != null)
-            {
-                _collarElevationValueText.Text = $"{_collarElevationSlider.Value:0.00}";
-            }
-
-            if (_collarInflateSlider != null && _collarInflateValueText != null)
-            {
-                _collarInflateValueText.Text = $"{_collarInflateSlider.Value:0.000}";
-            }
-
-            if (_collarMaterialBaseRSlider != null && _collarMaterialBaseRValueText != null)
-            {
-                _collarMaterialBaseRValueText.Text = $"{_collarMaterialBaseRSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialBaseGSlider != null && _collarMaterialBaseGValueText != null)
-            {
-                _collarMaterialBaseGValueText.Text = $"{_collarMaterialBaseGSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialBaseBSlider != null && _collarMaterialBaseBValueText != null)
-            {
-                _collarMaterialBaseBValueText.Text = $"{_collarMaterialBaseBSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialMetallicSlider != null && _collarMaterialMetallicValueText != null)
-            {
-                _collarMaterialMetallicValueText.Text = $"{_collarMaterialMetallicSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialRoughnessSlider != null && _collarMaterialRoughnessValueText != null)
-            {
-                _collarMaterialRoughnessValueText.Text = $"{_collarMaterialRoughnessSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialPearlescenceSlider != null && _collarMaterialPearlescenceValueText != null)
-            {
-                _collarMaterialPearlescenceValueText.Text = $"{_collarMaterialPearlescenceSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialRustSlider != null && _collarMaterialRustValueText != null)
-            {
-                _collarMaterialRustValueText.Text = $"{_collarMaterialRustSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialWearSlider != null && _collarMaterialWearValueText != null)
-            {
-                _collarMaterialWearValueText.Text = $"{_collarMaterialWearSlider.Value:0.00}";
-            }
-
-            if (_collarMaterialGunkSlider != null && _collarMaterialGunkValueText != null)
-            {
-                _collarMaterialGunkValueText.Text = $"{_collarMaterialGunkSlider.Value:0.00}";
-            }
-
-            if (_indicatorWidthSlider != null && _indicatorWidthValueText != null)
-            {
-                _indicatorWidthValueText.Text = $"{_indicatorWidthSlider.Value:0.000}";
-            }
-
-            if (_indicatorLengthSlider != null && _indicatorLengthValueText != null)
-            {
-                _indicatorLengthValueText.Text = $"{_indicatorLengthSlider.Value:0.00}";
-            }
-
-            if (_indicatorPositionSlider != null && _indicatorPositionValueText != null)
-            {
-                _indicatorPositionValueText.Text = $"{_indicatorPositionSlider.Value:0.00}";
-            }
-
-            if (_indicatorThicknessSlider != null && _indicatorThicknessValueText != null)
-            {
-                _indicatorThicknessValueText.Text = $"{_indicatorThicknessSlider.Value:0.000}";
-            }
-
-            if (_indicatorRoundnessSlider != null && _indicatorRoundnessValueText != null)
-            {
-                _indicatorRoundnessValueText.Text = $"{_indicatorRoundnessSlider.Value:0.00}";
-            }
-
-            if (_indicatorColorBlendSlider != null && _indicatorColorBlendValueText != null)
-            {
-                _indicatorColorBlendValueText.Text = $"{_indicatorColorBlendSlider.Value:0.00}";
-            }
-
-            if (_indicatorColorRSlider != null && _indicatorColorRValueText != null)
-            {
-                _indicatorColorRValueText.Text = $"{_indicatorColorRSlider.Value:0.00}";
-            }
-
-            if (_indicatorColorGSlider != null && _indicatorColorGValueText != null)
-            {
-                _indicatorColorGValueText.Text = $"{_indicatorColorGSlider.Value:0.00}";
-            }
-
-            if (_indicatorColorBSlider != null && _indicatorColorBValueText != null)
-            {
-                _indicatorColorBValueText.Text = $"{_indicatorColorBSlider.Value:0.00}";
-            }
-
-            if (_indicatorQuickBrightnessSlider != null && _indicatorQuickBrightnessValueText != null)
-            {
-                _indicatorQuickBrightnessValueText.Text = $"{_indicatorQuickBrightnessSlider.Value:0.00}x";
-            }
-
-            if (_indicatorQuickGlowSlider != null && _indicatorQuickGlowValueText != null)
-            {
-                _indicatorQuickGlowValueText.Text = $"{_indicatorQuickGlowSlider.Value:0.00}x";
-            }
-
-            if (_indicatorBaseWidthSlider != null && _indicatorBaseWidthValueText != null)
-            {
-                _indicatorBaseWidthValueText.Text = FormatSliderDimensionValue(_indicatorBaseWidthSlider.Value);
-            }
-
-            if (_indicatorBaseHeightSlider != null && _indicatorBaseHeightValueText != null)
-            {
-                _indicatorBaseHeightValueText.Text = FormatSliderDimensionValue(_indicatorBaseHeightSlider.Value);
-            }
-
-            if (_indicatorBaseThicknessSlider != null && _indicatorBaseThicknessValueText != null)
-            {
-                _indicatorBaseThicknessValueText.Text = FormatSliderDimensionValue(_indicatorBaseThicknessSlider.Value);
-            }
-
-            if (_indicatorHousingRadiusSlider != null && _indicatorHousingRadiusValueText != null)
-            {
-                _indicatorHousingRadiusValueText.Text = FormatSliderDimensionValue(_indicatorHousingRadiusSlider.Value);
-            }
-
-            if (_indicatorHousingHeightSlider != null && _indicatorHousingHeightValueText != null)
-            {
-                _indicatorHousingHeightValueText.Text = FormatSliderDimensionValue(_indicatorHousingHeightSlider.Value);
-            }
-
-            if (_indicatorLensRadiusSlider != null && _indicatorLensRadiusValueText != null)
-            {
-                _indicatorLensRadiusValueText.Text = FormatSliderDimensionValue(_indicatorLensRadiusSlider.Value);
-            }
-
-            if (_indicatorLensHeightSlider != null && _indicatorLensHeightValueText != null)
-            {
-                _indicatorLensHeightValueText.Text = FormatSliderDimensionValue(_indicatorLensHeightSlider.Value);
-            }
-
-            if (_indicatorLensTransmissionSlider != null && _indicatorLensTransmissionValueText != null)
-            {
-                _indicatorLensTransmissionValueText.Text = $"{_indicatorLensTransmissionSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensIorSlider != null && _indicatorLensIorValueText != null)
-            {
-                _indicatorLensIorValueText.Text = $"{_indicatorLensIorSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensThicknessSlider != null && _indicatorLensThicknessValueText != null)
-            {
-                _indicatorLensThicknessValueText.Text = $"{_indicatorLensThicknessSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensAbsorptionSlider != null && _indicatorLensAbsorptionValueText != null)
-            {
-                _indicatorLensAbsorptionValueText.Text = $"{_indicatorLensAbsorptionSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensSurfaceRoughnessSlider != null && _indicatorLensSurfaceRoughnessValueText != null)
-            {
-                _indicatorLensSurfaceRoughnessValueText.Text = $"{_indicatorLensSurfaceRoughnessSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensSurfaceSpecularSlider != null && _indicatorLensSurfaceSpecularValueText != null)
-            {
-                _indicatorLensSurfaceSpecularValueText.Text = $"{_indicatorLensSurfaceSpecularSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensTintRSlider != null && _indicatorLensTintRValueText != null)
-            {
-                _indicatorLensTintRValueText.Text = $"{_indicatorLensTintRSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensTintGSlider != null && _indicatorLensTintGValueText != null)
-            {
-                _indicatorLensTintGValueText.Text = $"{_indicatorLensTintGSlider.Value:0.00}";
-            }
-
-            if (_indicatorLensTintBSlider != null && _indicatorLensTintBValueText != null)
-            {
-                _indicatorLensTintBValueText.Text = $"{_indicatorLensTintBSlider.Value:0.00}";
-            }
-
-            if (_indicatorReflectorBaseRadiusSlider != null && _indicatorReflectorBaseRadiusValueText != null)
-            {
-                _indicatorReflectorBaseRadiusValueText.Text = FormatSliderDimensionValue(_indicatorReflectorBaseRadiusSlider.Value);
-            }
-
-            if (_indicatorReflectorTopRadiusSlider != null && _indicatorReflectorTopRadiusValueText != null)
-            {
-                _indicatorReflectorTopRadiusValueText.Text = FormatSliderDimensionValue(_indicatorReflectorTopRadiusSlider.Value);
-            }
-
-            if (_indicatorReflectorDepthSlider != null && _indicatorReflectorDepthValueText != null)
-            {
-                _indicatorReflectorDepthValueText.Text = FormatSliderDimensionValue(_indicatorReflectorDepthSlider.Value);
-            }
-
-            if (_indicatorEmitterRadiusSlider != null && _indicatorEmitterRadiusValueText != null)
-            {
-                _indicatorEmitterRadiusValueText.Text = FormatSliderDimensionValue(_indicatorEmitterRadiusSlider.Value);
-            }
-
-            if (_indicatorEmitterSpreadSlider != null && _indicatorEmitterSpreadValueText != null)
-            {
-                _indicatorEmitterSpreadValueText.Text = FormatSliderDimensionValue(_indicatorEmitterSpreadSlider.Value);
-            }
-
-            if (_indicatorEmitterDepthSlider != null && _indicatorEmitterDepthValueText != null)
-            {
-                _indicatorEmitterDepthValueText.Text = $"{_indicatorEmitterDepthSlider.Value:0.0}px";
-            }
-
-            if (_indicatorEmitterCountSlider != null && _indicatorEmitterCountValueText != null)
-            {
-                _indicatorEmitterCountValueText.Text = $"{Math.Round(_indicatorEmitterCountSlider.Value):0}";
-            }
-
-            if (_indicatorRadialSegmentsSlider != null && _indicatorRadialSegmentsValueText != null)
-            {
-                _indicatorRadialSegmentsValueText.Text = $"{Math.Round(_indicatorRadialSegmentsSlider.Value):0}";
-            }
-
-            if (_indicatorLensLatitudeSegmentsSlider != null && _indicatorLensLatitudeSegmentsValueText != null)
-            {
-                _indicatorLensLatitudeSegmentsValueText.Text = $"{Math.Round(_indicatorLensLatitudeSegmentsSlider.Value):0}";
-            }
-
-            if (_indicatorLensLongitudeSegmentsSlider != null && _indicatorLensLongitudeSegmentsValueText != null)
-            {
-                _indicatorLensLongitudeSegmentsValueText.Text = $"{Math.Round(_indicatorLensLongitudeSegmentsSlider.Value):0}";
-            }
-
-            if (_indicatorLightAnimationSpeedSlider != null && _indicatorLightAnimationSpeedValueText != null)
-            {
-                _indicatorLightAnimationSpeedValueText.Text = $"{_indicatorLightAnimationSpeedSlider.Value:0.00}";
-            }
-
-            if (_indicatorLightFlickerAmountSlider != null && _indicatorLightFlickerAmountValueText != null)
-            {
-                _indicatorLightFlickerAmountValueText.Text = $"{_indicatorLightFlickerAmountSlider.Value:0.00}";
-            }
-
-            if (_indicatorLightFlickerDropoutSlider != null && _indicatorLightFlickerDropoutValueText != null)
-            {
-                _indicatorLightFlickerDropoutValueText.Text = $"{_indicatorLightFlickerDropoutSlider.Value:0.00}";
-            }
-
-            if (_indicatorLightFlickerSmoothingSlider != null && _indicatorLightFlickerSmoothingValueText != null)
-            {
-                _indicatorLightFlickerSmoothingValueText.Text = $"{_indicatorLightFlickerSmoothingSlider.Value:0.00}";
-            }
-
-            if (_indicatorLightFlickerSeedSlider != null && _indicatorLightFlickerSeedValueText != null)
-            {
-                _indicatorLightFlickerSeedValueText.Text = $"{Math.Round(_indicatorLightFlickerSeedSlider.Value):0}";
-            }
-
-            if (_indicatorEmitterSourceXSlider != null && _indicatorEmitterSourceXValueText != null)
-            {
-                _indicatorEmitterSourceXValueText.Text = $"{_indicatorEmitterSourceXSlider.Value:0.0}px";
-            }
-
-            if (_indicatorEmitterSourceYSlider != null && _indicatorEmitterSourceYValueText != null)
-            {
-                _indicatorEmitterSourceYValueText.Text = $"{_indicatorEmitterSourceYSlider.Value:0.0}px";
-            }
-
-            if (_indicatorEmitterSourceZSlider != null && _indicatorEmitterSourceZValueText != null)
-            {
-                _indicatorEmitterSourceZValueText.Text = $"{_indicatorEmitterSourceZSlider.Value:0.0}px";
-            }
-
-            if (_indicatorEmitterSourceIntensitySlider != null && _indicatorEmitterSourceIntensityValueText != null)
-            {
-                _indicatorEmitterSourceIntensityValueText.Text = $"{_indicatorEmitterSourceIntensitySlider.Value:0.00}";
-            }
-
-            if (_indicatorEmitterSourceRadiusSlider != null && _indicatorEmitterSourceRadiusValueText != null)
-            {
-                _indicatorEmitterSourceRadiusValueText.Text = FormatSliderDimensionValue(_indicatorEmitterSourceRadiusSlider.Value);
-            }
-
-            if (_indicatorEmitterSourceFalloffSlider != null && _indicatorEmitterSourceFalloffValueText != null)
-            {
-                _indicatorEmitterSourceFalloffValueText.Text = $"{_indicatorEmitterSourceFalloffSlider.Value:0.00}";
-            }
-
-            if (_indicatorEmitterSourcePhaseOffsetSlider != null && _indicatorEmitterSourcePhaseOffsetValueText != null)
-            {
-                _indicatorEmitterSourcePhaseOffsetValueText.Text = $"{_indicatorEmitterSourcePhaseOffsetSlider.Value:0.0} deg";
-            }
-
-            if (_indicatorEmitterSourceRSlider != null && _indicatorEmitterSourceRValueText != null)
-            {
-                _indicatorEmitterSourceRValueText.Text = $"{_indicatorEmitterSourceRSlider.Value:0.00}";
-            }
-
-            if (_indicatorEmitterSourceGSlider != null && _indicatorEmitterSourceGValueText != null)
-            {
-                _indicatorEmitterSourceGValueText.Text = $"{_indicatorEmitterSourceGSlider.Value:0.00}";
-            }
-
-            if (_indicatorEmitterSourceBSlider != null && _indicatorEmitterSourceBValueText != null)
-            {
-                _indicatorEmitterSourceBValueText.Text = $"{_indicatorEmitterSourceBSlider.Value:0.00}";
-            }
-
-            if (_materialBaseRSlider != null && _materialBaseRValueText != null)
-            {
-                _materialBaseRValueText.Text = $"{_materialBaseRSlider.Value:0.00}";
-            }
-
-            if (_materialBaseGSlider != null && _materialBaseGValueText != null)
-            {
-                _materialBaseGValueText.Text = $"{_materialBaseGSlider.Value:0.00}";
-            }
-
-            if (_materialBaseBSlider != null && _materialBaseBValueText != null)
-            {
-                _materialBaseBValueText.Text = $"{_materialBaseBSlider.Value:0.00}";
-            }
-
-            if (_materialMetallicSlider != null && _materialMetallicValueText != null)
-            {
-                _materialMetallicValueText.Text = $"{_materialMetallicSlider.Value:0.00}";
-            }
-
-            if (_materialRoughnessSlider != null && _materialRoughnessValueText != null)
-            {
-                _materialRoughnessValueText.Text = $"{_materialRoughnessSlider.Value:0.00}";
-            }
-
-            if (_materialPearlescenceSlider != null && _materialPearlescenceValueText != null)
-            {
-                _materialPearlescenceValueText.Text = $"{_materialPearlescenceSlider.Value:0.00}";
-            }
-
-            if (_materialRustSlider != null && _materialRustValueText != null)
-            {
-                _materialRustValueText.Text = $"{_materialRustSlider.Value:0.00}";
-            }
-
-            if (_materialWearSlider != null && _materialWearValueText != null)
-            {
-                _materialWearValueText.Text = $"{_materialWearSlider.Value:0.00}";
-            }
-
-            if (_materialGunkSlider != null && _materialGunkValueText != null)
-            {
-                _materialGunkValueText.Text = $"{_materialGunkSlider.Value:0.00}";
-            }
-
-            if (_materialNormalMapStrengthSlider != null && _materialNormalMapStrengthValueText != null)
-            {
-                _materialNormalMapStrengthValueText.Text = $"{_materialNormalMapStrengthSlider.Value:0.00}x";
-            }
-
-            if (_materialBrushStrengthSlider != null && _materialBrushStrengthValueText != null)
-            {
-                _materialBrushStrengthValueText.Text = $"{_materialBrushStrengthSlider.Value:0.00}";
-            }
-
-            if (_materialBrushDensitySlider != null && _materialBrushDensityValueText != null)
-            {
-                _materialBrushDensityValueText.Text = $"{_materialBrushDensitySlider.Value:0.0}";
-            }
-
-            if (_materialCharacterSlider != null && _materialCharacterValueText != null)
-            {
-                _materialCharacterValueText.Text = $"{_materialCharacterSlider.Value:0.00}";
-            }
-
-            if (_microLodFadeStartSlider != null && _microLodFadeStartValueText != null)
-            {
-                _microLodFadeStartValueText.Text = $"{_microLodFadeStartSlider.Value:0.00}";
-            }
-
-            if (_microLodFadeEndSlider != null && _microLodFadeEndValueText != null)
-            {
-                _microLodFadeEndValueText.Text = $"{_microLodFadeEndSlider.Value:0.00}";
-            }
-
-            if (_microRoughnessLodBoostSlider != null && _microRoughnessLodBoostValueText != null)
-            {
-                _microRoughnessLodBoostValueText.Text = $"{_microRoughnessLodBoostSlider.Value:0.00}";
-            }
-
-            if (_envIntensitySlider != null && _envIntensityValueText != null)
-            {
-                _envIntensityValueText.Text = $"{_envIntensitySlider.Value:0.000}";
-            }
-
-            if (_envRoughnessMixSlider != null && _envRoughnessMixValueText != null)
-            {
-                _envRoughnessMixValueText.Text = $"{_envRoughnessMixSlider.Value:0.000}";
-            }
-
-            if (_envTopRSlider != null && _envTopRValueText != null)
-            {
-                _envTopRValueText.Text = $"{_envTopRSlider.Value:0.00}";
-            }
-
-            if (_envTopGSlider != null && _envTopGValueText != null)
-            {
-                _envTopGValueText.Text = $"{_envTopGSlider.Value:0.00}";
-            }
-
-            if (_envTopBSlider != null && _envTopBValueText != null)
-            {
-                _envTopBValueText.Text = $"{_envTopBSlider.Value:0.00}";
-            }
-
-            if (_envBottomRSlider != null && _envBottomRValueText != null)
-            {
-                _envBottomRValueText.Text = $"{_envBottomRSlider.Value:0.00}";
-            }
-
-            if (_envBottomGSlider != null && _envBottomGValueText != null)
-            {
-                _envBottomGValueText.Text = $"{_envBottomGSlider.Value:0.00}";
-            }
-
-            if (_envBottomBSlider != null && _envBottomBValueText != null)
-            {
-                _envBottomBValueText.Text = $"{_envBottomBSlider.Value:0.00}";
-            }
-
-            if (_envExposureSlider != null && _envExposureValueText != null)
-            {
-                _envExposureValueText.Text = $"{_envExposureSlider.Value:0.00}";
-            }
-
-            if (_envBloomStrengthSlider != null && _envBloomStrengthValueText != null)
-            {
-                _envBloomStrengthValueText.Text = $"{_envBloomStrengthSlider.Value:0.00}";
-            }
-
-            if (_envBloomThresholdSlider != null && _envBloomThresholdValueText != null)
-            {
-                _envBloomThresholdValueText.Text = $"{_envBloomThresholdSlider.Value:0.00}";
-            }
-
-            if (_envBloomKneeSlider != null && _envBloomKneeValueText != null)
-            {
-                _envBloomKneeValueText.Text = $"{_envBloomKneeSlider.Value:0.00}";
-            }
-
-            if (_envHdriBlendSlider != null && _envHdriBlendValueText != null)
-            {
-                _envHdriBlendValueText.Text = $"{_envHdriBlendSlider.Value:0.00}";
-            }
-
-            if (_envHdriRotationSlider != null && _envHdriRotationValueText != null)
-            {
-                _envHdriRotationValueText.Text = $"{_envHdriRotationSlider.Value:0.0} deg";
-            }
-
-            if (_shadowStrengthSlider != null && _shadowStrengthValueText != null)
-            {
-                _shadowStrengthValueText.Text = $"{_shadowStrengthSlider.Value:0.000}";
-            }
-
-            if (_shadowSoftnessSlider != null && _shadowSoftnessValueText != null)
-            {
-                _shadowSoftnessValueText.Text = $"{_shadowSoftnessSlider.Value:0.000}";
-            }
-
-            if (_shadowDistanceSlider != null && _shadowDistanceValueText != null)
-            {
-                _shadowDistanceValueText.Text = $"{_shadowDistanceSlider.Value:0.00}";
-            }
-
-            if (_shadowScaleSlider != null && _shadowScaleValueText != null)
-            {
-                _shadowScaleValueText.Text = $"{_shadowScaleSlider.Value:0.00}";
-            }
-
-            if (_shadowQualitySlider != null && _shadowQualityValueText != null)
-            {
-                _shadowQualityValueText.Text = $"{_shadowQualitySlider.Value:0.000}";
-            }
-
-            if (_shadowGraySlider != null && _shadowGrayValueText != null)
-            {
-                _shadowGrayValueText.Text = $"{_shadowGraySlider.Value:0.00}";
-            }
-
-            if (_shadowDiffuseInfluenceSlider != null && _shadowDiffuseInfluenceValueText != null)
-            {
-                _shadowDiffuseInfluenceValueText.Text = $"{_shadowDiffuseInfluenceSlider.Value:0.00}";
-            }
-
-            if (_brushSizeSlider != null && _brushSizeValueText != null)
-            {
-                _brushSizeValueText.Text = $"{_brushSizeSlider.Value:0.0}px";
-            }
-
-            if (_brushOpacitySlider != null && _brushOpacityValueText != null)
-            {
-                _brushOpacityValueText.Text = $"{_brushOpacitySlider.Value:0.00}";
-            }
-
-            if (_brushDarknessSlider != null && _brushDarknessValueText != null)
-            {
-                _brushDarknessValueText.Text = $"{_brushDarknessSlider.Value:0.00}";
-            }
-
-            if (_brushSpreadSlider != null && _brushSpreadValueText != null)
-            {
-                _brushSpreadValueText.Text = $"{_brushSpreadSlider.Value:0.00}";
-            }
-
-            if (_paintCoatMetallicSlider != null && _paintCoatMetallicValueText != null)
-            {
-                _paintCoatMetallicValueText.Text = $"{_paintCoatMetallicSlider.Value:0.00}";
-            }
-
-            if (_paintCoatRoughnessSlider != null && _paintCoatRoughnessValueText != null)
-            {
-                _paintCoatRoughnessValueText.Text = $"{_paintCoatRoughnessSlider.Value:0.00}";
-            }
-
-            if (_clearCoatAmountSlider != null && _clearCoatAmountValueText != null)
-            {
-                _clearCoatAmountValueText.Text = $"{_clearCoatAmountSlider.Value:0.00}";
-            }
-
-            if (_clearCoatRoughnessSlider != null && _clearCoatRoughnessValueText != null)
-            {
-                _clearCoatRoughnessValueText.Text = $"{_clearCoatRoughnessSlider.Value:0.00}";
-            }
-
-            if (_anisotropyAngleSlider != null && _anisotropyAngleValueText != null)
-            {
-                _anisotropyAngleValueText.Text = $"{_anisotropyAngleSlider.Value:0.0}deg";
-            }
-
-            if (_scratchWidthSlider != null && _scratchWidthValueText != null)
-            {
-                _scratchWidthValueText.Text = $"{_scratchWidthSlider.Value:0.0}px";
-            }
-
-            if (_scratchDepthSlider != null && _scratchDepthValueText != null)
-            {
-                _scratchDepthValueText.Text = $"{_scratchDepthSlider.Value:0.00}";
-            }
-
-            if (_scratchResistanceSlider != null && _scratchResistanceValueText != null)
-            {
-                _scratchResistanceValueText.Text = $"{_scratchResistanceSlider.Value:0.00}";
-            }
-
-            if (_scratchDepthRampSlider != null && _scratchDepthRampValueText != null)
-            {
-                _scratchDepthRampValueText.Text = $"{_scratchDepthRampSlider.Value:0.0000}";
-            }
-
-            if (_scratchExposeColorRSlider != null && _scratchExposeColorRValueText != null)
-            {
-                _scratchExposeColorRValueText.Text = $"{_scratchExposeColorRSlider.Value:0.00}";
-            }
-
-            if (_scratchExposeColorGSlider != null && _scratchExposeColorGValueText != null)
-            {
-                _scratchExposeColorGValueText.Text = $"{_scratchExposeColorGSlider.Value:0.00}";
-            }
-
-            if (_scratchExposeColorBSlider != null && _scratchExposeColorBValueText != null)
-            {
-                _scratchExposeColorBValueText.Text = $"{_scratchExposeColorBSlider.Value:0.00}";
-            }
-
-            if (_scratchExposeMetallicSlider != null && _scratchExposeMetallicValueText != null)
-            {
-                _scratchExposeMetallicValueText.Text = $"{_scratchExposeMetallicSlider.Value:0.00}";
-            }
-
-            if (_scratchExposeRoughnessSlider != null && _scratchExposeRoughnessValueText != null)
-            {
-                _scratchExposeRoughnessValueText.Text = $"{_scratchExposeRoughnessSlider.Value:0.00}";
-            }
-
-            UpdatePrecisionControlEntryText();
         }
 
         private static string FormatSliderDimensionValue(double value)

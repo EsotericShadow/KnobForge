@@ -871,6 +871,7 @@ namespace KnobForge.App.Controls
             referenceRadius = IncludeReferenceRadius(referenceRadius, _toggleSleeveResources);
             referenceRadius = IncludeReferenceRadius(referenceRadius, _pushButtonBaseResources);
             referenceRadius = IncludeReferenceRadius(referenceRadius, _pushButtonCapResources);
+            referenceRadius = IncludeReferenceRadius(referenceRadius, _pushButtonSkirtResources);
             referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorBaseResources);
             referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorHousingResources);
             referenceRadius = IncludeReferenceRadius(referenceRadius, _indicatorLensResources);

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using SkiaSharp;
 using System;
@@ -49,7 +50,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -76,23 +77,23 @@ namespace KnobForge.App.Views
             bool requestHeavyRefresh =
                 !ReferenceEquals(sender, _indicatorDynamicLightsEnabledCheckBox) &&
                 !ReferenceEquals(sender, _indicatorQuickLightOnCheckBox) &&
-                !ReferenceEquals(sender, _indicatorQuickBrightnessSlider) &&
-                !ReferenceEquals(sender, _indicatorQuickGlowSlider) &&
+                !ReferenceEquals(sender, _indicatorQuickBrightnessInput) &&
+                !ReferenceEquals(sender, _indicatorQuickGlowInput) &&
                 !ReferenceEquals(sender, _indicatorLightAnimationModeCombo) &&
-                !ReferenceEquals(sender, _indicatorLensTransmissionSlider) &&
-                !ReferenceEquals(sender, _indicatorLensIorSlider) &&
-                !ReferenceEquals(sender, _indicatorLensThicknessSlider) &&
-                !ReferenceEquals(sender, _indicatorLensAbsorptionSlider) &&
-                !ReferenceEquals(sender, _indicatorLensSurfaceRoughnessSlider) &&
-                !ReferenceEquals(sender, _indicatorLensSurfaceSpecularSlider) &&
-                !ReferenceEquals(sender, _indicatorLensTintRSlider) &&
-                !ReferenceEquals(sender, _indicatorLensTintGSlider) &&
-                !ReferenceEquals(sender, _indicatorLensTintBSlider) &&
-                !ReferenceEquals(sender, _indicatorLightAnimationSpeedSlider) &&
-                !ReferenceEquals(sender, _indicatorLightFlickerAmountSlider) &&
-                !ReferenceEquals(sender, _indicatorLightFlickerDropoutSlider) &&
-                !ReferenceEquals(sender, _indicatorLightFlickerSmoothingSlider) &&
-                !ReferenceEquals(sender, _indicatorLightFlickerSeedSlider);
+                !ReferenceEquals(sender, _indicatorLensTransmissionInput) &&
+                !ReferenceEquals(sender, _indicatorLensIorInput) &&
+                !ReferenceEquals(sender, _indicatorLensThicknessInput) &&
+                !ReferenceEquals(sender, _indicatorLensAbsorptionInput) &&
+                !ReferenceEquals(sender, _indicatorLensSurfaceRoughnessInput) &&
+                !ReferenceEquals(sender, _indicatorLensSurfaceSpecularInput) &&
+                !ReferenceEquals(sender, _indicatorLensTintRInput) &&
+                !ReferenceEquals(sender, _indicatorLensTintGInput) &&
+                !ReferenceEquals(sender, _indicatorLensTintBInput) &&
+                !ReferenceEquals(sender, _indicatorLightAnimationSpeedInput) &&
+                !ReferenceEquals(sender, _indicatorLightFlickerAmountInput) &&
+                !ReferenceEquals(sender, _indicatorLightFlickerDropoutInput) &&
+                !ReferenceEquals(sender, _indicatorLightFlickerSmoothingInput) &&
+                !ReferenceEquals(sender, _indicatorLightFlickerSeedInput);
 
             ApplyIndicatorLightUiToProject(requestHeavyRefresh);
         }
@@ -100,77 +101,77 @@ namespace KnobForge.App.Views
         private void ApplyIndicatorLightUiToProject(bool requestHeavyRefresh)
         {
             if (_indicatorAssemblyEnabledCheckBox == null ||
-                _indicatorBaseWidthSlider == null ||
-                _indicatorBaseHeightSlider == null ||
-                _indicatorBaseThicknessSlider == null ||
-                _indicatorHousingRadiusSlider == null ||
-                _indicatorHousingHeightSlider == null ||
-                _indicatorLensRadiusSlider == null ||
-                _indicatorLensHeightSlider == null ||
-                _indicatorLensTransmissionSlider == null ||
-                _indicatorLensIorSlider == null ||
-                _indicatorLensThicknessSlider == null ||
-                _indicatorLensAbsorptionSlider == null ||
-                _indicatorLensSurfaceRoughnessSlider == null ||
-                _indicatorLensSurfaceSpecularSlider == null ||
-                _indicatorLensTintRSlider == null ||
-                _indicatorLensTintGSlider == null ||
-                _indicatorLensTintBSlider == null ||
-                _indicatorReflectorBaseRadiusSlider == null ||
-                _indicatorReflectorTopRadiusSlider == null ||
-                _indicatorReflectorDepthSlider == null ||
-                _indicatorEmitterRadiusSlider == null ||
-                _indicatorEmitterSpreadSlider == null ||
-                _indicatorEmitterDepthSlider == null ||
-                _indicatorEmitterCountSlider == null ||
-                _indicatorRadialSegmentsSlider == null ||
-                _indicatorLensLatitudeSegmentsSlider == null ||
-                _indicatorLensLongitudeSegmentsSlider == null ||
+                _indicatorBaseWidthInput == null ||
+                _indicatorBaseHeightInput == null ||
+                _indicatorBaseThicknessInput == null ||
+                _indicatorHousingRadiusInput == null ||
+                _indicatorHousingHeightInput == null ||
+                _indicatorLensRadiusInput == null ||
+                _indicatorLensHeightInput == null ||
+                _indicatorLensTransmissionInput == null ||
+                _indicatorLensIorInput == null ||
+                _indicatorLensThicknessInput == null ||
+                _indicatorLensAbsorptionInput == null ||
+                _indicatorLensSurfaceRoughnessInput == null ||
+                _indicatorLensSurfaceSpecularInput == null ||
+                _indicatorLensTintRInput == null ||
+                _indicatorLensTintGInput == null ||
+                _indicatorLensTintBInput == null ||
+                _indicatorReflectorBaseRadiusInput == null ||
+                _indicatorReflectorTopRadiusInput == null ||
+                _indicatorReflectorDepthInput == null ||
+                _indicatorEmitterRadiusInput == null ||
+                _indicatorEmitterSpreadInput == null ||
+                _indicatorEmitterDepthInput == null ||
+                _indicatorEmitterCountInput == null ||
+                _indicatorRadialSegmentsInput == null ||
+                _indicatorLensLatitudeSegmentsInput == null ||
+                _indicatorLensLongitudeSegmentsInput == null ||
                 _indicatorDynamicLightsEnabledCheckBox == null ||
                 _indicatorLightAnimationModeCombo == null ||
-                _indicatorLightAnimationSpeedSlider == null ||
-                _indicatorLightFlickerAmountSlider == null ||
-                _indicatorLightFlickerDropoutSlider == null ||
-                _indicatorLightFlickerSmoothingSlider == null ||
-                _indicatorLightFlickerSeedSlider == null)
+                _indicatorLightAnimationSpeedInput == null ||
+                _indicatorLightFlickerAmountInput == null ||
+                _indicatorLightFlickerDropoutInput == null ||
+                _indicatorLightFlickerSmoothingInput == null ||
+                _indicatorLightFlickerSeedInput == null)
             {
                 return;
             }
 
             _project.IndicatorAssemblyEnabled = _indicatorAssemblyEnabledCheckBox.IsChecked == true;
-            _project.IndicatorBaseWidth = (float)_indicatorBaseWidthSlider.Value;
-            _project.IndicatorBaseHeight = (float)_indicatorBaseHeightSlider.Value;
-            _project.IndicatorBaseThickness = (float)_indicatorBaseThicknessSlider.Value;
-            _project.IndicatorHousingRadius = (float)_indicatorHousingRadiusSlider.Value;
-            _project.IndicatorHousingHeight = (float)_indicatorHousingHeightSlider.Value;
-            _project.IndicatorLensRadius = (float)_indicatorLensRadiusSlider.Value;
-            _project.IndicatorLensHeight = (float)_indicatorLensHeightSlider.Value;
-            _project.IndicatorLensTransmission = (float)_indicatorLensTransmissionSlider.Value;
-            _project.IndicatorLensIor = (float)_indicatorLensIorSlider.Value;
-            _project.IndicatorLensThickness = (float)_indicatorLensThicknessSlider.Value;
-            _project.IndicatorLensAbsorption = (float)_indicatorLensAbsorptionSlider.Value;
-            _project.IndicatorLensSurfaceRoughness = (float)_indicatorLensSurfaceRoughnessSlider.Value;
-            _project.IndicatorLensSurfaceSpecularStrength = (float)_indicatorLensSurfaceSpecularSlider.Value;
+            _project.IndicatorBaseWidth = (float)_indicatorBaseWidthInput.Value;
+            _project.IndicatorBaseHeight = (float)_indicatorBaseHeightInput.Value;
+            _project.IndicatorBaseThickness = (float)_indicatorBaseThicknessInput.Value;
+            _project.IndicatorHousingRadius = (float)_indicatorHousingRadiusInput.Value;
+            _project.IndicatorHousingHeight = (float)_indicatorHousingHeightInput.Value;
+            _project.IndicatorLensRadius = (float)_indicatorLensRadiusInput.Value;
+            _project.IndicatorLensHeight = (float)_indicatorLensHeightInput.Value;
+            _project.IndicatorLensTransmission = (float)_indicatorLensTransmissionInput.Value;
+            _project.IndicatorLensIor = (float)_indicatorLensIorInput.Value;
+            _project.IndicatorLensThickness = (float)_indicatorLensThicknessInput.Value;
+            _project.IndicatorLensAbsorption = (float)_indicatorLensAbsorptionInput.Value;
+            _project.IndicatorLensSurfaceRoughness = (float)_indicatorLensSurfaceRoughnessInput.Value;
+            _project.IndicatorLensSurfaceSpecularStrength = (float)_indicatorLensSurfaceSpecularInput.Value;
             _project.IndicatorLensTint = new System.Numerics.Vector3(
-                (float)_indicatorLensTintRSlider.Value,
-                (float)_indicatorLensTintGSlider.Value,
-                (float)_indicatorLensTintBSlider.Value);
-            _project.IndicatorReflectorBaseRadius = (float)_indicatorReflectorBaseRadiusSlider.Value;
-            _project.IndicatorReflectorTopRadius = (float)_indicatorReflectorTopRadiusSlider.Value;
-            _project.IndicatorReflectorDepth = (float)_indicatorReflectorDepthSlider.Value;
-            _project.IndicatorEmitterRadius = (float)_indicatorEmitterRadiusSlider.Value;
-            _project.IndicatorEmitterSpread = (float)_indicatorEmitterSpreadSlider.Value;
-            _project.IndicatorEmitterDepth = (float)_indicatorEmitterDepthSlider.Value;
+                (float)_indicatorLensTintRInput.Value,
+                (float)_indicatorLensTintGInput.Value,
+                (float)_indicatorLensTintBInput.Value);
+            _project.IndicatorReflectorBaseRadius = (float)_indicatorReflectorBaseRadiusInput.Value;
+            _project.IndicatorReflectorTopRadius = (float)_indicatorReflectorTopRadiusInput.Value;
+            _project.IndicatorReflectorDepth = (float)_indicatorReflectorDepthInput.Value;
+            _project.IndicatorEmitterRadius = (float)_indicatorEmitterRadiusInput.Value;
+            _project.IndicatorEmitterSpread = (float)_indicatorEmitterSpreadInput.Value;
+            _project.IndicatorEmitterDepth = (float)_indicatorEmitterDepthInput.Value;
 
-            int emitterCount = Math.Clamp((int)Math.Round(_indicatorEmitterCountSlider.Value), 1, 8);
-            int radialSegments = Math.Clamp((int)Math.Round(_indicatorRadialSegmentsSlider.Value), 8, 96);
-            int lensLatitudeSegments = Math.Clamp((int)Math.Round(_indicatorLensLatitudeSegmentsSlider.Value), 4, 64);
-            int lensLongitudeSegments = Math.Clamp((int)Math.Round(_indicatorLensLongitudeSegmentsSlider.Value), 6, 96);
+            int emitterCount = Math.Clamp((int)Math.Round(_indicatorEmitterCountInput.Value), 1, 8);
+            int radialSegments = Math.Clamp((int)Math.Round(_indicatorRadialSegmentsInput.Value), 8, 96);
+            int lensLatitudeSegments = Math.Clamp((int)Math.Round(_indicatorLensLatitudeSegmentsInput.Value), 4, 64);
+            int lensLongitudeSegments = Math.Clamp((int)Math.Round(_indicatorLensLongitudeSegmentsInput.Value), 6, 96);
 
-            _indicatorEmitterCountSlider.Value = emitterCount;
-            _indicatorRadialSegmentsSlider.Value = radialSegments;
-            _indicatorLensLatitudeSegmentsSlider.Value = lensLatitudeSegments;
-            _indicatorLensLongitudeSegmentsSlider.Value = lensLongitudeSegments;
+            _indicatorEmitterCountInput.Value = emitterCount;
+            _indicatorRadialSegmentsInput.Value = radialSegments;
+            _indicatorLensLatitudeSegmentsInput.Value = lensLatitudeSegments;
+            _indicatorLensLongitudeSegmentsInput.Value = lensLongitudeSegments;
 
             _project.IndicatorEmitterCount = emitterCount;
             _project.IndicatorRadialSegments = radialSegments;
@@ -185,18 +186,18 @@ namespace KnobForge.App.Views
             rig.AnimationMode = _indicatorLightAnimationModeCombo.SelectedItem is DynamicLightAnimationMode mode
                 ? mode
                 : DynamicLightAnimationMode.Steady;
-            rig.AnimationSpeed = (float)_indicatorLightAnimationSpeedSlider.Value;
-            rig.FlickerAmount = (float)_indicatorLightFlickerAmountSlider.Value;
-            rig.FlickerDropoutChance = (float)_indicatorLightFlickerDropoutSlider.Value;
-            rig.FlickerSmoothing = (float)_indicatorLightFlickerSmoothingSlider.Value;
-            rig.MasterIntensity = _indicatorQuickBrightnessSlider != null
-                ? (float)_indicatorQuickBrightnessSlider.Value
+            rig.AnimationSpeed = (float)_indicatorLightAnimationSpeedInput.Value;
+            rig.FlickerAmount = (float)_indicatorLightFlickerAmountInput.Value;
+            rig.FlickerDropoutChance = (float)_indicatorLightFlickerDropoutInput.Value;
+            rig.FlickerSmoothing = (float)_indicatorLightFlickerSmoothingInput.Value;
+            rig.MasterIntensity = _indicatorQuickBrightnessInput != null
+                ? (float)_indicatorQuickBrightnessInput.Value
                 : 1f;
-            rig.EmissiveGlow = _indicatorQuickGlowSlider != null
-                ? (float)_indicatorQuickGlowSlider.Value
+            rig.EmissiveGlow = _indicatorQuickGlowInput != null
+                ? (float)_indicatorQuickGlowInput.Value
                 : 1f;
-            int seed = Math.Clamp((int)Math.Round(_indicatorLightFlickerSeedSlider.Value), 1, 100000);
-            _indicatorLightFlickerSeedSlider.Value = seed;
+            int seed = Math.Clamp((int)Math.Round(_indicatorLightFlickerSeedInput.Value), 1, 100000);
+            _indicatorLightFlickerSeedInput.Value = seed;
             rig.FlickerSeed = seed;
             SyncIndicatorDynamicLightSourcesToAssembly(recenterSources: requestHeavyRefresh);
             RefreshIndicatorEmitterSourceControlsFromProject();
@@ -226,11 +227,11 @@ namespace KnobForge.App.Views
         {
             if (_indicatorDynamicLightsEnabledCheckBox == null ||
                 _indicatorLightAnimationModeCombo == null ||
-                _indicatorLightAnimationSpeedSlider == null ||
-                _indicatorLightFlickerAmountSlider == null ||
-                _indicatorLightFlickerDropoutSlider == null ||
-                _indicatorLightFlickerSmoothingSlider == null ||
-                _indicatorLightFlickerSeedSlider == null)
+                _indicatorLightAnimationSpeedInput == null ||
+                _indicatorLightFlickerAmountInput == null ||
+                _indicatorLightFlickerDropoutInput == null ||
+                _indicatorLightFlickerSmoothingInput == null ||
+                _indicatorLightFlickerSeedInput == null)
             {
                 return;
             }
@@ -246,50 +247,50 @@ namespace KnobForge.App.Views
                 {
                     case IndicatorLightPreset.Pulse:
                         _indicatorLightAnimationModeCombo.SelectedItem = DynamicLightAnimationMode.Pulse;
-                        _indicatorLightAnimationSpeedSlider.Value = 1.35;
-                        _indicatorLightFlickerAmountSlider.Value = 0.20;
-                        _indicatorLightFlickerDropoutSlider.Value = 0.00;
-                        _indicatorLightFlickerSmoothingSlider.Value = 0.62;
-                        _indicatorLightFlickerSeedSlider.Value = 1337;
-                        if (_indicatorQuickBrightnessSlider != null)
+                        _indicatorLightAnimationSpeedInput.Value = 1.35;
+                        _indicatorLightFlickerAmountInput.Value = 0.20;
+                        _indicatorLightFlickerDropoutInput.Value = 0.00;
+                        _indicatorLightFlickerSmoothingInput.Value = 0.62;
+                        _indicatorLightFlickerSeedInput.Value = 1337;
+                        if (_indicatorQuickBrightnessInput != null)
                         {
-                            _indicatorQuickBrightnessSlider.Value = 1.55;
+                            _indicatorQuickBrightnessInput.Value = 1.55;
                         }
-                        if (_indicatorQuickGlowSlider != null)
+                        if (_indicatorQuickGlowInput != null)
                         {
-                            _indicatorQuickGlowSlider.Value = 1.65;
+                            _indicatorQuickGlowInput.Value = 1.65;
                         }
                         break;
                     case IndicatorLightPreset.Flicker:
                         _indicatorLightAnimationModeCombo.SelectedItem = DynamicLightAnimationMode.Flicker;
-                        _indicatorLightAnimationSpeedSlider.Value = 2.60;
-                        _indicatorLightFlickerAmountSlider.Value = 0.55;
-                        _indicatorLightFlickerDropoutSlider.Value = 0.14;
-                        _indicatorLightFlickerSmoothingSlider.Value = 0.22;
-                        _indicatorLightFlickerSeedSlider.Value = 4242;
-                        if (_indicatorQuickBrightnessSlider != null)
+                        _indicatorLightAnimationSpeedInput.Value = 2.60;
+                        _indicatorLightFlickerAmountInput.Value = 0.55;
+                        _indicatorLightFlickerDropoutInput.Value = 0.14;
+                        _indicatorLightFlickerSmoothingInput.Value = 0.22;
+                        _indicatorLightFlickerSeedInput.Value = 4242;
+                        if (_indicatorQuickBrightnessInput != null)
                         {
-                            _indicatorQuickBrightnessSlider.Value = 1.80;
+                            _indicatorQuickBrightnessInput.Value = 1.80;
                         }
-                        if (_indicatorQuickGlowSlider != null)
+                        if (_indicatorQuickGlowInput != null)
                         {
-                            _indicatorQuickGlowSlider.Value = 2.00;
+                            _indicatorQuickGlowInput.Value = 2.00;
                         }
                         break;
                     default:
                         _indicatorLightAnimationModeCombo.SelectedItem = DynamicLightAnimationMode.Steady;
-                        _indicatorLightAnimationSpeedSlider.Value = 1.00;
-                        _indicatorLightFlickerAmountSlider.Value = 0.00;
-                        _indicatorLightFlickerDropoutSlider.Value = 0.00;
-                        _indicatorLightFlickerSmoothingSlider.Value = 0.50;
-                        _indicatorLightFlickerSeedSlider.Value = 1337;
-                        if (_indicatorQuickBrightnessSlider != null)
+                        _indicatorLightAnimationSpeedInput.Value = 1.00;
+                        _indicatorLightFlickerAmountInput.Value = 0.00;
+                        _indicatorLightFlickerDropoutInput.Value = 0.00;
+                        _indicatorLightFlickerSmoothingInput.Value = 0.50;
+                        _indicatorLightFlickerSeedInput.Value = 1337;
+                        if (_indicatorQuickBrightnessInput != null)
                         {
-                            _indicatorQuickBrightnessSlider.Value = 1.25;
+                            _indicatorQuickBrightnessInput.Value = 1.25;
                         }
-                        if (_indicatorQuickGlowSlider != null)
+                        if (_indicatorQuickGlowInput != null)
                         {
-                            _indicatorQuickGlowSlider.Value = 1.20;
+                            _indicatorQuickGlowInput.Value = 1.20;
                         }
                         break;
                 }
@@ -300,15 +301,15 @@ namespace KnobForge.App.Views
 
         private void ApplyIndicatorLensMaterialPreset(IndicatorLensMaterialPreset preset)
         {
-            if (_indicatorLensTransmissionSlider == null ||
-                _indicatorLensIorSlider == null ||
-                _indicatorLensThicknessSlider == null ||
-                _indicatorLensAbsorptionSlider == null ||
-                _indicatorLensSurfaceRoughnessSlider == null ||
-                _indicatorLensSurfaceSpecularSlider == null ||
-                _indicatorLensTintRSlider == null ||
-                _indicatorLensTintGSlider == null ||
-                _indicatorLensTintBSlider == null)
+            if (_indicatorLensTransmissionInput == null ||
+                _indicatorLensIorInput == null ||
+                _indicatorLensThicknessInput == null ||
+                _indicatorLensAbsorptionInput == null ||
+                _indicatorLensSurfaceRoughnessInput == null ||
+                _indicatorLensSurfaceSpecularInput == null ||
+                _indicatorLensTintRInput == null ||
+                _indicatorLensTintGInput == null ||
+                _indicatorLensTintBInput == null)
             {
                 return;
             }
@@ -324,15 +325,15 @@ namespace KnobForge.App.Views
 
             WithUiRefreshSuppressed(() =>
             {
-                _indicatorLensTransmissionSlider.Value = values.Transmission;
-                _indicatorLensIorSlider.Value = values.Ior;
-                _indicatorLensThicknessSlider.Value = values.Thickness;
-                _indicatorLensAbsorptionSlider.Value = values.Absorption;
-                _indicatorLensSurfaceRoughnessSlider.Value = values.SurfaceRoughness;
-                _indicatorLensSurfaceSpecularSlider.Value = values.SurfaceSpecularStrength;
-                _indicatorLensTintRSlider.Value = values.Tint.X;
-                _indicatorLensTintGSlider.Value = values.Tint.Y;
-                _indicatorLensTintBSlider.Value = values.Tint.Z;
+                _indicatorLensTransmissionInput.Value = values.Transmission;
+                _indicatorLensIorInput.Value = values.Ior;
+                _indicatorLensThicknessInput.Value = values.Thickness;
+                _indicatorLensAbsorptionInput.Value = values.Absorption;
+                _indicatorLensSurfaceRoughnessInput.Value = values.SurfaceRoughness;
+                _indicatorLensSurfaceSpecularInput.Value = values.SurfaceSpecularStrength;
+                _indicatorLensTintRInput.Value = values.Tint.X;
+                _indicatorLensTintGInput.Value = values.Tint.Y;
+                _indicatorLensTintBInput.Value = values.Tint.Z;
             });
 
             ApplyIndicatorLightUiToProject(requestHeavyRefresh: false);
@@ -376,7 +377,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -396,48 +397,48 @@ namespace KnobForge.App.Views
                 source.Name = NormalizeIndicatorEmitterName(_indicatorEmitterSourceNameTextBox.Text, _selectedIndicatorEmitterSourceIndex);
             }
 
-            if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+            if (_indicatorEmitterSourcePhaseOffsetInput != null)
             {
-                source.AnimationPhaseOffsetDegrees = (float)_indicatorEmitterSourcePhaseOffsetSlider.Value;
+                source.AnimationPhaseOffsetDegrees = (float)_indicatorEmitterSourcePhaseOffsetInput.Value;
             }
 
-            if (_indicatorEmitterSourceXSlider != null)
+            if (_indicatorEmitterSourceXInput != null)
             {
-                source.X = (float)_indicatorEmitterSourceXSlider.Value;
+                source.X = (float)_indicatorEmitterSourceXInput.Value;
             }
 
-            if (_indicatorEmitterSourceYSlider != null)
+            if (_indicatorEmitterSourceYInput != null)
             {
-                source.Y = (float)_indicatorEmitterSourceYSlider.Value;
+                source.Y = (float)_indicatorEmitterSourceYInput.Value;
             }
 
-            if (_indicatorEmitterSourceZSlider != null)
+            if (_indicatorEmitterSourceZInput != null)
             {
-                source.Z = (float)_indicatorEmitterSourceZSlider.Value;
+                source.Z = (float)_indicatorEmitterSourceZInput.Value;
             }
 
-            if (_indicatorEmitterSourceIntensitySlider != null)
+            if (_indicatorEmitterSourceIntensityInput != null)
             {
-                source.Intensity = (float)_indicatorEmitterSourceIntensitySlider.Value;
+                source.Intensity = (float)_indicatorEmitterSourceIntensityInput.Value;
             }
 
-            if (_indicatorEmitterSourceRadiusSlider != null)
+            if (_indicatorEmitterSourceRadiusInput != null)
             {
-                source.Radius = (float)_indicatorEmitterSourceRadiusSlider.Value;
+                source.Radius = (float)_indicatorEmitterSourceRadiusInput.Value;
             }
 
-            if (_indicatorEmitterSourceFalloffSlider != null)
+            if (_indicatorEmitterSourceFalloffInput != null)
             {
-                source.Falloff = (float)_indicatorEmitterSourceFalloffSlider.Value;
+                source.Falloff = (float)_indicatorEmitterSourceFalloffInput.Value;
             }
 
-            if (_indicatorEmitterSourceRSlider != null &&
-                _indicatorEmitterSourceGSlider != null &&
-                _indicatorEmitterSourceBSlider != null)
+            if (_indicatorEmitterSourceRInput != null &&
+                _indicatorEmitterSourceGInput != null &&
+                _indicatorEmitterSourceBInput != null)
             {
-                byte r = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceRSlider.Value * 255d), 0, 255);
-                byte g = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceGSlider.Value * 255d), 0, 255);
-                byte b = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceBSlider.Value * 255d), 0, 255);
+                byte r = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceRInput.Value * 255d), 0, 255);
+                byte g = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceGInput.Value * 255d), 0, 255);
+                byte b = (byte)Math.Clamp((int)Math.Round(_indicatorEmitterSourceBInput.Value * 255d), 0, 255);
                 source.Color = new SKColor(r, g, b, 255);
             }
 
@@ -519,10 +520,10 @@ namespace KnobForge.App.Views
                     _indicatorEmitterSourceNameTextBox.IsEnabled = false;
                     _indicatorEmitterSourceNameTextBox.Text = string.Empty;
                 }
-                if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+                if (_indicatorEmitterSourcePhaseOffsetInput != null)
                 {
-                    _indicatorEmitterSourcePhaseOffsetSlider.IsEnabled = false;
-                    _indicatorEmitterSourcePhaseOffsetSlider.Value = 0d;
+                    _indicatorEmitterSourcePhaseOffsetInput.IsEnabled = false;
+                    _indicatorEmitterSourcePhaseOffsetInput.Value = 0d;
                 }
 
                 return;
@@ -542,55 +543,55 @@ namespace KnobForge.App.Views
                     _indicatorEmitterSourceNameTextBox.Text = source.Name;
                 }
 
-                if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+                if (_indicatorEmitterSourcePhaseOffsetInput != null)
                 {
-                    _indicatorEmitterSourcePhaseOffsetSlider.IsEnabled = true;
-                    _indicatorEmitterSourcePhaseOffsetSlider.Value = source.AnimationPhaseOffsetDegrees;
+                    _indicatorEmitterSourcePhaseOffsetInput.IsEnabled = true;
+                    _indicatorEmitterSourcePhaseOffsetInput.Value = source.AnimationPhaseOffsetDegrees;
                 }
 
-                if (_indicatorEmitterSourceXSlider != null)
+                if (_indicatorEmitterSourceXInput != null)
                 {
-                    _indicatorEmitterSourceXSlider.Value = source.X;
+                    _indicatorEmitterSourceXInput.Value = source.X;
                 }
 
-                if (_indicatorEmitterSourceYSlider != null)
+                if (_indicatorEmitterSourceYInput != null)
                 {
-                    _indicatorEmitterSourceYSlider.Value = source.Y;
+                    _indicatorEmitterSourceYInput.Value = source.Y;
                 }
 
-                if (_indicatorEmitterSourceZSlider != null)
+                if (_indicatorEmitterSourceZInput != null)
                 {
-                    _indicatorEmitterSourceZSlider.Value = source.Z;
+                    _indicatorEmitterSourceZInput.Value = source.Z;
                 }
 
-                if (_indicatorEmitterSourceIntensitySlider != null)
+                if (_indicatorEmitterSourceIntensityInput != null)
                 {
-                    _indicatorEmitterSourceIntensitySlider.Value = source.Intensity;
+                    _indicatorEmitterSourceIntensityInput.Value = source.Intensity;
                 }
 
-                if (_indicatorEmitterSourceRadiusSlider != null)
+                if (_indicatorEmitterSourceRadiusInput != null)
                 {
-                    _indicatorEmitterSourceRadiusSlider.Value = source.Radius;
+                    _indicatorEmitterSourceRadiusInput.Value = source.Radius;
                 }
 
-                if (_indicatorEmitterSourceFalloffSlider != null)
+                if (_indicatorEmitterSourceFalloffInput != null)
                 {
-                    _indicatorEmitterSourceFalloffSlider.Value = source.Falloff;
+                    _indicatorEmitterSourceFalloffInput.Value = source.Falloff;
                 }
 
-                if (_indicatorEmitterSourceRSlider != null)
+                if (_indicatorEmitterSourceRInput != null)
                 {
-                    _indicatorEmitterSourceRSlider.Value = source.Color.Red / 255d;
+                    _indicatorEmitterSourceRInput.Value = source.Color.Red / 255d;
                 }
 
-                if (_indicatorEmitterSourceGSlider != null)
+                if (_indicatorEmitterSourceGInput != null)
                 {
-                    _indicatorEmitterSourceGSlider.Value = source.Color.Green / 255d;
+                    _indicatorEmitterSourceGInput.Value = source.Color.Green / 255d;
                 }
 
-                if (_indicatorEmitterSourceBSlider != null)
+                if (_indicatorEmitterSourceBInput != null)
                 {
-                    _indicatorEmitterSourceBSlider.Value = source.Color.Blue / 255d;
+                    _indicatorEmitterSourceBInput.Value = source.Color.Blue / 255d;
                 }
             });
         }

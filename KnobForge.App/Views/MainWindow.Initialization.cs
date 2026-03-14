@@ -23,100 +23,61 @@ namespace KnobForge.App.Views
         {
             if (_metalViewport == null || _viewportOverlay == null || _sceneListBox == null || _lightingModeCombo == null || _lightListBox == null ||
                 _addLightButton == null || _removeLightButton == null || _resetViewButton == null ||
-                _rotationSlider == null || _lightTypeCombo == null || _lightXSlider == null ||
-                _lightYSlider == null || _lightZSlider == null || _directionSlider == null ||
-                _intensitySlider == null || _falloffSlider == null || _lightRSlider == null ||
-                _lightGSlider == null || _lightBSlider == null || _diffuseBoostSlider == null ||
-                _specularBoostSlider == null || _specularPowerSlider == null ||
-                _modelRadiusSlider == null || _modelHeightSlider == null || _modelTopScaleSlider == null ||
-                _modelBevelSlider == null || _referenceStyleCombo == null || _referenceStyleSaveNameTextBox == null || _saveReferenceProfileButton == null || _bodyStyleCombo == null || _bevelCurveSlider == null || _crownProfileSlider == null ||
-                _bodyTaperSlider == null || _bodyBulgeSlider == null || _modelSegmentsSlider == null ||
-                _spiralRidgeHeightSlider == null || _spiralRidgeWidthSlider == null || _spiralTurnsSlider == null ||
-                _gripStyleCombo == null || _gripTypeCombo == null || _gripStartSlider == null || _gripHeightSlider == null ||
-                _gripDensitySlider == null || _gripPitchSlider == null || _gripDepthSlider == null ||
-                _gripWidthSlider == null || _gripSharpnessSlider == null ||
+                _rotationInput == null || _lightTypeCombo == null || _lightXInput == null ||
+                _lightYInput == null || _lightZInput == null || _directionInput == null ||
+                _intensityInput == null || _falloffInput == null || _lightRInput == null ||
+                _lightGInput == null || _lightBInput == null || _diffuseBoostInput == null ||
+                _specularBoostInput == null || _specularPowerInput == null ||
+                _modelRadiusInput == null || _modelHeightInput == null || _modelTopScaleInput == null ||
+                _modelBevelInput == null || _referenceStyleCombo == null || _referenceStyleSaveNameTextBox == null || _saveReferenceProfileButton == null || _bodyStyleCombo == null || _bevelCurveInput == null || _crownProfileInput == null ||
+                _bodyTaperInput == null || _bodyBulgeInput == null || _modelSegmentsInput == null ||
+                _spiralRidgeHeightInput == null || _spiralRidgeWidthInput == null || _spiralTurnsInput == null ||
+                _gripStyleCombo == null || _gripTypeCombo == null || _gripStartInput == null || _gripHeightInput == null ||
+                _gripDensityInput == null || _gripPitchInput == null || _gripDepthInput == null ||
+                _gripWidthInput == null || _gripSharpnessInput == null ||
                 _collarEnabledCheckBox == null || _collarPresetCombo == null || _collarMeshPathTextBox == null ||
-                _collarScaleSlider == null || _collarBodyLengthSlider == null || _collarBodyThicknessSlider == null ||
-                _collarHeadLengthSlider == null || _collarHeadThicknessSlider == null ||
-                _collarRotateSlider == null || _collarMirrorXCheckBox == null || _collarMirrorYCheckBox == null || _collarMirrorZCheckBox == null ||
-                _collarOffsetXSlider == null || _collarOffsetYSlider == null || _collarElevationSlider == null || _collarInflateSlider == null ||
-                _collarMaterialBaseRSlider == null || _collarMaterialBaseGSlider == null || _collarMaterialBaseBSlider == null ||
-                _collarMaterialMetallicSlider == null || _collarMaterialRoughnessSlider == null || _collarMaterialPearlescenceSlider == null ||
-                _collarMaterialRustSlider == null || _collarMaterialWearSlider == null || _collarMaterialGunkSlider == null ||
+                _collarScaleInput == null || _collarBodyLengthInput == null || _collarBodyThicknessInput == null ||
+                _collarHeadLengthInput == null || _collarHeadThicknessInput == null ||
+                _collarRotateInput == null || _collarMirrorXCheckBox == null || _collarMirrorYCheckBox == null || _collarMirrorZCheckBox == null ||
+                _collarOffsetXInput == null || _collarOffsetYInput == null || _collarElevationInput == null || _collarInflateInput == null ||
+                _collarMaterialBaseRInput == null || _collarMaterialBaseGInput == null || _collarMaterialBaseBInput == null ||
+                _collarMaterialMetallicInput == null || _collarMaterialRoughnessInput == null || _collarMaterialPearlescenceInput == null ||
+                _collarMaterialRustInput == null || _collarMaterialWearInput == null || _collarMaterialGunkInput == null ||
                 _indicatorEnabledCheckBox == null || _indicatorShapeCombo == null || _indicatorReliefCombo == null ||
-                _indicatorProfileCombo == null || _indicatorWidthSlider == null || _indicatorLengthSlider == null ||
-                _indicatorPositionSlider == null ||
-                _indicatorThicknessSlider == null || _indicatorRoundnessSlider == null || _indicatorColorBlendSlider == null ||
-                _indicatorColorRSlider == null || _indicatorColorGSlider == null || _indicatorColorBSlider == null ||
-                _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null ||
+                _indicatorProfileCombo == null || _indicatorWidthInput == null || _indicatorLengthInput == null ||
+                _indicatorPositionInput == null ||
+                _indicatorThicknessInput == null || _indicatorRoundnessInput == null || _indicatorColorBlendInput == null ||
+                _indicatorColorRInput == null || _indicatorColorGInput == null || _indicatorColorBInput == null ||
+                _materialBaseRInput == null || _materialBaseGInput == null || _materialBaseBInput == null ||
                 _materialListPanel == null || _materialListBox == null || _materialNameTextBox == null || _materialRegionPanel == null || _materialRegionCombo == null ||
-                _materialMetallicSlider == null || _materialRoughnessSlider == null || _materialPearlescenceSlider == null ||
-                _materialRustSlider == null || _materialWearSlider == null || _materialGunkSlider == null ||
+                _assemblyMaterialPresetPanel == null || _assemblyMaterialPresetCombo == null || _assemblyMaterialPresetHintText == null || _materialManualControlsPanel == null ||
+                _materialMetallicInput == null || _materialRoughnessInput == null || _materialPearlescenceInput == null ||
+                _materialRustInput == null || _materialWearInput == null || _materialGunkInput == null ||
                 _materialAlbedoMapBrowseButton == null || _materialAlbedoMapClearButton == null ||
                 _materialNormalMapBrowseButton == null || _materialNormalMapClearButton == null ||
                 _materialRoughnessMapBrowseButton == null || _materialRoughnessMapClearButton == null ||
                 _materialMetallicMapBrowseButton == null || _materialMetallicMapClearButton == null ||
-                _materialNormalMapStrengthSlider == null || _materialNormalMapStrengthPanel == null ||
+                _materialNormalMapStrengthInput == null || _materialNormalMapStrengthPanel == null ||
                 _materialAlbedoMapPathText == null || _materialNormalMapPathText == null ||
                 _materialRoughnessMapPathText == null || _materialMetallicMapPathText == null ||
-                _materialNormalMapStrengthValueText == null ||
-                _materialBrushStrengthSlider == null || _materialBrushDensitySlider == null || _materialCharacterSlider == null ||
-                _spiralNormalInfluenceCheckBox == null || _basisDebugModeCombo == null || _microLodFadeStartSlider == null || _microLodFadeEndSlider == null || _microRoughnessLodBoostSlider == null ||
-                _envIntensitySlider == null || _envRoughnessMixSlider == null ||
-                _envTopRSlider == null || _envTopGSlider == null || _envTopBSlider == null ||
-                _envBottomRSlider == null || _envBottomGSlider == null || _envBottomBSlider == null ||
-                _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthSlider == null || _shadowSoftnessSlider == null ||
-                _shadowDistanceSlider == null || _shadowScaleSlider == null || _shadowQualitySlider == null ||
-                _shadowGraySlider == null || _shadowDiffuseInfluenceSlider == null ||
+                _materialBrushStrengthInput == null || _materialBrushDensityInput == null || _materialCharacterInput == null ||
+                _spiralNormalInfluenceCheckBox == null || _basisDebugModeCombo == null || _microLodFadeStartInput == null || _microLodFadeEndInput == null || _microRoughnessLodBoostInput == null ||
+                _envIntensityInput == null || _envRoughnessMixInput == null ||
+                _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
+                _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null ||
+                _envPresetCombo == null || _envBloomKernelShapeCombo == null || _environmentManualSettingsPanel == null ||
+                _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthInput == null || _shadowSoftnessInput == null ||
+                _shadowDistanceInput == null || _shadowScaleInput == null || _shadowQualityInput == null ||
+                _shadowGrayInput == null || _shadowDiffuseInfluenceInput == null ||
                 _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _scratchAbrasionTypeCombo == null ||
-                _brushSizeSlider == null || _brushOpacitySlider == null || _brushDarknessSlider == null || _brushSpreadSlider == null ||
-                _paintCoatMetallicSlider == null || _paintCoatRoughnessSlider == null ||
-                _clearCoatAmountSlider == null || _clearCoatRoughnessSlider == null || _anisotropyAngleSlider == null ||
-                _scratchWidthSlider == null || _scratchDepthSlider == null || _scratchResistanceSlider == null || _scratchDepthRampSlider == null ||
-                _scratchExposeColorRSlider == null || _scratchExposeColorGSlider == null || _scratchExposeColorBSlider == null ||
-                _scratchExposeMetallicSlider == null || _scratchExposeRoughnessSlider == null ||
+                _brushSizeInput == null || _brushOpacityInput == null || _brushDarknessInput == null || _brushSpreadInput == null ||
+                _paintCoatMetallicInput == null || _paintCoatRoughnessInput == null ||
+                _clearCoatAmountInput == null || _clearCoatRoughnessInput == null || _anisotropyAngleInput == null ||
+                _scratchWidthInput == null || _scratchDepthInput == null || _scratchResistanceInput == null || _scratchDepthRampInput == null ||
+                _scratchExposeColorRInput == null || _scratchExposeColorGInput == null || _scratchExposeColorBInput == null ||
+                _scratchExposeMetallicInput == null || _scratchExposeRoughnessInput == null ||
                 _clearPaintMaskButton == null ||
-                _renderButton == null ||
-                _rotationValueText == null || _lightXValueText == null || _lightYValueText == null ||
-                _lightZValueText == null || _directionValueText == null ||
-                _intensityValueText == null || _falloffValueText == null ||
-                _lightRValueText == null || _lightGValueText == null || _lightBValueText == null ||
-                _diffuseBoostValueText == null || _specularBoostValueText == null ||
-                _specularPowerValueText == null || _centerLightButton == null ||
-                _modelRadiusValueText == null || _modelHeightValueText == null ||
-                _modelTopScaleValueText == null || _modelBevelValueText == null || _bevelCurveValueText == null ||
-                _crownProfileValueText == null || _bodyTaperValueText == null || _bodyBulgeValueText == null ||
-                _modelSegmentsValueText == null ||
-                _spiralRidgeHeightValueText == null || _spiralRidgeWidthValueText == null || _spiralTurnsValueText == null ||
-                _gripStartValueText == null || _gripHeightValueText == null || _gripDensityValueText == null ||
-                _gripPitchValueText == null || _gripDepthValueText == null || _gripWidthValueText == null ||
-                _gripSharpnessValueText == null ||
-                _collarScaleValueText == null || _collarBodyLengthValueText == null || _collarBodyThicknessValueText == null ||
-                _collarHeadLengthValueText == null || _collarHeadThicknessValueText == null ||
-                _collarRotateValueText == null || _collarOffsetXValueText == null || _collarOffsetYValueText == null || _collarElevationValueText == null || _collarInflateValueText == null ||
-                _collarMaterialBaseRValueText == null || _collarMaterialBaseGValueText == null || _collarMaterialBaseBValueText == null ||
-                _collarMaterialMetallicValueText == null || _collarMaterialRoughnessValueText == null || _collarMaterialPearlescenceValueText == null ||
-                _collarMaterialRustValueText == null || _collarMaterialWearValueText == null || _collarMaterialGunkValueText == null ||
-                _indicatorWidthValueText == null || _indicatorLengthValueText == null || _indicatorPositionValueText == null || _indicatorThicknessValueText == null ||
-                _indicatorRoundnessValueText == null || _indicatorColorBlendValueText == null ||
-                _indicatorColorRValueText == null || _indicatorColorGValueText == null || _indicatorColorBValueText == null ||
-                _materialBaseRValueText == null || _materialBaseGValueText == null || _materialBaseBValueText == null ||
-                _materialMetallicValueText == null || _materialRoughnessValueText == null || _materialPearlescenceValueText == null ||
-                _materialRustValueText == null || _materialWearValueText == null || _materialGunkValueText == null ||
-                _materialBrushStrengthValueText == null || _materialBrushDensityValueText == null || _materialCharacterValueText == null ||
-                _microLodFadeStartValueText == null || _microLodFadeEndValueText == null || _microRoughnessLodBoostValueText == null ||
-                _envIntensityValueText == null || _envRoughnessMixValueText == null ||
-                _envTopRValueText == null || _envTopGValueText == null || _envTopBValueText == null ||
-                _envBottomRValueText == null || _envBottomGValueText == null || _envBottomBValueText == null ||
-                _shadowStrengthValueText == null || _shadowSoftnessValueText == null || _shadowDistanceValueText == null ||
-                _shadowScaleValueText == null || _shadowQualityValueText == null || _shadowGrayValueText == null ||
-                _shadowDiffuseInfluenceValueText == null ||
-                _brushSizeValueText == null || _brushOpacityValueText == null || _brushDarknessValueText == null || _brushSpreadValueText == null ||
-                _paintCoatMetallicValueText == null || _paintCoatRoughnessValueText == null ||
-                _clearCoatAmountValueText == null || _clearCoatRoughnessValueText == null || _anisotropyAngleValueText == null ||
-                _scratchWidthValueText == null || _scratchDepthValueText == null || _scratchResistanceValueText == null || _scratchDepthRampValueText == null ||
-                _scratchExposeColorRValueText == null || _scratchExposeColorGValueText == null || _scratchExposeColorBValueText == null ||
-                _scratchExposeMetallicValueText == null || _scratchExposeRoughnessValueText == null)
+                _renderButton == null || _centerLightButton == null)
             {
                 return false;
             }
@@ -146,6 +107,26 @@ namespace KnobForge.App.Views
             {
                 _sliderAssemblyModeCombo.ItemsSource = Enum.GetValues<SliderAssemblyMode>().Cast<SliderAssemblyMode>().ToList();
             }
+            if (_sliderThumbProfileCombo != null)
+            {
+                _sliderThumbProfileCombo.ItemsSource = Enum.GetValues<SliderThumbProfile>().Cast<SliderThumbProfile>().ToList();
+            }
+            if (_sliderTrackStyleCombo != null)
+            {
+                _sliderTrackStyleCombo.ItemsSource = Enum.GetValues<SliderTrackStyle>().Cast<SliderTrackStyle>().ToList();
+            }
+            if (_pushButtonCapProfileCombo != null)
+            {
+                _pushButtonCapProfileCombo.ItemsSource = Enum.GetValues<PushButtonCapProfile>().Cast<PushButtonCapProfile>().ToList();
+            }
+            if (_pushButtonBezelProfileCombo != null)
+            {
+                _pushButtonBezelProfileCombo.ItemsSource = Enum.GetValues<PushButtonBezelProfile>().Cast<PushButtonBezelProfile>().ToList();
+            }
+            if (_pushButtonSkirtStyleCombo != null)
+            {
+                _pushButtonSkirtStyleCombo.ItemsSource = Enum.GetValues<PushButtonSkirtStyle>().Cast<PushButtonSkirtStyle>().ToList();
+            }
             if (_toggleAssemblyModeCombo != null)
             {
                 _toggleAssemblyModeCombo.ItemsSource = Enum.GetValues<ToggleAssemblyMode>().Cast<ToggleAssemblyMode>().ToList();
@@ -171,6 +152,7 @@ namespace KnobForge.App.Views
                 _toggleTipSleeveTipStyleCombo.ItemsSource = Enum.GetValues<ToggleTipSleeveTipStyle>().Cast<ToggleTipSleeveTipStyle>().ToList();
             }
             RebuildSliderMeshOptions();
+            RebuildPushButtonMeshOptions();
             RebuildToggleMeshOptions();
             _gripStyleCombo.ItemsSource = Enum.GetValues<GripStyle>().Cast<GripStyle>().ToList();
             _gripTypeCombo.ItemsSource = Enum.GetValues<GripType>().Cast<GripType>().ToList();
@@ -187,13 +169,25 @@ namespace KnobForge.App.Views
             {
                 _indicatorEmitterSourceCombo.ItemsSource = Array.Empty<string>();
             }
-            _materialRegionCombo.ItemsSource = Enum.GetValues<MaterialRegionTarget>().Cast<MaterialRegionTarget>().ToList();
-            _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
+            _materialRegionCombo.ItemsSource = _materialRegionOptions;
+            RebuildMaterialRegionOptions(_project.ProjectType);
+            SelectMaterialRegionOption(MaterialRegionTarget.WholeKnob);
+            _assemblyMaterialPresetCombo.ItemsSource = _assemblyMaterialPresetOptions;
             _materialListBox.ItemsSource = _materialItems;
             _basisDebugModeCombo.ItemsSource = Enum.GetValues<BasisDebugMode>().Cast<BasisDebugMode>().ToList();
             if (_envTonemapCombo != null)
             {
                 _envTonemapCombo.ItemsSource = Enum.GetValues<TonemapOperator>().Cast<TonemapOperator>().ToList();
+            }
+            RebuildEnvironmentPresetOptions();
+            if (_envPresetCombo != null)
+            {
+                _envPresetCombo.ItemsSource = _environmentPresetOptions;
+            }
+            RebuildBloomKernelShapeOptions();
+            if (_envBloomKernelShapeCombo != null)
+            {
+                _envBloomKernelShapeCombo.ItemsSource = _bloomKernelShapeOptions;
             }
             _shadowSourceModeCombo.ItemsSource = Enum.GetValues<ShadowLightMode>().Cast<ShadowLightMode>().ToList();
             _brushPaintChannelCombo.ItemsSource = Enum.GetValues<PaintChannel>().Cast<PaintChannel>().ToList();
@@ -283,6 +277,10 @@ namespace KnobForge.App.Views
             if (_refreshSliderLibraryButton != null)
             {
                 _refreshSliderLibraryButton.Click += OnRefreshSliderLibraryButtonClicked;
+            }
+            if (_refreshPushButtonLibraryButton != null)
+            {
+                _refreshPushButtonLibraryButton.Click += OnRefreshPushButtonLibraryButtonClicked;
             }
             if (_refreshToggleLibraryButton != null)
             {
@@ -382,36 +380,37 @@ namespace KnobForge.App.Views
             }
 
             WireBrushQuickToolbarButtons();
+            WireBrushDockDrag();
         }
 
         private void WireControlPropertyHandlers()
         {
             _lightingModeCombo.PropertyChanged += OnLightingModeChanged;
             _lightTypeCombo.PropertyChanged += OnLightTypeChanged;
-            _rotationSlider.PropertyChanged += OnRotationChanged;
-            _lightXSlider.PropertyChanged += OnLightXChanged;
-            _lightYSlider.PropertyChanged += OnLightYChanged;
-            _lightZSlider.PropertyChanged += OnLightZChanged;
-            _directionSlider.PropertyChanged += OnDirectionChanged;
-            _intensitySlider.PropertyChanged += OnIntensityChanged;
-            _falloffSlider.PropertyChanged += OnFalloffChanged;
-            _lightRSlider.PropertyChanged += OnColorChanged;
-            _lightGSlider.PropertyChanged += OnColorChanged;
-            _lightBSlider.PropertyChanged += OnColorChanged;
-            _diffuseBoostSlider.PropertyChanged += OnDiffuseBoostChanged;
-            _specularBoostSlider.PropertyChanged += OnSpecularBoostChanged;
-            _specularPowerSlider.PropertyChanged += OnSpecularPowerChanged;
-            _modelRadiusSlider.PropertyChanged += OnModelRadiusChanged;
-            _modelHeightSlider.PropertyChanged += OnModelHeightChanged;
-            _modelTopScaleSlider.PropertyChanged += OnModelTopScaleChanged;
-            _modelBevelSlider.PropertyChanged += OnModelBevelChanged;
+            _rotationInput.PropertyChanged += OnRotationChanged;
+            _lightXInput.PropertyChanged += OnLightXChanged;
+            _lightYInput.PropertyChanged += OnLightYChanged;
+            _lightZInput.PropertyChanged += OnLightZChanged;
+            _directionInput.PropertyChanged += OnDirectionChanged;
+            _intensityInput.PropertyChanged += OnIntensityChanged;
+            _falloffInput.PropertyChanged += OnFalloffChanged;
+            _lightRInput.PropertyChanged += OnColorChanged;
+            _lightGInput.PropertyChanged += OnColorChanged;
+            _lightBInput.PropertyChanged += OnColorChanged;
+            _diffuseBoostInput.PropertyChanged += OnDiffuseBoostChanged;
+            _specularBoostInput.PropertyChanged += OnSpecularBoostChanged;
+            _specularPowerInput.PropertyChanged += OnSpecularPowerChanged;
+            _modelRadiusInput.PropertyChanged += OnModelRadiusChanged;
+            _modelHeightInput.PropertyChanged += OnModelHeightChanged;
+            _modelTopScaleInput.PropertyChanged += OnModelTopScaleChanged;
+            _modelBevelInput.PropertyChanged += OnModelBevelChanged;
             _referenceStyleCombo.PropertyChanged += OnReferenceStyleChanged;
             _bodyStyleCombo.PropertyChanged += OnBodyStyleChanged;
-            _bevelCurveSlider.PropertyChanged += OnBodyDesignChanged;
-            _crownProfileSlider.PropertyChanged += OnBodyDesignChanged;
-            _bodyTaperSlider.PropertyChanged += OnBodyDesignChanged;
-            _bodyBulgeSlider.PropertyChanged += OnBodyDesignChanged;
-            _modelSegmentsSlider.PropertyChanged += OnModelSegmentsChanged;
+            _bevelCurveInput.PropertyChanged += OnBodyDesignChanged;
+            _crownProfileInput.PropertyChanged += OnBodyDesignChanged;
+            _bodyTaperInput.PropertyChanged += OnBodyDesignChanged;
+            _bodyBulgeInput.PropertyChanged += OnBodyDesignChanged;
+            _modelSegmentsInput.PropertyChanged += OnModelSegmentsChanged;
             if (_sliderAssemblyModeCombo != null)
             {
                 _sliderAssemblyModeCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
@@ -427,38 +426,118 @@ namespace KnobForge.App.Views
                 _sliderThumbMeshCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderBackplateWidthSlider != null)
+            if (_sliderBackplateWidthInput != null)
             {
-                _sliderBackplateWidthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderBackplateWidthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderBackplateHeightSlider != null)
+            if (_sliderBackplateHeightInput != null)
             {
-                _sliderBackplateHeightSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderBackplateHeightInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderBackplateThicknessSlider != null)
+            if (_sliderBackplateThicknessInput != null)
             {
-                _sliderBackplateThicknessSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderBackplateThicknessInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderThumbWidthSlider != null)
+            if (_sliderThumbWidthInput != null)
             {
-                _sliderThumbWidthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderThumbWidthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderThumbHeightSlider != null)
+            if (_sliderThumbHeightInput != null)
             {
-                _sliderThumbHeightSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderThumbHeightInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
 
-            if (_sliderThumbDepthSlider != null)
+            if (_sliderThumbDepthInput != null)
             {
-                _sliderThumbDepthSlider.PropertyChanged += OnSliderAssemblySettingsChanged;
+                _sliderThumbDepthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
             }
-            if (_pushButtonPressAmountSlider != null)
+            if (_sliderThumbProfileCombo != null)
             {
-                _pushButtonPressAmountSlider.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+                _sliderThumbProfileCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderTrackStyleCombo != null)
+            {
+                _sliderTrackStyleCombo.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderTrackWidthInput != null)
+            {
+                _sliderTrackWidthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderTrackDepthInput != null)
+            {
+                _sliderTrackDepthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderRailHeightInput != null)
+            {
+                _sliderRailHeightInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderRailSpacingInput != null)
+            {
+                _sliderRailSpacingInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderThumbRidgeCountInput != null)
+            {
+                _sliderThumbRidgeCountInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderThumbRidgeDepthInput != null)
+            {
+                _sliderThumbRidgeDepthInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_sliderThumbCornerRadiusInput != null)
+            {
+                _sliderThumbCornerRadiusInput.PropertyChanged += OnSliderAssemblySettingsChanged;
+            }
+            if (_pushButtonPressAmountInput != null)
+            {
+                _pushButtonPressAmountInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonBaseMeshCombo != null)
+            {
+                _pushButtonBaseMeshCombo.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonCapMeshCombo != null)
+            {
+                _pushButtonCapMeshCombo.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonCapProfileCombo != null)
+            {
+                _pushButtonCapProfileCombo.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonBezelProfileCombo != null)
+            {
+                _pushButtonBezelProfileCombo.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonSkirtStyleCombo != null)
+            {
+                _pushButtonSkirtStyleCombo.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonBezelChamferSizeInput != null)
+            {
+                _pushButtonBezelChamferSizeInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonCapOverhangInput != null)
+            {
+                _pushButtonCapOverhangInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonCapSegmentsInput != null)
+            {
+                _pushButtonCapSegmentsInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonBezelSegmentsInput != null)
+            {
+                _pushButtonBezelSegmentsInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonSkirtHeightInput != null)
+            {
+                _pushButtonSkirtHeightInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
+            }
+            if (_pushButtonSkirtRadiusInput != null)
+            {
+                _pushButtonSkirtRadiusInput.PropertyChanged += OnPushButtonAssemblySettingsChanged;
             }
             if (_toggleAssemblyModeCombo != null)
             {
@@ -476,45 +555,45 @@ namespace KnobForge.App.Views
             {
                 _toggleStateCountCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleStateIndexSlider != null)
+            if (_toggleStateIndexInput != null)
             {
-                _toggleStateIndexSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleStateIndexInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleMaxAngleSlider != null)
+            if (_toggleMaxAngleInput != null)
             {
-                _toggleMaxAngleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleMaxAngleInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePlateWidthSlider != null)
+            if (_togglePlateWidthInput != null)
             {
-                _togglePlateWidthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePlateWidthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePlateHeightSlider != null)
+            if (_togglePlateHeightInput != null)
             {
-                _togglePlateHeightSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePlateHeightInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePlateThicknessSlider != null)
+            if (_togglePlateThicknessInput != null)
             {
-                _togglePlateThicknessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePlateThicknessInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePlateOffsetYSlider != null)
+            if (_togglePlateOffsetYInput != null)
             {
-                _togglePlateOffsetYSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePlateOffsetYInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePlateOffsetZSlider != null)
+            if (_togglePlateOffsetZInput != null)
             {
-                _togglePlateOffsetZSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePlateOffsetZInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleBushingRadiusSlider != null)
+            if (_toggleBushingRadiusInput != null)
             {
-                _toggleBushingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleBushingRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleBushingHeightSlider != null)
+            if (_toggleBushingHeightInput != null)
             {
-                _toggleBushingHeightSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleBushingHeightInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleBushingSidesSlider != null)
+            if (_toggleBushingSidesInput != null)
             {
-                _toggleBushingSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleBushingSidesInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleLowerBushingShapeCombo != null)
             {
@@ -524,69 +603,69 @@ namespace KnobForge.App.Views
             {
                 _toggleUpperBushingShapeCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLowerBushingRadiusScaleSlider != null)
+            if (_toggleLowerBushingRadiusScaleInput != null)
             {
-                _toggleLowerBushingRadiusScaleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLowerBushingRadiusScaleInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLowerBushingHeightRatioSlider != null)
+            if (_toggleLowerBushingHeightRatioInput != null)
             {
-                _toggleLowerBushingHeightRatioSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLowerBushingHeightRatioInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingRadiusScaleSlider != null)
+            if (_toggleUpperBushingRadiusScaleInput != null)
             {
-                _toggleUpperBushingRadiusScaleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingRadiusScaleInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingHeightRatioSlider != null)
+            if (_toggleUpperBushingHeightRatioInput != null)
             {
-                _toggleUpperBushingHeightRatioSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingHeightRatioInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingKnurlAmountSlider != null)
+            if (_toggleUpperBushingKnurlAmountInput != null)
             {
-                _toggleUpperBushingKnurlAmountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingKnurlAmountInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingKnurlDensitySlider != null)
+            if (_toggleUpperBushingKnurlDensityInput != null)
             {
-                _toggleUpperBushingKnurlDensitySlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingKnurlDensityInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingKnurlDepthSlider != null)
+            if (_toggleUpperBushingKnurlDepthInput != null)
             {
-                _toggleUpperBushingKnurlDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingKnurlDepthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingAnisotropyStrengthSlider != null)
+            if (_toggleUpperBushingAnisotropyStrengthInput != null)
             {
-                _toggleUpperBushingAnisotropyStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingAnisotropyStrengthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingAnisotropyDensitySlider != null)
+            if (_toggleUpperBushingAnisotropyDensityInput != null)
             {
-                _toggleUpperBushingAnisotropyDensitySlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingAnisotropyDensityInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingAnisotropyAngleSlider != null)
+            if (_toggleUpperBushingAnisotropyAngleInput != null)
             {
-                _toggleUpperBushingAnisotropyAngleSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingAnisotropyAngleInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleUpperBushingSurfaceCharacterSlider != null)
+            if (_toggleUpperBushingSurfaceCharacterInput != null)
             {
-                _toggleUpperBushingSurfaceCharacterSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleUpperBushingSurfaceCharacterInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePivotHousingRadiusSlider != null)
+            if (_togglePivotHousingRadiusInput != null)
             {
-                _togglePivotHousingRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePivotHousingRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePivotHousingDepthSlider != null)
+            if (_togglePivotHousingDepthInput != null)
             {
-                _togglePivotHousingDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePivotHousingDepthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePivotHousingBevelSlider != null)
+            if (_togglePivotHousingBevelInput != null)
             {
-                _togglePivotHousingBevelSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePivotHousingBevelInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePivotBallRadiusSlider != null)
+            if (_togglePivotBallRadiusInput != null)
             {
-                _togglePivotBallRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePivotBallRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_togglePivotClearanceSlider != null)
+            if (_togglePivotClearanceInput != null)
             {
-                _togglePivotClearanceSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _togglePivotClearanceInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleInvertBaseWindingCheckBox != null)
             {
@@ -596,61 +675,61 @@ namespace KnobForge.App.Views
             {
                 _toggleInvertLeverWindingCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLeverLengthSlider != null)
+            if (_toggleLeverLengthInput != null)
             {
-                _toggleLeverLengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLeverLengthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLeverRadiusSlider != null)
+            if (_toggleLeverRadiusInput != null)
             {
-                _toggleLeverRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLeverRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLeverTopRadiusSlider != null)
+            if (_toggleLeverTopRadiusInput != null)
             {
-                _toggleLeverTopRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLeverTopRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLeverSidesSlider != null)
+            if (_toggleLeverSidesInput != null)
             {
-                _toggleLeverSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLeverSidesInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleLeverPivotOffsetSlider != null)
+            if (_toggleLeverPivotOffsetInput != null)
             {
-                _toggleLeverPivotOffsetSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleLeverPivotOffsetInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipRadiusSlider != null)
+            if (_toggleTipRadiusInput != null)
             {
-                _toggleTipRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipLatitudeSegmentsSlider != null)
+            if (_toggleTipLatitudeSegmentsInput != null)
             {
-                _toggleTipLatitudeSegmentsSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipLatitudeSegmentsInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipLongitudeSegmentsSlider != null)
+            if (_toggleTipLongitudeSegmentsInput != null)
             {
-                _toggleTipLongitudeSegmentsSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipLongitudeSegmentsInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleTipSleeveEnabledCheckBox != null)
             {
                 _toggleTipSleeveEnabledCheckBox.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveLengthSlider != null)
+            if (_toggleTipSleeveLengthInput != null)
             {
-                _toggleTipSleeveLengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveLengthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveThicknessSlider != null)
+            if (_toggleTipSleeveThicknessInput != null)
             {
-                _toggleTipSleeveThicknessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveThicknessInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveOuterRadiusSlider != null)
+            if (_toggleTipSleeveOuterRadiusInput != null)
             {
-                _toggleTipSleeveOuterRadiusSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveOuterRadiusInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveCoverageSlider != null)
+            if (_toggleTipSleeveCoverageInput != null)
             {
-                _toggleTipSleeveCoverageSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveCoverageInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveSidesSlider != null)
+            if (_toggleTipSleeveSidesInput != null)
             {
-                _toggleTipSleeveSidesSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveSidesInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
             if (_toggleTipSleeveStyleCombo != null)
             {
@@ -660,99 +739,99 @@ namespace KnobForge.App.Views
             {
                 _toggleTipSleeveTipStyleCombo.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleevePatternCountSlider != null)
+            if (_toggleTipSleevePatternCountInput != null)
             {
-                _toggleTipSleevePatternCountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleevePatternCountInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleevePatternDepthSlider != null)
+            if (_toggleTipSleevePatternDepthInput != null)
             {
-                _toggleTipSleevePatternDepthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleevePatternDepthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveTipAmountSlider != null)
+            if (_toggleTipSleeveTipAmountInput != null)
             {
-                _toggleTipSleeveTipAmountSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveTipAmountInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveColorRSlider != null)
+            if (_toggleTipSleeveColorRInput != null)
             {
-                _toggleTipSleeveColorRSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveColorRInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveColorGSlider != null)
+            if (_toggleTipSleeveColorGInput != null)
             {
-                _toggleTipSleeveColorGSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveColorGInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveColorBSlider != null)
+            if (_toggleTipSleeveColorBInput != null)
             {
-                _toggleTipSleeveColorBSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveColorBInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveMetallicSlider != null)
+            if (_toggleTipSleeveMetallicInput != null)
             {
-                _toggleTipSleeveMetallicSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveMetallicInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveRoughnessSlider != null)
+            if (_toggleTipSleeveRoughnessInput != null)
             {
-                _toggleTipSleeveRoughnessSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveRoughnessInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleevePearlescenceSlider != null)
+            if (_toggleTipSleevePearlescenceInput != null)
             {
-                _toggleTipSleevePearlescenceSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleevePearlescenceInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveDiffuseStrengthSlider != null)
+            if (_toggleTipSleeveDiffuseStrengthInput != null)
             {
-                _toggleTipSleeveDiffuseStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveDiffuseStrengthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveSpecularStrengthSlider != null)
+            if (_toggleTipSleeveSpecularStrengthInput != null)
             {
-                _toggleTipSleeveSpecularStrengthSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveSpecularStrengthInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveRustSlider != null)
+            if (_toggleTipSleeveRustInput != null)
             {
-                _toggleTipSleeveRustSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveRustInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveWearSlider != null)
+            if (_toggleTipSleeveWearInput != null)
             {
-                _toggleTipSleeveWearSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveWearInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            if (_toggleTipSleeveGunkSlider != null)
+            if (_toggleTipSleeveGunkInput != null)
             {
-                _toggleTipSleeveGunkSlider.PropertyChanged += OnToggleAssemblySettingsChanged;
+                _toggleTipSleeveGunkInput.PropertyChanged += OnToggleAssemblySettingsChanged;
             }
-            _spiralRidgeHeightSlider.PropertyChanged += OnSpiralGeometryChanged;
-            _spiralRidgeWidthSlider.PropertyChanged += OnSpiralGeometryChanged;
-            _spiralTurnsSlider.PropertyChanged += OnSpiralGeometryChanged;
+            _spiralRidgeHeightInput.PropertyChanged += OnSpiralGeometryChanged;
+            _spiralRidgeWidthInput.PropertyChanged += OnSpiralGeometryChanged;
+            _spiralTurnsInput.PropertyChanged += OnSpiralGeometryChanged;
             _gripStyleCombo.PropertyChanged += OnGripStyleChanged;
             _gripTypeCombo.PropertyChanged += OnGripSettingsChanged;
-            _gripStartSlider.PropertyChanged += OnGripSettingsChanged;
-            _gripHeightSlider.PropertyChanged += OnGripSettingsChanged;
-            _gripDensitySlider.PropertyChanged += OnGripSettingsChanged;
-            _gripPitchSlider.PropertyChanged += OnGripSettingsChanged;
-            _gripDepthSlider.PropertyChanged += OnGripSettingsChanged;
-            _gripWidthSlider.PropertyChanged += OnGripSettingsChanged;
-            _gripSharpnessSlider.PropertyChanged += OnGripSettingsChanged;
+            _gripStartInput.PropertyChanged += OnGripSettingsChanged;
+            _gripHeightInput.PropertyChanged += OnGripSettingsChanged;
+            _gripDensityInput.PropertyChanged += OnGripSettingsChanged;
+            _gripPitchInput.PropertyChanged += OnGripSettingsChanged;
+            _gripDepthInput.PropertyChanged += OnGripSettingsChanged;
+            _gripWidthInput.PropertyChanged += OnGripSettingsChanged;
+            _gripSharpnessInput.PropertyChanged += OnGripSettingsChanged;
             _collarEnabledCheckBox.PropertyChanged += OnCollarSettingsChanged;
             _collarPresetCombo.PropertyChanged += OnCollarSettingsChanged;
             _collarMeshPathTextBox.PropertyChanged += OnCollarSettingsChanged;
-            _collarScaleSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarBodyLengthSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarBodyThicknessSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarHeadLengthSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarHeadThicknessSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarRotateSlider.PropertyChanged += OnCollarSettingsChanged;
+            _collarScaleInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarBodyLengthInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarBodyThicknessInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarHeadLengthInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarHeadThicknessInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarRotateInput.PropertyChanged += OnCollarSettingsChanged;
             _collarMirrorXCheckBox.PropertyChanged += OnCollarSettingsChanged;
             _collarMirrorYCheckBox.PropertyChanged += OnCollarSettingsChanged;
             _collarMirrorZCheckBox.PropertyChanged += OnCollarSettingsChanged;
-            _collarOffsetXSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarOffsetYSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarElevationSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarInflateSlider.PropertyChanged += OnCollarSettingsChanged;
-            _collarMaterialBaseRSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialBaseGSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialBaseBSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialMetallicSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialRoughnessSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialPearlescenceSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialRustSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialWearSlider.PropertyChanged += OnCollarMaterialChanged;
-            _collarMaterialGunkSlider.PropertyChanged += OnCollarMaterialChanged;
+            _collarOffsetXInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarOffsetYInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarElevationInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarInflateInput.PropertyChanged += OnCollarSettingsChanged;
+            _collarMaterialBaseRInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialBaseGInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialBaseBInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialMetallicInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialRoughnessInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialPearlescenceInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialRustInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialWearInput.PropertyChanged += OnCollarMaterialChanged;
+            _collarMaterialGunkInput.PropertyChanged += OnCollarMaterialChanged;
             _indicatorEnabledCheckBox.PropertyChanged += OnIndicatorSettingsChanged;
             if (_indicatorCadWallsCheckBox != null)
             {
@@ -761,15 +840,15 @@ namespace KnobForge.App.Views
             _indicatorShapeCombo.PropertyChanged += OnIndicatorSettingsChanged;
             _indicatorReliefCombo.PropertyChanged += OnIndicatorSettingsChanged;
             _indicatorProfileCombo.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorWidthSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorLengthSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorPositionSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorThicknessSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorRoundnessSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorColorBlendSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorColorRSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorColorGSlider.PropertyChanged += OnIndicatorSettingsChanged;
-            _indicatorColorBSlider.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorWidthInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorLengthInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorPositionInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorThicknessInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorRoundnessInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorColorBlendInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorColorRInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorColorGInput.PropertyChanged += OnIndicatorSettingsChanged;
+            _indicatorColorBInput.PropertyChanged += OnIndicatorSettingsChanged;
             if (_indicatorAssemblyEnabledCheckBox != null)
             {
                 _indicatorAssemblyEnabledCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
@@ -778,117 +857,117 @@ namespace KnobForge.App.Views
             {
                 _indicatorQuickLightOnCheckBox.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorQuickBrightnessSlider != null)
+            if (_indicatorQuickBrightnessInput != null)
             {
-                _indicatorQuickBrightnessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorQuickBrightnessInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorQuickGlowSlider != null)
+            if (_indicatorQuickGlowInput != null)
             {
-                _indicatorQuickGlowSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorQuickGlowInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorBaseWidthSlider != null)
+            if (_indicatorBaseWidthInput != null)
             {
-                _indicatorBaseWidthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorBaseWidthInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorBaseHeightSlider != null)
+            if (_indicatorBaseHeightInput != null)
             {
-                _indicatorBaseHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorBaseHeightInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorBaseThicknessSlider != null)
+            if (_indicatorBaseThicknessInput != null)
             {
-                _indicatorBaseThicknessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorBaseThicknessInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorHousingRadiusSlider != null)
+            if (_indicatorHousingRadiusInput != null)
             {
-                _indicatorHousingRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorHousingRadiusInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorHousingHeightSlider != null)
+            if (_indicatorHousingHeightInput != null)
             {
-                _indicatorHousingHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorHousingHeightInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensRadiusSlider != null)
+            if (_indicatorLensRadiusInput != null)
             {
-                _indicatorLensRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensRadiusInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensHeightSlider != null)
+            if (_indicatorLensHeightInput != null)
             {
-                _indicatorLensHeightSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensHeightInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensTransmissionSlider != null)
+            if (_indicatorLensTransmissionInput != null)
             {
-                _indicatorLensTransmissionSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensTransmissionInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensIorSlider != null)
+            if (_indicatorLensIorInput != null)
             {
-                _indicatorLensIorSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensIorInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensThicknessSlider != null)
+            if (_indicatorLensThicknessInput != null)
             {
-                _indicatorLensThicknessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensThicknessInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensAbsorptionSlider != null)
+            if (_indicatorLensAbsorptionInput != null)
             {
-                _indicatorLensAbsorptionSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensAbsorptionInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensSurfaceRoughnessSlider != null)
+            if (_indicatorLensSurfaceRoughnessInput != null)
             {
-                _indicatorLensSurfaceRoughnessSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensSurfaceRoughnessInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensSurfaceSpecularSlider != null)
+            if (_indicatorLensSurfaceSpecularInput != null)
             {
-                _indicatorLensSurfaceSpecularSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensSurfaceSpecularInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensTintRSlider != null)
+            if (_indicatorLensTintRInput != null)
             {
-                _indicatorLensTintRSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensTintRInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensTintGSlider != null)
+            if (_indicatorLensTintGInput != null)
             {
-                _indicatorLensTintGSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensTintGInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensTintBSlider != null)
+            if (_indicatorLensTintBInput != null)
             {
-                _indicatorLensTintBSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensTintBInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorReflectorBaseRadiusSlider != null)
+            if (_indicatorReflectorBaseRadiusInput != null)
             {
-                _indicatorReflectorBaseRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorReflectorBaseRadiusInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorReflectorTopRadiusSlider != null)
+            if (_indicatorReflectorTopRadiusInput != null)
             {
-                _indicatorReflectorTopRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorReflectorTopRadiusInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorReflectorDepthSlider != null)
+            if (_indicatorReflectorDepthInput != null)
             {
-                _indicatorReflectorDepthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorReflectorDepthInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorEmitterRadiusSlider != null)
+            if (_indicatorEmitterRadiusInput != null)
             {
-                _indicatorEmitterRadiusSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorEmitterRadiusInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorEmitterSpreadSlider != null)
+            if (_indicatorEmitterSpreadInput != null)
             {
-                _indicatorEmitterSpreadSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorEmitterSpreadInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorEmitterDepthSlider != null)
+            if (_indicatorEmitterDepthInput != null)
             {
-                _indicatorEmitterDepthSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorEmitterDepthInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorEmitterCountSlider != null)
+            if (_indicatorEmitterCountInput != null)
             {
-                _indicatorEmitterCountSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorEmitterCountInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorRadialSegmentsSlider != null)
+            if (_indicatorRadialSegmentsInput != null)
             {
-                _indicatorRadialSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorRadialSegmentsInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensLatitudeSegmentsSlider != null)
+            if (_indicatorLensLatitudeSegmentsInput != null)
             {
-                _indicatorLensLatitudeSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensLatitudeSegmentsInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLensLongitudeSegmentsSlider != null)
+            if (_indicatorLensLongitudeSegmentsInput != null)
             {
-                _indicatorLensLongitudeSegmentsSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLensLongitudeSegmentsInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
             if (_indicatorDynamicLightsEnabledCheckBox != null)
             {
@@ -898,25 +977,25 @@ namespace KnobForge.App.Views
             {
                 _indicatorLightAnimationModeCombo.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLightAnimationSpeedSlider != null)
+            if (_indicatorLightAnimationSpeedInput != null)
             {
-                _indicatorLightAnimationSpeedSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLightAnimationSpeedInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLightFlickerAmountSlider != null)
+            if (_indicatorLightFlickerAmountInput != null)
             {
-                _indicatorLightFlickerAmountSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLightFlickerAmountInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLightFlickerDropoutSlider != null)
+            if (_indicatorLightFlickerDropoutInput != null)
             {
-                _indicatorLightFlickerDropoutSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLightFlickerDropoutInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLightFlickerSmoothingSlider != null)
+            if (_indicatorLightFlickerSmoothingInput != null)
             {
-                _indicatorLightFlickerSmoothingSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLightFlickerSmoothingInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
-            if (_indicatorLightFlickerSeedSlider != null)
+            if (_indicatorLightFlickerSeedInput != null)
             {
-                _indicatorLightFlickerSeedSlider.PropertyChanged += OnIndicatorLightSettingsChanged;
+                _indicatorLightFlickerSeedInput.PropertyChanged += OnIndicatorLightSettingsChanged;
             }
             if (_indicatorEmitterSourceCombo != null)
             {
@@ -930,138 +1009,147 @@ namespace KnobForge.App.Views
             {
                 _indicatorEmitterSourceEnabledCheckBox.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourcePhaseOffsetSlider != null)
+            if (_indicatorEmitterSourcePhaseOffsetInput != null)
             {
-                _indicatorEmitterSourcePhaseOffsetSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourcePhaseOffsetInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceXSlider != null)
+            if (_indicatorEmitterSourceXInput != null)
             {
-                _indicatorEmitterSourceXSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceXInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceYSlider != null)
+            if (_indicatorEmitterSourceYInput != null)
             {
-                _indicatorEmitterSourceYSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceYInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceZSlider != null)
+            if (_indicatorEmitterSourceZInput != null)
             {
-                _indicatorEmitterSourceZSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceZInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceIntensitySlider != null)
+            if (_indicatorEmitterSourceIntensityInput != null)
             {
-                _indicatorEmitterSourceIntensitySlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceIntensityInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceRadiusSlider != null)
+            if (_indicatorEmitterSourceRadiusInput != null)
             {
-                _indicatorEmitterSourceRadiusSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceRadiusInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceFalloffSlider != null)
+            if (_indicatorEmitterSourceFalloffInput != null)
             {
-                _indicatorEmitterSourceFalloffSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceFalloffInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceRSlider != null)
+            if (_indicatorEmitterSourceRInput != null)
             {
-                _indicatorEmitterSourceRSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceRInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceGSlider != null)
+            if (_indicatorEmitterSourceGInput != null)
             {
-                _indicatorEmitterSourceGSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceGInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            if (_indicatorEmitterSourceBSlider != null)
+            if (_indicatorEmitterSourceBInput != null)
             {
-                _indicatorEmitterSourceBSlider.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
+                _indicatorEmitterSourceBInput.PropertyChanged += OnIndicatorLightEmitterSettingsChanged;
             }
-            _materialBaseRSlider.PropertyChanged += OnMaterialBaseColorChanged;
-            _materialBaseGSlider.PropertyChanged += OnMaterialBaseColorChanged;
-            _materialBaseBSlider.PropertyChanged += OnMaterialBaseColorChanged;
+            _materialBaseRInput.PropertyChanged += OnMaterialBaseColorChanged;
+            _materialBaseGInput.PropertyChanged += OnMaterialBaseColorChanged;
+            _materialBaseBInput.PropertyChanged += OnMaterialBaseColorChanged;
             _materialNameTextBox.PropertyChanged += OnMaterialNameTextChanged;
             _materialRegionCombo.PropertyChanged += OnMaterialRegionChanged;
-            _materialMetallicSlider.PropertyChanged += OnMaterialMetallicChanged;
-            _materialRoughnessSlider.PropertyChanged += OnMaterialRoughnessChanged;
-            _materialPearlescenceSlider.PropertyChanged += OnMaterialPearlescenceChanged;
-            _materialRustSlider.PropertyChanged += OnMaterialAgingChanged;
-            _materialWearSlider.PropertyChanged += OnMaterialAgingChanged;
-            _materialGunkSlider.PropertyChanged += OnMaterialAgingChanged;
-            _materialNormalMapStrengthSlider.PropertyChanged += OnMaterialNormalMapStrengthChanged;
-            _materialBrushStrengthSlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
-            _materialBrushDensitySlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
-            _materialCharacterSlider.PropertyChanged += OnMaterialSurfaceCharacterChanged;
+            _assemblyMaterialPresetCombo.PropertyChanged += OnAssemblyMaterialPresetChanged;
+            _materialMetallicInput.PropertyChanged += OnMaterialMetallicChanged;
+            _materialRoughnessInput.PropertyChanged += OnMaterialRoughnessChanged;
+            _materialPearlescenceInput.PropertyChanged += OnMaterialPearlescenceChanged;
+            _materialRustInput.PropertyChanged += OnMaterialAgingChanged;
+            _materialWearInput.PropertyChanged += OnMaterialAgingChanged;
+            _materialGunkInput.PropertyChanged += OnMaterialAgingChanged;
+            _materialNormalMapStrengthInput.PropertyChanged += OnMaterialNormalMapStrengthChanged;
+            _materialBrushStrengthInput.PropertyChanged += OnMaterialSurfaceCharacterChanged;
+            _materialBrushDensityInput.PropertyChanged += OnMaterialSurfaceCharacterChanged;
+            _materialCharacterInput.PropertyChanged += OnMaterialSurfaceCharacterChanged;
             _spiralNormalInfluenceCheckBox.PropertyChanged += OnMicroDetailSettingsChanged;
             _basisDebugModeCombo.PropertyChanged += OnMicroDetailSettingsChanged;
-            _microLodFadeStartSlider.PropertyChanged += OnMicroDetailSettingsChanged;
-            _microLodFadeEndSlider.PropertyChanged += OnMicroDetailSettingsChanged;
-            _microRoughnessLodBoostSlider.PropertyChanged += OnMicroDetailSettingsChanged;
-            _envIntensitySlider.PropertyChanged += OnEnvironmentChanged;
-            _envRoughnessMixSlider.PropertyChanged += OnEnvironmentChanged;
-            _envTopRSlider.PropertyChanged += OnEnvironmentChanged;
-            _envTopGSlider.PropertyChanged += OnEnvironmentChanged;
-            _envTopBSlider.PropertyChanged += OnEnvironmentChanged;
-            _envBottomRSlider.PropertyChanged += OnEnvironmentChanged;
-            _envBottomGSlider.PropertyChanged += OnEnvironmentChanged;
-            _envBottomBSlider.PropertyChanged += OnEnvironmentChanged;
+            _microLodFadeStartInput.PropertyChanged += OnMicroDetailSettingsChanged;
+            _microLodFadeEndInput.PropertyChanged += OnMicroDetailSettingsChanged;
+            _microRoughnessLodBoostInput.PropertyChanged += OnMicroDetailSettingsChanged;
+            _envIntensityInput.PropertyChanged += OnEnvironmentChanged;
+            _envRoughnessMixInput.PropertyChanged += OnEnvironmentChanged;
+            _envTopRInput.PropertyChanged += OnEnvironmentChanged;
+            _envTopGInput.PropertyChanged += OnEnvironmentChanged;
+            _envTopBInput.PropertyChanged += OnEnvironmentChanged;
+            _envBottomRInput.PropertyChanged += OnEnvironmentChanged;
+            _envBottomGInput.PropertyChanged += OnEnvironmentChanged;
+            _envBottomBInput.PropertyChanged += OnEnvironmentChanged;
             if (_envTonemapCombo != null)
             {
                 _envTonemapCombo.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envExposureSlider != null)
+            if (_envPresetCombo != null)
             {
-                _envExposureSlider.PropertyChanged += OnEnvironmentChanged;
+                _envPresetCombo.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envBloomStrengthSlider != null)
+            if (_envExposureInput != null)
             {
-                _envBloomStrengthSlider.PropertyChanged += OnEnvironmentChanged;
+                _envExposureInput.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envBloomThresholdSlider != null)
+            if (_envBloomStrengthInput != null)
             {
-                _envBloomThresholdSlider.PropertyChanged += OnEnvironmentChanged;
+                _envBloomStrengthInput.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envBloomKneeSlider != null)
+            if (_envBloomThresholdInput != null)
             {
-                _envBloomKneeSlider.PropertyChanged += OnEnvironmentChanged;
+                _envBloomThresholdInput.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envHdriBlendSlider != null)
+            if (_envBloomKneeInput != null)
             {
-                _envHdriBlendSlider.PropertyChanged += OnEnvironmentChanged;
+                _envBloomKneeInput.PropertyChanged += OnEnvironmentChanged;
             }
-            if (_envHdriRotationSlider != null)
+            if (_envBloomKernelShapeCombo != null)
             {
-                _envHdriRotationSlider.PropertyChanged += OnEnvironmentChanged;
+                _envBloomKernelShapeCombo.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envHdriBlendInput != null)
+            {
+                _envHdriBlendInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envHdriRotationInput != null)
+            {
+                _envHdriRotationInput.PropertyChanged += OnEnvironmentChanged;
             }
             _shadowEnabledCheckBox.PropertyChanged += OnShadowSettingsChanged;
             _shadowSourceModeCombo.PropertyChanged += OnShadowSettingsChanged;
-            _shadowStrengthSlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowSoftnessSlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowDistanceSlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowScaleSlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowQualitySlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowGraySlider.PropertyChanged += OnShadowSettingsChanged;
-            _shadowDiffuseInfluenceSlider.PropertyChanged += OnShadowSettingsChanged;
+            _shadowStrengthInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowSoftnessInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowDistanceInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowScaleInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowQualityInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowGrayInput.PropertyChanged += OnShadowSettingsChanged;
+            _shadowDiffuseInfluenceInput.PropertyChanged += OnShadowSettingsChanged;
             _brushPaintEnabledCheckBox.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushPaintChannelCombo.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushTypeCombo.PropertyChanged += OnPaintBrushSettingsChanged;
             _brushPaintColorPicker.PropertyChanged += OnPaintBrushSettingsChanged;
-            if (_paintChannelTargetValueSlider != null)
+            if (_paintChannelTargetValueInput != null)
             {
-                _paintChannelTargetValueSlider.PropertyChanged += OnPaintBrushSettingsChanged;
+                _paintChannelTargetValueInput.PropertyChanged += OnPaintBrushSettingsChanged;
             }
             _scratchAbrasionTypeCombo.PropertyChanged += OnPaintBrushSettingsChanged;
-            _brushSizeSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _brushOpacitySlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _brushDarknessSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _brushSpreadSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _paintCoatMetallicSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _paintCoatRoughnessSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _clearCoatAmountSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _clearCoatRoughnessSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _anisotropyAngleSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchWidthSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchDepthSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchResistanceSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchDepthRampSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchExposeColorRSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchExposeColorGSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchExposeColorBSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchExposeMetallicSlider.PropertyChanged += OnPaintBrushSettingsChanged;
-            _scratchExposeRoughnessSlider.PropertyChanged += OnPaintBrushSettingsChanged;
+            _brushSizeInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _brushOpacityInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _brushDarknessInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _brushSpreadInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _paintCoatMetallicInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _paintCoatRoughnessInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _clearCoatAmountInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _clearCoatRoughnessInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _anisotropyAngleInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchWidthInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchDepthInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchResistanceInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchDepthRampInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchExposeColorRInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchExposeColorGInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchExposeColorBInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchExposeMetallicInput.PropertyChanged += OnPaintBrushSettingsChanged;
+            _scratchExposeRoughnessInput.PropertyChanged += OnPaintBrushSettingsChanged;
         }
 
         private void WireOpenedHandlers()
@@ -1258,6 +1346,15 @@ namespace KnobForge.App.Views
 
         private void ViewportOverlay_KeyDown(object? sender, KeyEventArgs e)
         {
+            if (e.Key == Key.B &&
+                !e.KeyModifiers.HasFlag(KeyModifiers.Meta) &&
+                !e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                ToggleBrushDockVisibility();
+                e.Handled = true;
+                return;
+            }
+
             _metalViewport?.HandleKeyDownFromOverlay(e);
         }
 

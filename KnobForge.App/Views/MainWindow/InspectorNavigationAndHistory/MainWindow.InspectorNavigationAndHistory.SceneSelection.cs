@@ -31,7 +31,9 @@ namespace KnobForge.App.Views
                 snapshot.EnvironmentBottomColorZ);
             _project.EnvironmentIntensity = snapshot.EnvironmentIntensity;
             _project.EnvironmentRoughnessMix = snapshot.EnvironmentRoughnessMix;
+            _project.EnvironmentPreset = snapshot.EnvironmentPreset;
             _project.ToneMappingOperator = snapshot.ToneMappingOperator;
+            _project.BloomKernelShape = snapshot.BloomKernelShape;
             _project.EnvironmentExposure = snapshot.EnvironmentExposure;
             _project.EnvironmentBloomStrength = snapshot.EnvironmentBloomStrength;
             _project.EnvironmentBloomThreshold = snapshot.EnvironmentBloomThreshold;
@@ -592,7 +594,9 @@ namespace KnobForge.App.Views
             {
                 desiredNode = ResolveSelectedLightSceneNode();
             }
-            else if (ReferenceEquals(selectedTab, _modelTabItem) || ReferenceEquals(selectedTab, _brushTabItem))
+            else if (ReferenceEquals(selectedTab, _modelTabItem) ||
+                     ReferenceEquals(selectedTab, _brushTabItem) ||
+                     ReferenceEquals(selectedTab, _materialGraphTabItem))
             {
                 desiredNode = ResolvePreferredModelSceneNode();
             }

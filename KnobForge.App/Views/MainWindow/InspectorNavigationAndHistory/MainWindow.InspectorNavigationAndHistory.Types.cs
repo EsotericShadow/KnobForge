@@ -28,7 +28,9 @@ namespace KnobForge.App.Views
             public float EnvironmentBottomColorZ { get; set; }
             public float EnvironmentIntensity { get; set; }
             public float EnvironmentRoughnessMix { get; set; }
+            public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
             public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
+            public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
             public float EnvironmentExposure { get; set; } = 1f;
             public float EnvironmentBloomStrength { get; set; } = 0.40f;
             public float EnvironmentBloomThreshold { get; set; } = 1.10f;
@@ -233,6 +235,7 @@ namespace KnobForge.App.Views
             public string? RoughnessMapPath { get; set; }
             public string? MetallicMapPath { get; set; }
             public float NormalMapStrength { get; set; } = 1f;
+            public KnobForge.Core.MaterialGraph.MaterialGraph? Graph { get; set; }
         }
 
         private sealed class LightStateSnapshot

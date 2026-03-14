@@ -147,7 +147,9 @@ namespace KnobForge.App.Views
                 snapshot.EnvironmentBottomColorZ = project.EnvironmentBottomColor.Z;
                 snapshot.EnvironmentIntensity = project.EnvironmentIntensity;
                 snapshot.EnvironmentRoughnessMix = project.EnvironmentRoughnessMix;
+                snapshot.EnvironmentPreset = project.EnvironmentPreset;
                 snapshot.ToneMappingOperator = project.ToneMappingOperator;
+                snapshot.BloomKernelShape = project.BloomKernelShape;
                 snapshot.EnvironmentExposure = project.EnvironmentExposure;
                 snapshot.EnvironmentBloomStrength = project.EnvironmentBloomStrength;
                 snapshot.EnvironmentBloomThreshold = project.EnvironmentBloomThreshold;
@@ -191,7 +193,9 @@ namespace KnobForge.App.Views
                     snapshot.EnvironmentBottomColorZ);
                 project.EnvironmentIntensity = snapshot.EnvironmentIntensity;
                 project.EnvironmentRoughnessMix = snapshot.EnvironmentRoughnessMix;
+                project.EnvironmentPreset = snapshot.EnvironmentPreset;
                 project.ToneMappingOperator = snapshot.ToneMappingOperator;
+                project.BloomKernelShape = snapshot.BloomKernelShape;
                 project.EnvironmentExposure = snapshot.EnvironmentExposure;
                 project.EnvironmentBloomStrength = snapshot.EnvironmentBloomStrength;
                 project.EnvironmentBloomThreshold = snapshot.EnvironmentBloomThreshold;

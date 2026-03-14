@@ -27,8 +27,9 @@ A tool where users can import PBR texture sets, paint directly on 3D models with
 | 3 | Paint System Upgrades | Phase 1 | Low | Complete |
 | 4 | Multi-Material Support | Phase 2 | Medium | Complete |
 | 5 | Texture Bake Pipeline | Phases 2, 3, 4 | Low | Complete |
-| 6 | Inspector Control Overhaul | None (independent) | Low | Not started |
-| 7 | Node-Based Material Graph | Phases 1-5 | High | Not started |
+| 6 | Inspector Control Overhaul | None (independent) | Low | Complete |
+| 7 | Node-Based Material Graph | Phases 1-5 | High | Complete |
+| 8 | Inspector UI/UX Overhaul | Phase 6 | Low | Complete |
 
 ## Workstreams
 
@@ -55,6 +56,9 @@ Phase 1: UV Infrastructure
                   |
                   v
               Phase 7: Node Graph
+                  |
+                  v
+              Phase 8: Inspector UI/UX
 ```
 
 ## Milestone Definitions
@@ -66,6 +70,7 @@ Phase 1: UV Infrastructure
 - **M5: Full Material Pipeline** — Phase 5 complete. Composed texture maps can be baked and exported as standalone image files.
 - **M6: Professional Inspector** — Phase 6 complete. All sprite knob sliders replaced with compact Choroboros-style value inputs (text + arrows + drag + scroll).
 - **M7: Procedural Materials** — Phase 7 complete. Node-based material graph with procedural texture generation.
+- **M8: Inspector UX Refresh** — Phase 8 complete. Inspector tabs, labels, grouping, and value-entry layout are streamlined for production use.
 
 ## Minimum Viable Material Tool
 
@@ -99,6 +104,12 @@ Phase 1: UV Infrastructure
 | `CODEX-PROMPT-PHASE-1.md` | Self-contained implementation prompt for Phase 1 — hand to Codex or any coding agent |
 | `CODEX-PROMPT-PHASE-2.md` | Self-contained implementation prompt for Phase 2 — hand to Codex or any coding agent |
 | `CODEX-PROMPT-PHASE-3.md` | Self-contained implementation prompt for Phase 3 — hand to Codex or any coding agent |
+| `CODEX-PROMPT-PHASE-4.md` | Self-contained implementation prompt for Phase 4 — hand to Codex or any coding agent |
+| `CODEX-PROMPT-PHASE-5.md` | Self-contained implementation prompt for Phase 5 — hand to Codex or any coding agent |
+| `CODEX-PROMPT-PHASE-6.md` | Self-contained implementation prompt for Phase 6 — hand to Codex or any coding agent |
+| `CODEX-PROMPT-PHASE-7.md` | Self-contained implementation prompt for Phase 7 — hand to Codex or any coding agent |
+| `CODEX-PROMPT-PHASE-8.md` | Self-contained implementation prompt for Phase 8 — hand to Codex or any coding agent |
+| `UI-UX-OVERHAUL-PLAN.md` | Detailed UI/UX audit and design rationale behind Phase 8 |
 
 ### Planning Framework Coverage
 

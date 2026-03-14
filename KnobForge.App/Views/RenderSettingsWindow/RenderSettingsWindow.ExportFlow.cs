@@ -179,7 +179,8 @@ namespace KnobForge.App.Views
                                         height,
                                         cameraState,
                                         out SKBitmap? frame,
-                                        dynamicLightAnimationTimeSeconds))
+                                        dynamicLightAnimationTimeSeconds,
+                                        RenderQualityTier.Production))
                                 {
                                     return frame;
                                 }
@@ -296,7 +297,8 @@ namespace KnobForge.App.Views
                                             settings.Resolution,
                                             probeCamera,
                                             out SKBitmap? frame,
-                                            probeAnimationTimeSeconds))
+                                            probeAnimationTimeSeconds,
+                                            RenderQualityTier.Production))
                                         {
                                             return frame;
                                         }

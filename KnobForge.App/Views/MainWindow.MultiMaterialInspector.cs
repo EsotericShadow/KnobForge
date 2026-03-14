@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Selection;
 using Avalonia.Media;
+using KnobForge.Core;
 using KnobForge.Core.Scene;
 using System;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace KnobForge.App.Views
             bool showMaterialRegion = model != null && !importedMesh;
 
             SyncMaterialInspectorItems(materials);
+            RefreshMaterialRegionUi(showMaterialRegion);
 
             if (_materialListPanel != null)
             {
@@ -28,6 +30,8 @@ namespace KnobForge.App.Views
             {
                 _materialRegionPanel.IsVisible = showMaterialRegion;
             }
+
+            RefreshAssemblyMaterialPresetUi();
 
             if (_materialListBox != null)
             {
@@ -46,8 +50,220 @@ namespace KnobForge.App.Views
 
             if (!showMaterialRegion && _materialRegionCombo != null)
             {
-                _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
+                SelectMaterialRegionOption(MaterialRegionTarget.WholeKnob);
             }
+        }
+
+        private void RefreshMaterialRegionUi(bool showMaterialRegion)
+        {
+            if (_materialRegionCombo == null)
+            {
+                return;
+            }
+
+            MaterialRegionTarget selectedRegion = ResolveSelectedMaterialRegion();
+            bool previousUpdatingUi = _updatingUi;
+            _updatingUi = true;
+            try
+            {
+                RebuildMaterialRegionOptions(_project.ProjectType);
+                _materialRegionCombo.ItemsSource = _materialRegionOptions;
+                SelectMaterialRegionOption(showMaterialRegion ? selectedRegion : MaterialRegionTarget.WholeKnob);
+            }
+            finally
+            {
+                _updatingUi = previousUpdatingUi;
+            }
+        }
+
+        private void RebuildMaterialRegionOptions(InteractorProjectType projectType)
+        {
+            _materialRegionOptions.Clear();
+            AddMaterialRegionOption(MaterialRegionTarget.WholeKnob, projectType switch
+            {
+                InteractorProjectType.ThumbSlider => "Whole Slider",
+                InteractorProjectType.FlipSwitch => "Whole Switch",
+                InteractorProjectType.PushButton => "Whole Button",
+                InteractorProjectType.IndicatorLight => "Whole Indicator",
+                _ => "Whole Knob"
+            });
+
+            switch (projectType)
+            {
+                case InteractorProjectType.ThumbSlider:
+                    AddMaterialRegionOption(MaterialRegionTarget.TopCap, "Thumb");
+                    AddMaterialRegionOption(MaterialRegionTarget.Side, "Backplate");
+                    break;
+                case InteractorProjectType.FlipSwitch:
+                    AddMaterialRegionOption(MaterialRegionTarget.TopCap, "Lever");
+                    AddMaterialRegionOption(MaterialRegionTarget.Side, "Base");
+                    break;
+                case InteractorProjectType.PushButton:
+                    AddMaterialRegionOption(MaterialRegionTarget.TopCap, "Cap");
+                    AddMaterialRegionOption(MaterialRegionTarget.Side, "Body");
+                    break;
+                case InteractorProjectType.IndicatorLight:
+                    AddMaterialRegionOption(MaterialRegionTarget.TopCap, "Housing");
+                    AddMaterialRegionOption(MaterialRegionTarget.Side, "Base");
+                    break;
+                default:
+                    AddMaterialRegionOption(MaterialRegionTarget.TopCap, "Top Cap");
+                    AddMaterialRegionOption(MaterialRegionTarget.Bevel, "Bevel");
+                    AddMaterialRegionOption(MaterialRegionTarget.Side, "Side");
+                    break;
+            }
+        }
+
+        private void AddMaterialRegionOption(MaterialRegionTarget target, string name)
+        {
+            _materialRegionOptions.Add(new MaterialRegionOption
+            {
+                Target = target,
+                Name = name
+            });
+        }
+
+        private void SelectMaterialRegionOption(MaterialRegionTarget region)
+        {
+            if (_materialRegionCombo == null)
+            {
+                return;
+            }
+
+            MaterialRegionOption? selectedOption = _materialRegionOptions
+                .FirstOrDefault(option => option.Target == region)
+                ?? _materialRegionOptions.FirstOrDefault(option => option.Target == MaterialRegionTarget.WholeKnob);
+
+            _materialRegionCombo.SelectedItem = selectedOption;
+        }
+
+        private void RefreshAssemblyMaterialPresetUi()
+        {
+            InteractorProjectType projectType = _project.ProjectType;
+            bool showPresetPanel = SupportsAssemblyMaterialPreset(projectType);
+            if (_assemblyMaterialPresetPanel != null)
+            {
+                _assemblyMaterialPresetPanel.IsVisible = showPresetPanel;
+            }
+
+            if (_assemblyMaterialPresetHintText != null)
+            {
+                _assemblyMaterialPresetHintText.Text = showPresetPanel
+                    ? "Preset overrides manual material values while active."
+                    : string.Empty;
+            }
+
+            if (_assemblyMaterialPresetCombo != null)
+            {
+                if (!showPresetPanel)
+                {
+                    bool previousUpdatingUi = _updatingUi;
+                    _updatingUi = true;
+                    try
+                    {
+                        _assemblyMaterialPresetOptions.Clear();
+                        _assemblyMaterialPresetCombo.ItemsSource = _assemblyMaterialPresetOptions;
+                        _assemblyMaterialPresetCombo.SelectedItem = null;
+                    }
+                    finally
+                    {
+                        _updatingUi = previousUpdatingUi;
+                    }
+                }
+                else
+                {
+                    RebuildAssemblyMaterialPresetOptions(projectType);
+                    int selectedValue = GetSelectedAssemblyMaterialPresetValue(projectType);
+                    AssemblyMaterialPresetOption? selectedOption = _assemblyMaterialPresetOptions
+                        .FirstOrDefault(option => option.Value == selectedValue);
+
+                    bool previousUpdatingUi = _updatingUi;
+                    _updatingUi = true;
+                    try
+                    {
+                        _assemblyMaterialPresetCombo.ItemsSource = _assemblyMaterialPresetOptions;
+                        _assemblyMaterialPresetCombo.SelectedItem = selectedOption;
+                    }
+                    finally
+                    {
+                        _updatingUi = previousUpdatingUi;
+                    }
+                }
+            }
+
+            bool presetActive = showPresetPanel && GetSelectedAssemblyMaterialPresetValue(projectType) != -1;
+            if (_materialRegionPanel != null)
+            {
+                _materialRegionPanel.IsEnabled = !presetActive;
+                _materialRegionPanel.Opacity = presetActive ? 0.55 : 1.0;
+            }
+            if (_materialManualControlsPanel != null)
+            {
+                _materialManualControlsPanel.IsEnabled = !presetActive;
+                _materialManualControlsPanel.Opacity = presetActive ? 0.55 : 1.0;
+            }
+        }
+
+        private void RebuildAssemblyMaterialPresetOptions(InteractorProjectType projectType)
+        {
+            _assemblyMaterialPresetOptions.Clear();
+            _assemblyMaterialPresetOptions.Add(new AssemblyMaterialPresetOption
+            {
+                Value = -1,
+                Name = "Custom"
+            });
+
+            switch (projectType)
+            {
+                case InteractorProjectType.ThumbSlider:
+                    foreach (SliderMaterialPresetId id in SliderMaterialPresets.GetPresetIds())
+                    {
+                        _assemblyMaterialPresetOptions.Add(new AssemblyMaterialPresetOption
+                        {
+                            Value = (int)id,
+                            Name = SliderMaterialPresets.GetDisplayName(id)
+                        });
+                    }
+                    break;
+                case InteractorProjectType.FlipSwitch:
+                    foreach (ToggleMaterialPresetId id in ToggleMaterialPresets.GetPresetIds())
+                    {
+                        _assemblyMaterialPresetOptions.Add(new AssemblyMaterialPresetOption
+                        {
+                            Value = (int)id,
+                            Name = ToggleMaterialPresets.GetDisplayName(id)
+                        });
+                    }
+                    break;
+                case InteractorProjectType.PushButton:
+                    foreach (PushButtonMaterialPresetId id in PushButtonMaterialPresets.GetPresetIds())
+                    {
+                        _assemblyMaterialPresetOptions.Add(new AssemblyMaterialPresetOption
+                        {
+                            Value = (int)id,
+                            Name = PushButtonMaterialPresets.GetDisplayName(id)
+                        });
+                    }
+                    break;
+            }
+        }
+
+        private int GetSelectedAssemblyMaterialPresetValue(InteractorProjectType projectType)
+        {
+            return projectType switch
+            {
+                InteractorProjectType.ThumbSlider => (int)_project.SliderMaterialPreset,
+                InteractorProjectType.FlipSwitch => (int)_project.ToggleMaterialPreset,
+                InteractorProjectType.PushButton => (int)_project.PushButtonMaterialPreset,
+                _ => -1
+            };
+        }
+
+        private bool SupportsAssemblyMaterialPreset(InteractorProjectType projectType)
+        {
+            return projectType == InteractorProjectType.ThumbSlider ||
+                   projectType == InteractorProjectType.FlipSwitch ||
+                   projectType == InteractorProjectType.PushButton;
         }
 
         private void OnMaterialListSelectionChanged(object? sender, SelectionChangedEventArgs e)

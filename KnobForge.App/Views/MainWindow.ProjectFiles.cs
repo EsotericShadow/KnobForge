@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using KnobForge.Core;
+using KnobForge.Core.MaterialGraph;
 using KnobForge.Core.Scene;
 using KnobForge.App.ProjectFiles;
 using KnobForge.Rendering;
@@ -21,7 +22,7 @@ namespace KnobForge.App.Views
     {
         private static readonly JsonSerializerOptions ProjectSnapshotJsonOptions = new()
         {
-            Converters = { new JsonStringEnumConverter() }
+            Converters = { new JsonStringEnumConverter(), new MaterialGraphJsonConverter() }
         };
 
         public string? CurrentProjectFilePath => _currentProjectFilePath;
@@ -178,74 +179,64 @@ namespace KnobForge.App.Views
                     light.Type = type;
                 }
 
-                if (_lightXSlider != null)
+                if (_lightXInput != null)
                 {
-                    light.X = (float)_lightXSlider.Value;
+                    light.X = (float)_lightXInput.Value;
                 }
 
-                if (_lightYSlider != null)
+                if (_lightYInput != null)
                 {
-                    light.Y = (float)_lightYSlider.Value;
+                    light.Y = (float)_lightYInput.Value;
                 }
 
-                if (_lightZSlider != null)
+                if (_lightZInput != null)
                 {
-                    light.Z = (float)_lightZSlider.Value;
+                    light.Z = (float)_lightZInput.Value;
                 }
 
-                if (_directionSlider != null)
+                if (_directionInput != null)
                 {
-                    light.DirectionRadians = (float)DegreesToRadians(_directionSlider.Value);
+                    light.DirectionRadians = (float)DegreesToRadians(_directionInput.Value);
                 }
 
-                if (_intensitySlider != null)
+                if (_intensityInput != null)
                 {
-                    light.Intensity = (float)_intensitySlider.Value;
+                    light.Intensity = (float)_intensityInput.Value;
                 }
 
-                if (_falloffSlider != null)
+                if (_falloffInput != null)
                 {
-                    light.Falloff = (float)_falloffSlider.Value;
+                    light.Falloff = (float)_falloffInput.Value;
                 }
 
-                if (_lightRSlider != null && _lightGSlider != null && _lightBSlider != null)
+                if (_lightRInput != null && _lightGInput != null && _lightBInput != null)
                 {
                     light.Color = new SKColor(
-                        (byte)Math.Clamp((int)_lightRSlider.Value, 0, 255),
-                        (byte)Math.Clamp((int)_lightGSlider.Value, 0, 255),
-                        (byte)Math.Clamp((int)_lightBSlider.Value, 0, 255),
+                        (byte)Math.Clamp((int)_lightRInput.Value, 0, 255),
+                        (byte)Math.Clamp((int)_lightGInput.Value, 0, 255),
+                        (byte)Math.Clamp((int)_lightBInput.Value, 0, 255),
                         light.Color.Alpha);
                 }
 
-                if (_diffuseBoostSlider != null)
+                if (_diffuseBoostInput != null)
                 {
-                    light.DiffuseBoost = (float)_diffuseBoostSlider.Value;
+                    light.DiffuseBoost = (float)_diffuseBoostInput.Value;
                 }
 
-                if (_specularBoostSlider != null)
+                if (_specularBoostInput != null)
                 {
-                    light.SpecularBoost = (float)_specularBoostSlider.Value;
+                    light.SpecularBoost = (float)_specularBoostInput.Value;
                 }
 
-                if (_specularPowerSlider != null)
+                if (_specularPowerInput != null)
                 {
-                    light.SpecularPower = (float)_specularPowerSlider.Value;
+                    light.SpecularPower = (float)_specularPowerInput.Value;
                 }
             }
 
-            if (_envIntensityInputTextBox != null && _envIntensitySlider != null)
-            {
-                ApplyPrecisionTextEntry(_envIntensityInputTextBox, _envIntensitySlider);
-            }
-
-            if (_envRoughnessMixInputTextBox != null && _envRoughnessMixSlider != null)
-            {
-                ApplyPrecisionTextEntry(_envRoughnessMixInputTextBox, _envRoughnessMixSlider);
-            }
-
-            if (_envIntensitySlider != null && _envRoughnessMixSlider != null &&
-                _envTopRSlider != null && _envTopGSlider != null && _envTopBSlider != null &&
-                _envBottomRSlider != null && _envBottomGSlider != null && _envBottomBSlider != null)
+            if (_envIntensityInput != null && _envRoughnessMixInput != null &&
+                _envTopRInput != null && _envTopGInput != null && _envTopBInput != null &&
+                _envBottomRInput != null && _envBottomGInput != null && _envBottomBInput != null)
             {
                 CommitEnvironmentStateFromUi();
                 if (_envHdriPathTextBox != null)
@@ -254,42 +245,27 @@ namespace KnobForge.App.Views
                 }
             }
 
-            if (_shadowStrengthInputTextBox != null && _shadowStrengthSlider != null)
-            {
-                ApplyPrecisionTextEntry(_shadowStrengthInputTextBox, _shadowStrengthSlider);
-            }
-
-            if (_shadowSoftnessInputTextBox != null && _shadowSoftnessSlider != null)
-            {
-                ApplyPrecisionTextEntry(_shadowSoftnessInputTextBox, _shadowSoftnessSlider);
-            }
-
-            if (_shadowQualityInputTextBox != null && _shadowQualitySlider != null)
-            {
-                ApplyPrecisionTextEntry(_shadowQualityInputTextBox, _shadowQualitySlider);
-            }
-
             if (_shadowEnabledCheckBox != null &&
                 _shadowSourceModeCombo != null &&
-                _shadowStrengthSlider != null &&
-                _shadowSoftnessSlider != null &&
-                _shadowDistanceSlider != null &&
-                _shadowScaleSlider != null &&
-                _shadowQualitySlider != null &&
-                _shadowGraySlider != null &&
-                _shadowDiffuseInfluenceSlider != null)
+                _shadowStrengthInput != null &&
+                _shadowSoftnessInput != null &&
+                _shadowDistanceInput != null &&
+                _shadowScaleInput != null &&
+                _shadowQualityInput != null &&
+                _shadowGrayInput != null &&
+                _shadowDiffuseInfluenceInput != null)
             {
                 _project.ShadowsEnabled = _shadowEnabledCheckBox.IsChecked ?? true;
                 _project.ShadowMode = _shadowSourceModeCombo.SelectedItem is ShadowLightMode shadowMode
                     ? shadowMode
                     : ShadowLightMode.Weighted;
-                _project.ShadowStrength = (float)_shadowStrengthSlider.Value;
-                _project.ShadowSoftness = (float)_shadowSoftnessSlider.Value;
-                _project.ShadowDistance = (float)_shadowDistanceSlider.Value;
-                _project.ShadowScale = (float)_shadowScaleSlider.Value;
-                _project.ShadowQuality = (float)_shadowQualitySlider.Value;
-                _project.ShadowGray = (float)_shadowGraySlider.Value;
-                _project.ShadowDiffuseInfluence = (float)_shadowDiffuseInfluenceSlider.Value;
+                _project.ShadowStrength = (float)_shadowStrengthInput.Value;
+                _project.ShadowSoftness = (float)_shadowSoftnessInput.Value;
+                _project.ShadowDistance = (float)_shadowDistanceInput.Value;
+                _project.ShadowScale = (float)_shadowScaleInput.Value;
+                _project.ShadowQuality = (float)_shadowQualityInput.Value;
+                _project.ShadowGray = (float)_shadowGrayInput.Value;
+                _project.ShadowDiffuseInfluence = (float)_shadowDiffuseInfluenceInput.Value;
             }
         }
 
@@ -331,10 +307,10 @@ namespace KnobForge.App.Views
             FilePickerOpenOptions options = new()
             {
                 AllowMultiple = false,
-                Title = "Open KnobForge Project",
+                Title = "Open Monozukuri Project",
                 FileTypeFilter = new[]
                 {
-                    new FilePickerFileType("KnobForge Project")
+                    new FilePickerFileType("Monozukuri Project")
                     {
                         Patterns = new[] { $"*{KnobProjectFileStore.FileExtension}" }
                     }
@@ -406,12 +382,12 @@ namespace KnobForge.App.Views
 
             FilePickerSaveOptions options = new()
             {
-                Title = "Save KnobForge Project",
+                Title = "Save Monozukuri Project",
                 SuggestedFileName = suggestedFileName,
                 DefaultExtension = KnobProjectFileStore.FileExtension.TrimStart('.'),
                 FileTypeChoices = new[]
                 {
-                    new FilePickerFileType("KnobForge Project")
+                    new FilePickerFileType("Monozukuri Project")
                     {
                         Patterns = new[] { $"*{KnobProjectFileStore.FileExtension}" }
                     }
@@ -462,7 +438,7 @@ namespace KnobForge.App.Views
             string suffix = string.IsNullOrWhiteSpace(_currentProjectFilePath)
                 ? "Untitled"
                 : Path.GetFileNameWithoutExtension(_currentProjectFilePath);
-            Title = $"KnobForge - {suffix}";
+            Title = $"Monozukuri - {suffix}";
             if (_topProjectStatusText != null)
             {
                 _topProjectStatusText.Text = $"Project: {suffix}";

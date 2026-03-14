@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using KnobForge.App.Controls;
 using KnobForge.Core;
+using System;
 
 namespace KnobForge.App.Views
 {
@@ -12,12 +14,21 @@ namespace KnobForge.App.Views
                 _sliderAssemblyModeCombo == null ||
                 _sliderBackplateMeshCombo == null ||
                 _sliderThumbMeshCombo == null ||
-                _sliderBackplateWidthSlider == null ||
-                _sliderBackplateHeightSlider == null ||
-                _sliderBackplateThicknessSlider == null ||
-                _sliderThumbWidthSlider == null ||
-                _sliderThumbHeightSlider == null ||
-                _sliderThumbDepthSlider == null)
+                _sliderThumbProfileCombo == null ||
+                _sliderTrackStyleCombo == null ||
+                _sliderBackplateWidthInput == null ||
+                _sliderBackplateHeightInput == null ||
+                _sliderBackplateThicknessInput == null ||
+                _sliderThumbWidthInput == null ||
+                _sliderThumbHeightInput == null ||
+                _sliderThumbDepthInput == null ||
+                _sliderTrackWidthInput == null ||
+                _sliderTrackDepthInput == null ||
+                _sliderRailHeightInput == null ||
+                _sliderRailSpacingInput == null ||
+                _sliderThumbRidgeCountInput == null ||
+                _sliderThumbRidgeDepthInput == null ||
+                _sliderThumbCornerRadiusInput == null)
             {
                 return;
             }
@@ -30,14 +41,16 @@ namespace KnobForge.App.Views
                 }
             }
             else if (ReferenceEquals(sender, _sliderBackplateMeshCombo) ||
-                     ReferenceEquals(sender, _sliderThumbMeshCombo))
+                     ReferenceEquals(sender, _sliderThumbMeshCombo) ||
+                     ReferenceEquals(sender, _sliderThumbProfileCombo) ||
+                     ReferenceEquals(sender, _sliderTrackStyleCombo))
             {
                 if (e.Property != ComboBox.SelectedItemProperty)
                 {
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -55,12 +68,21 @@ namespace KnobForge.App.Views
             if (_sliderAssemblyModeCombo == null ||
                 _sliderBackplateMeshCombo == null ||
                 _sliderThumbMeshCombo == null ||
-                _sliderBackplateWidthSlider == null ||
-                _sliderBackplateHeightSlider == null ||
-                _sliderBackplateThicknessSlider == null ||
-                _sliderThumbWidthSlider == null ||
-                _sliderThumbHeightSlider == null ||
-                _sliderThumbDepthSlider == null)
+                _sliderThumbProfileCombo == null ||
+                _sliderTrackStyleCombo == null ||
+                _sliderBackplateWidthInput == null ||
+                _sliderBackplateHeightInput == null ||
+                _sliderBackplateThicknessInput == null ||
+                _sliderThumbWidthInput == null ||
+                _sliderThumbHeightInput == null ||
+                _sliderThumbDepthInput == null ||
+                _sliderTrackWidthInput == null ||
+                _sliderTrackDepthInput == null ||
+                _sliderRailHeightInput == null ||
+                _sliderRailSpacingInput == null ||
+                _sliderThumbRidgeCountInput == null ||
+                _sliderThumbRidgeDepthInput == null ||
+                _sliderThumbCornerRadiusInput == null)
             {
                 return;
             }
@@ -70,12 +92,25 @@ namespace KnobForge.App.Views
                 : SliderAssemblyMode.Auto;
             _project.SliderBackplateImportedMeshPath = ResolveSelectedSliderMeshPath(_sliderBackplateMeshCombo.SelectedItem);
             _project.SliderThumbImportedMeshPath = ResolveSelectedSliderMeshPath(_sliderThumbMeshCombo.SelectedItem);
-            _project.SliderBackplateWidth = (float)_sliderBackplateWidthSlider.Value;
-            _project.SliderBackplateHeight = (float)_sliderBackplateHeightSlider.Value;
-            _project.SliderBackplateThickness = (float)_sliderBackplateThicknessSlider.Value;
-            _project.SliderThumbWidth = (float)_sliderThumbWidthSlider.Value;
-            _project.SliderThumbHeight = (float)_sliderThumbHeightSlider.Value;
-            _project.SliderThumbDepth = (float)_sliderThumbDepthSlider.Value;
+            _project.SliderBackplateWidth = (float)_sliderBackplateWidthInput.Value;
+            _project.SliderBackplateHeight = (float)_sliderBackplateHeightInput.Value;
+            _project.SliderBackplateThickness = (float)_sliderBackplateThicknessInput.Value;
+            _project.SliderThumbWidth = (float)_sliderThumbWidthInput.Value;
+            _project.SliderThumbHeight = (float)_sliderThumbHeightInput.Value;
+            _project.SliderThumbDepth = (float)_sliderThumbDepthInput.Value;
+            _project.SliderThumbProfile = _sliderThumbProfileCombo.SelectedItem is SliderThumbProfile thumbProfile
+                ? thumbProfile
+                : SliderThumbProfile.Box;
+            _project.SliderTrackStyle = _sliderTrackStyleCombo.SelectedItem is SliderTrackStyle trackStyle
+                ? trackStyle
+                : SliderTrackStyle.None;
+            _project.SliderTrackWidth = (float)_sliderTrackWidthInput.Value;
+            _project.SliderTrackDepth = (float)_sliderTrackDepthInput.Value;
+            _project.SliderRailHeight = (float)_sliderRailHeightInput.Value;
+            _project.SliderRailSpacing = (float)_sliderRailSpacingInput.Value;
+            _project.SliderThumbRidgeCount = (int)Math.Round(_sliderThumbRidgeCountInput.Value);
+            _project.SliderThumbRidgeDepth = (float)_sliderThumbRidgeDepthInput.Value;
+            _project.SliderThumbCornerRadius = (float)_sliderThumbCornerRadiusInput.Value;
 
             UpdateReadouts();
             if (requestHeavyRefresh)

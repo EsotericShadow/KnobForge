@@ -37,7 +37,9 @@ namespace KnobForge.App.Views
             public float EnvironmentBottomColorZ { get; set; }
             public float EnvironmentIntensity { get; set; } = 0.36f;
             public float EnvironmentRoughnessMix { get; set; } = 1f;
+            public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
             public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
+            public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
             public float EnvironmentExposure { get; set; } = 1f;
             public float EnvironmentBloomStrength { get; set; } = 0.40f;
             public float EnvironmentBloomThreshold { get; set; } = 1.10f;

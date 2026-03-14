@@ -27,13 +27,13 @@ namespace KnobForge.App.ProjectFiles
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             if (!string.IsNullOrWhiteSpace(desktop))
             {
-                return Path.Combine(desktop, "KnobForge", "Projects");
+                return Path.Combine(desktop, "Monozukuri", "Projects");
             }
 
             string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (!string.IsNullOrWhiteSpace(documents))
             {
-                return Path.Combine(documents, "KnobForge", "Projects");
+                return Path.Combine(documents, "Monozukuri", "Projects");
             }
 
             return Path.Combine(Directory.GetCurrentDirectory(), "Projects");
@@ -149,11 +149,13 @@ namespace KnobForge.App.ProjectFiles
                 }
             }
 
-            string projectsDirectory = EnsureDefaultProjectsDirectory();
-            string[] files = Directory.Exists(projectsDirectory)
-                ? Directory.GetFiles(projectsDirectory, $"*{FileExtension}", SearchOption.TopDirectoryOnly)
-                : Array.Empty<string>();
-            foreach (string path in files.OrderByDescending(File.GetLastWriteTimeUtc))
+            string[] files = EnumerateKnownProjectsDirectories()
+                .Where(Directory.Exists)
+                .SelectMany(directory => Directory.GetFiles(directory, $"*{FileExtension}", SearchOption.TopDirectoryOnly))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .ToArray();
+            foreach (string path in files)
             {
                 if (!TryAddLauncherEntry(path, result, seen))
                 {
@@ -290,29 +292,10 @@ namespace KnobForge.App.ProjectFiles
 
         private static List<string> LoadRecentProjectPaths()
         {
-            string manifestPath = GetRecentProjectsManifestPath();
-            if (!File.Exists(manifestPath))
-            {
-                return new List<string>();
-            }
-
-            try
-            {
-                string json = File.ReadAllText(manifestPath);
-                RecentProjectManifest? manifest = JsonSerializer.Deserialize<RecentProjectManifest>(json, RecentJsonOptions);
-                if (manifest?.Paths == null)
-                {
-                    return new List<string>();
-                }
-
-                return manifest.Paths
-                    .Where(path => !string.IsNullOrWhiteSpace(path))
-                    .ToList();
-            }
-            catch
-            {
-                return new List<string>();
-            }
+            return EnumerateRecentProjectsManifestPaths()
+                .SelectMany(LoadRecentProjectPathsFromManifest)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private static void SaveRecentProjectPaths(IReadOnlyList<string> paths)
@@ -338,6 +321,69 @@ namespace KnobForge.App.ProjectFiles
         private static string GetRecentProjectsManifestPath()
         {
             return Path.Combine(EnsureDefaultProjectsDirectory(), "recent-projects.json");
+        }
+
+        private static IEnumerable<string> EnumerateKnownProjectsDirectories()
+        {
+            var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddProjectsDirectory(string? root, string appFolderName)
+            {
+                if (string.IsNullOrWhiteSpace(root))
+                {
+                    return;
+                }
+
+                directories.Add(Path.Combine(root, appFolderName, "Projects"));
+            }
+
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            AddProjectsDirectory(desktop, "Monozukuri");
+            AddProjectsDirectory(documents, "Monozukuri");
+            AddProjectsDirectory(desktop, "KnobForge");
+            AddProjectsDirectory(documents, "KnobForge");
+
+            if (directories.Count == 0)
+            {
+                directories.Add(Path.Combine(Directory.GetCurrentDirectory(), "Projects"));
+            }
+
+            return directories;
+        }
+
+        private static IEnumerable<string> EnumerateRecentProjectsManifestPaths()
+        {
+            return EnumerateKnownProjectsDirectories()
+                .Select(directory => Path.Combine(directory, "recent-projects.json"))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static IEnumerable<string> LoadRecentProjectPathsFromManifest(string manifestPath)
+        {
+            if (!File.Exists(manifestPath))
+            {
+                return Array.Empty<string>();
+            }
+
+            try
+            {
+                string json = File.ReadAllText(manifestPath);
+                RecentProjectManifest? manifest = JsonSerializer.Deserialize<RecentProjectManifest>(json, RecentJsonOptions);
+                if (manifest?.Paths == null)
+                {
+                    return Array.Empty<string>();
+                }
+
+                return manifest.Paths
+                    .Where(path => !string.IsNullOrWhiteSpace(path))
+                    .ToList();
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
         }
 
         private static string SanitizeFileName(string value)

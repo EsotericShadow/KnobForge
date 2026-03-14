@@ -167,6 +167,7 @@ namespace KnobForge.App.Controls
             public GpuLight DynamicLight5;
             public GpuLight DynamicLight6;
             public GpuLight DynamicLight7;
+            public Vector4 EnvironmentMapParams3;
         }
 
         private readonly record struct MeshShapeKey(
@@ -244,6 +245,7 @@ namespace KnobForge.App.Controls
 
         private readonly record struct SliderAssemblyShapeKey(
             int Enabled,
+            int QualityTier,
             float BackplateWidth,
             float BackplateHeight,
             float BackplateThickness,
@@ -254,7 +256,16 @@ namespace KnobForge.App.Controls
             string BackplateImportedMeshPath,
             long BackplateImportedMeshTicks,
             string ThumbImportedMeshPath,
-            long ThumbImportedMeshTicks);
+            long ThumbImportedMeshTicks,
+            int ThumbProfile,
+            int TrackStyle,
+            float TrackWidth,
+            float TrackDepth,
+            float RailHeight,
+            float RailSpacing,
+            int ThumbRidgeCount,
+            float ThumbRidgeDepth,
+            float ThumbCornerRadius);
 
         private readonly record struct ToggleAssemblyShapeKey(
             int Enabled,
@@ -316,7 +327,20 @@ namespace KnobForge.App.Controls
             float BezelHeight,
             float CapRadius,
             float CapHeight,
-            float PressDepth);
+            float PressDepth,
+            int CapProfile,
+            int BezelProfile,
+            int SkirtStyle,
+            float BezelChamferSize,
+            float CapOverhang,
+            int CapSegments,
+            int BezelSegments,
+            float SkirtHeight,
+            float SkirtRadius,
+            string BaseImportedMeshPath,
+            long BaseImportedMeshTicks,
+            string CapImportedMeshPath,
+            long CapImportedMeshTicks);
 
         private readonly record struct IndicatorAssemblyShapeKey(
             int Enabled,

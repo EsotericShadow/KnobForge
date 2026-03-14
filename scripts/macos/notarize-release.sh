@@ -46,7 +46,7 @@ case "$NOTARIZE_TARGET" in
       echo "ERROR: app bundle not found at $APP_BUNDLE_DIR" >&2
       exit 1
     fi
-    ZIP_PATH="$OUTPUT_DIR/KnobForge-notary.zip"
+    ZIP_PATH="$OUTPUT_DIR/Monozukuri-notary.zip"
     rm -f "$ZIP_PATH"
     echo ">>> Creating zip for notarization: $ZIP_PATH"
     ditto -c -k --keepParent "$APP_BUNDLE_DIR" "$ZIP_PATH"

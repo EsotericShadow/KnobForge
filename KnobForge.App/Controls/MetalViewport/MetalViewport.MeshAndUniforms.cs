@@ -24,6 +24,7 @@ namespace KnobForge.App.Controls
             ReplaceMeshResources(ref _toggleSleeveResources, null);
             ReplaceMeshResources(ref _pushButtonBaseResources, null);
             ReplaceMeshResources(ref _pushButtonCapResources, null);
+            ReplaceMeshResources(ref _pushButtonSkirtResources, null);
             ReplaceMeshResources(ref _indicatorBaseResources, null);
             ReplaceMeshResources(ref _indicatorHousingResources, null);
             ReplaceMeshResources(ref _indicatorLensResources, null);
@@ -45,7 +46,7 @@ namespace KnobForge.App.Controls
             _paintPickMapDirty = true;
         }
 
-        private void RefreshMeshResources(KnobProject? project, ModelNode? modelNode)
+        private void RefreshMeshResources(KnobProject? project, ModelNode? modelNode, RenderQualityTier? qualityOverride = null)
         {
             if (_context is null || project is null || modelNode is null)
             {
@@ -56,6 +57,33 @@ namespace KnobForge.App.Controls
                 _pushButtonAssemblyShapeKey = default;
                 _indicatorAssemblyShapeKey = default;
                 return;
+            }
+
+            RenderQualityTier renderQuality = qualityOverride ?? project.PreviewQuality;
+
+            MetalMeshGpuResources? CreateCachedResources<TMesh>(
+                string cacheHash,
+                Func<TMesh> buildMesh,
+                Func<TMesh, MetalVertex[]> getVertices,
+                Func<TMesh, uint[]> getIndices,
+                Func<TMesh, float> getReferenceRadius)
+            {
+                if (MeshDiskCache.TryLoad(cacheHash, out MetalVertex[] cachedVertices, out uint[] cachedIndices, out float cachedReferenceRadius))
+                {
+                    return CreateGpuResources(cachedVertices, cachedIndices, cachedReferenceRadius);
+                }
+
+                TMesh mesh = buildMesh();
+                MetalVertex[] vertices = getVertices(mesh);
+                uint[] indices = getIndices(mesh);
+                if (vertices.Length == 0 || indices.Length == 0)
+                {
+                    return null;
+                }
+
+                float referenceRadius = getReferenceRadius(mesh);
+                MeshDiskCache.Save(cacheHash, vertices, indices, referenceRadius);
+                return CreateGpuResources(vertices, indices, referenceRadius);
             }
 
             CollarNode? collarNode = modelNode.Children.OfType<CollarNode>().FirstOrDefault();
@@ -88,8 +116,8 @@ namespace KnobForge.App.Controls
                 ReplaceMeshResources(ref _collarResources, nextCollarResources);
             }
 
-            SliderAssemblyConfig sliderConfig = SliderAssemblyMeshBuilder.ResolveConfig(project);
-            SliderAssemblyShapeKey nextSliderKey = BuildSliderAssemblyShapeKey(sliderConfig);
+            SliderAssemblyConfig sliderConfig = SliderAssemblyMeshBuilder.ResolveConfig(project, renderQuality);
+            SliderAssemblyShapeKey nextSliderKey = BuildSliderAssemblyShapeKey(sliderConfig, renderQuality);
             bool sliderEnabled = sliderConfig.Enabled;
             bool sliderShapeChanged = !nextSliderKey.Equals(_sliderAssemblyShapeKey);
             if (!sliderEnabled)
@@ -101,25 +129,26 @@ namespace KnobForge.App.Controls
             else if (sliderShapeChanged || _sliderBackplateResources == null || _sliderThumbResources == null)
             {
                 _sliderAssemblyShapeKey = nextSliderKey;
-                SliderPartMesh backplateMesh = SliderAssemblyMeshBuilder.BuildBackplateMesh(sliderConfig);
-                SliderPartMesh thumbMesh = SliderAssemblyMeshBuilder.BuildThumbMesh(sliderConfig);
-                MetalMeshGpuResources? nextBackplateResources = null;
-                MetalMeshGpuResources? nextThumbResources = null;
-                if (backplateMesh.Vertices.Length > 0 && backplateMesh.Indices.Length > 0)
-                {
-                    nextBackplateResources = CreateGpuResources(backplateMesh.Vertices, backplateMesh.Indices, backplateMesh.ReferenceRadius);
-                }
-
-                if (thumbMesh.Vertices.Length > 0 && thumbMesh.Indices.Length > 0)
-                {
-                    nextThumbResources = CreateGpuResources(thumbMesh.Vertices, thumbMesh.Indices, thumbMesh.ReferenceRadius);
-                }
+                string backplateCacheHash = MeshDiskCache.ComputeHash((Part: "slider-backplate", Shape: nextSliderKey));
+                string thumbCacheHash = MeshDiskCache.ComputeHash((Part: "slider-thumb", Shape: nextSliderKey));
+                MetalMeshGpuResources? nextBackplateResources = CreateCachedResources(
+                    backplateCacheHash,
+                    () => SliderAssemblyMeshBuilder.BuildBackplateMesh(sliderConfig, renderQuality),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextThumbResources = CreateCachedResources(
+                    thumbCacheHash,
+                    () => SliderAssemblyMeshBuilder.BuildThumbMesh(sliderConfig, renderQuality),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
 
                 ReplaceMeshResources(ref _sliderBackplateResources, nextBackplateResources);
                 ReplaceMeshResources(ref _sliderThumbResources, nextThumbResources);
             }
 
-            ToggleAssemblyConfig toggleConfig = ToggleAssemblyMeshBuilder.ResolveConfig(project);
+            ToggleAssemblyConfig toggleConfig = ToggleAssemblyMeshBuilder.ResolveConfig(project, renderQuality);
             ToggleAssemblyShapeKey nextToggleKey = BuildToggleAssemblyShapeKey(toggleConfig);
             bool toggleEnabled = toggleConfig.Enabled;
             bool toggleShapeChanged = !nextToggleKey.Equals(_toggleAssemblyShapeKey);
@@ -133,33 +162,34 @@ namespace KnobForge.App.Controls
             else if (toggleShapeChanged || _toggleBaseResources == null || _toggleLeverResources == null || _toggleSleeveResources == null)
             {
                 _toggleAssemblyShapeKey = nextToggleKey;
-                TogglePartMesh baseMesh = ToggleAssemblyMeshBuilder.BuildBaseMesh(toggleConfig);
-                TogglePartMesh leverMesh = ToggleAssemblyMeshBuilder.BuildLeverMesh(toggleConfig);
-                TogglePartMesh sleeveMesh = ToggleAssemblyMeshBuilder.BuildSleeveMesh(toggleConfig);
-                MetalMeshGpuResources? nextBaseResources = null;
-                MetalMeshGpuResources? nextLeverResources = null;
-                MetalMeshGpuResources? nextSleeveResources = null;
-                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
-                {
-                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
-                }
-
-                if (leverMesh.Vertices.Length > 0 && leverMesh.Indices.Length > 0)
-                {
-                    nextLeverResources = CreateGpuResources(leverMesh.Vertices, leverMesh.Indices, leverMesh.ReferenceRadius);
-                }
-
-                if (sleeveMesh.Vertices.Length > 0 && sleeveMesh.Indices.Length > 0)
-                {
-                    nextSleeveResources = CreateGpuResources(sleeveMesh.Vertices, sleeveMesh.Indices, sleeveMesh.ReferenceRadius);
-                }
+                string baseCacheHash = MeshDiskCache.ComputeHash((Part: "toggle-base", Shape: nextToggleKey));
+                string leverCacheHash = MeshDiskCache.ComputeHash((Part: "toggle-lever", Shape: nextToggleKey));
+                string sleeveCacheHash = MeshDiskCache.ComputeHash((Part: "toggle-sleeve", Shape: nextToggleKey));
+                MetalMeshGpuResources? nextBaseResources = CreateCachedResources(
+                    baseCacheHash,
+                    () => ToggleAssemblyMeshBuilder.BuildBaseMesh(toggleConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextLeverResources = CreateCachedResources(
+                    leverCacheHash,
+                    () => ToggleAssemblyMeshBuilder.BuildLeverMesh(toggleConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextSleeveResources = CreateCachedResources(
+                    sleeveCacheHash,
+                    () => ToggleAssemblyMeshBuilder.BuildSleeveMesh(toggleConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
 
                 ReplaceMeshResources(ref _toggleBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _toggleLeverResources, nextLeverResources);
                 ReplaceMeshResources(ref _toggleSleeveResources, nextSleeveResources);
             }
 
-            PushButtonAssemblyConfig pushButtonConfig = PushButtonAssemblyMeshBuilder.ResolveConfig(project);
+            PushButtonAssemblyConfig pushButtonConfig = PushButtonAssemblyMeshBuilder.ResolveConfig(project, renderQuality);
             PushButtonAssemblyShapeKey nextPushButtonKey = BuildPushButtonAssemblyShapeKey(pushButtonConfig);
             bool pushButtonEnabled = pushButtonConfig.Enabled;
             bool pushButtonShapeChanged = !nextPushButtonKey.Equals(_pushButtonAssemblyShapeKey);
@@ -167,30 +197,40 @@ namespace KnobForge.App.Controls
             {
                 ReplaceMeshResources(ref _pushButtonBaseResources, null);
                 ReplaceMeshResources(ref _pushButtonCapResources, null);
+                ReplaceMeshResources(ref _pushButtonSkirtResources, null);
                 _pushButtonAssemblyShapeKey = default;
             }
-            else if (pushButtonShapeChanged || _pushButtonBaseResources == null || _pushButtonCapResources == null)
+            else if (pushButtonShapeChanged || _pushButtonBaseResources == null || _pushButtonCapResources == null || _pushButtonSkirtResources == null)
             {
                 _pushButtonAssemblyShapeKey = nextPushButtonKey;
-                PushButtonPartMesh baseMesh = PushButtonAssemblyMeshBuilder.BuildBaseMesh(pushButtonConfig);
-                PushButtonPartMesh capMesh = PushButtonAssemblyMeshBuilder.BuildCapMesh(pushButtonConfig);
-                MetalMeshGpuResources? nextBaseResources = null;
-                MetalMeshGpuResources? nextCapResources = null;
-                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
-                {
-                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
-                }
-
-                if (capMesh.Vertices.Length > 0 && capMesh.Indices.Length > 0)
-                {
-                    nextCapResources = CreateGpuResources(capMesh.Vertices, capMesh.Indices, capMesh.ReferenceRadius);
-                }
+                string baseCacheHash = MeshDiskCache.ComputeHash((Part: "pushbutton-base", Shape: nextPushButtonKey));
+                string capCacheHash = MeshDiskCache.ComputeHash((Part: "pushbutton-cap", Shape: nextPushButtonKey));
+                string skirtCacheHash = MeshDiskCache.ComputeHash((Part: "pushbutton-skirt", Shape: nextPushButtonKey));
+                MetalMeshGpuResources? nextBaseResources = CreateCachedResources(
+                    baseCacheHash,
+                    () => PushButtonAssemblyMeshBuilder.BuildBaseMesh(pushButtonConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextCapResources = CreateCachedResources(
+                    capCacheHash,
+                    () => PushButtonAssemblyMeshBuilder.BuildCapMesh(pushButtonConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextSkirtResources = CreateCachedResources(
+                    skirtCacheHash,
+                    () => PushButtonAssemblyMeshBuilder.BuildSkirtMesh(pushButtonConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
 
                 ReplaceMeshResources(ref _pushButtonBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _pushButtonCapResources, nextCapResources);
+                ReplaceMeshResources(ref _pushButtonSkirtResources, nextSkirtResources);
             }
 
-            IndicatorAssemblyConfig indicatorConfig = IndicatorAssemblyMeshBuilder.ResolveConfig(project);
+            IndicatorAssemblyConfig indicatorConfig = IndicatorAssemblyMeshBuilder.ResolveConfig(project, renderQuality);
             IndicatorAssemblyShapeKey nextIndicatorKey = BuildIndicatorAssemblyShapeKey(indicatorConfig);
             bool indicatorEnabled = indicatorConfig.Enabled;
             bool indicatorShapeChanged = !nextIndicatorKey.Equals(_indicatorAssemblyShapeKey);
@@ -213,48 +253,48 @@ namespace KnobForge.App.Controls
                 _indicatorAuraResources == null)
             {
                 _indicatorAssemblyShapeKey = nextIndicatorKey;
-                IndicatorPartMesh baseMesh = IndicatorAssemblyMeshBuilder.BuildBaseMesh(indicatorConfig);
-                IndicatorPartMesh housingMesh = IndicatorAssemblyMeshBuilder.BuildHousingMesh(indicatorConfig);
-                IndicatorPartMesh lensMesh = IndicatorAssemblyMeshBuilder.BuildLensMesh(indicatorConfig);
-                IndicatorPartMesh reflectorMesh = IndicatorAssemblyMeshBuilder.BuildReflectorMesh(indicatorConfig);
-                IndicatorPartMesh emitterMesh = IndicatorAssemblyMeshBuilder.BuildEmitterCoreMesh(indicatorConfig);
-                IndicatorPartMesh auraMesh = IndicatorAssemblyMeshBuilder.BuildAuraMesh(indicatorConfig);
-                MetalMeshGpuResources? nextBaseResources = null;
-                MetalMeshGpuResources? nextHousingResources = null;
-                MetalMeshGpuResources? nextLensResources = null;
-                MetalMeshGpuResources? nextReflectorResources = null;
-                MetalMeshGpuResources? nextEmitterResources = null;
-                MetalMeshGpuResources? nextAuraResources = null;
-
-                if (baseMesh.Vertices.Length > 0 && baseMesh.Indices.Length > 0)
-                {
-                    nextBaseResources = CreateGpuResources(baseMesh.Vertices, baseMesh.Indices, baseMesh.ReferenceRadius);
-                }
-
-                if (housingMesh.Vertices.Length > 0 && housingMesh.Indices.Length > 0)
-                {
-                    nextHousingResources = CreateGpuResources(housingMesh.Vertices, housingMesh.Indices, housingMesh.ReferenceRadius);
-                }
-
-                if (lensMesh.Vertices.Length > 0 && lensMesh.Indices.Length > 0)
-                {
-                    nextLensResources = CreateGpuResources(lensMesh.Vertices, lensMesh.Indices, lensMesh.ReferenceRadius);
-                }
-
-                if (reflectorMesh.Vertices.Length > 0 && reflectorMesh.Indices.Length > 0)
-                {
-                    nextReflectorResources = CreateGpuResources(reflectorMesh.Vertices, reflectorMesh.Indices, reflectorMesh.ReferenceRadius);
-                }
-
-                if (emitterMesh.Vertices.Length > 0 && emitterMesh.Indices.Length > 0)
-                {
-                    nextEmitterResources = CreateGpuResources(emitterMesh.Vertices, emitterMesh.Indices, emitterMesh.ReferenceRadius);
-                }
-
-                if (auraMesh.Vertices.Length > 0 && auraMesh.Indices.Length > 0)
-                {
-                    nextAuraResources = CreateGpuResources(auraMesh.Vertices, auraMesh.Indices, auraMesh.ReferenceRadius);
-                }
+                string baseCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-base", Shape: nextIndicatorKey));
+                string housingCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-housing", Shape: nextIndicatorKey));
+                string lensCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-lens", Shape: nextIndicatorKey));
+                string reflectorCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-reflector", Shape: nextIndicatorKey));
+                string emitterCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-emitter", Shape: nextIndicatorKey));
+                string auraCacheHash = MeshDiskCache.ComputeHash((Part: "indicator-aura", Shape: nextIndicatorKey));
+                MetalMeshGpuResources? nextBaseResources = CreateCachedResources(
+                    baseCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildBaseMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextHousingResources = CreateCachedResources(
+                    housingCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildHousingMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextLensResources = CreateCachedResources(
+                    lensCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildLensMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextReflectorResources = CreateCachedResources(
+                    reflectorCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildReflectorMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextEmitterResources = CreateCachedResources(
+                    emitterCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildEmitterCoreMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
+                MetalMeshGpuResources? nextAuraResources = CreateCachedResources(
+                    auraCacheHash,
+                    () => IndicatorAssemblyMeshBuilder.BuildAuraMesh(indicatorConfig),
+                    mesh => mesh.Vertices,
+                    mesh => mesh.Indices,
+                    mesh => mesh.ReferenceRadius);
 
                 ReplaceMeshResources(ref _indicatorBaseResources, nextBaseResources);
                 ReplaceMeshResources(ref _indicatorHousingResources, nextHousingResources);
@@ -478,7 +518,7 @@ namespace KnobForge.App.Controls
                 importedFileTicks);
         }
 
-        private static SliderAssemblyShapeKey BuildSliderAssemblyShapeKey(in SliderAssemblyConfig config)
+        private static SliderAssemblyShapeKey BuildSliderAssemblyShapeKey(in SliderAssemblyConfig config, RenderQualityTier quality)
         {
             if (!config.Enabled)
             {
@@ -487,6 +527,7 @@ namespace KnobForge.App.Controls
 
             return new SliderAssemblyShapeKey(
                 Enabled: 1,
+                QualityTier: (int)quality,
                 BackplateWidth: MathF.Round(config.BackplateWidth, 3),
                 BackplateHeight: MathF.Round(config.BackplateHeight, 3),
                 BackplateThickness: MathF.Round(config.BackplateThickness, 3),
@@ -497,7 +538,16 @@ namespace KnobForge.App.Controls
                 BackplateImportedMeshPath: config.BackplateImportedMeshPath ?? string.Empty,
                 BackplateImportedMeshTicks: config.BackplateImportedMeshTicks,
                 ThumbImportedMeshPath: config.ThumbImportedMeshPath ?? string.Empty,
-                ThumbImportedMeshTicks: config.ThumbImportedMeshTicks);
+                ThumbImportedMeshTicks: config.ThumbImportedMeshTicks,
+                ThumbProfile: (int)config.ThumbProfile,
+                TrackStyle: (int)config.TrackStyle,
+                TrackWidth: MathF.Round(config.TrackWidth, 3),
+                TrackDepth: MathF.Round(config.TrackDepth, 3),
+                RailHeight: MathF.Round(config.RailHeight, 3),
+                RailSpacing: MathF.Round(config.RailSpacing, 3),
+                ThumbRidgeCount: config.ThumbRidgeCount,
+                ThumbRidgeDepth: MathF.Round(config.ThumbRidgeDepth, 3),
+                ThumbCornerRadius: MathF.Round(config.ThumbCornerRadius, 3));
         }
 
         private static ToggleAssemblyShapeKey BuildToggleAssemblyShapeKey(in ToggleAssemblyConfig config)
@@ -575,7 +625,20 @@ namespace KnobForge.App.Controls
                 BezelHeight: MathF.Round(config.BezelHeight, 3),
                 CapRadius: MathF.Round(config.CapRadius, 3),
                 CapHeight: MathF.Round(config.CapHeight, 3),
-                PressDepth: MathF.Round(config.PressDepth, 3));
+                PressDepth: MathF.Round(config.PressDepth, 3),
+                CapProfile: (int)config.CapProfile,
+                BezelProfile: (int)config.BezelProfile,
+                SkirtStyle: (int)config.SkirtStyle,
+                BezelChamferSize: MathF.Round(config.BezelChamferSize, 3),
+                CapOverhang: MathF.Round(config.CapOverhang, 3),
+                CapSegments: config.CapSegments,
+                BezelSegments: config.BezelSegments,
+                SkirtHeight: MathF.Round(config.SkirtHeight, 3),
+                SkirtRadius: MathF.Round(config.SkirtRadius, 3),
+                BaseImportedMeshPath: config.BaseImportedMeshPath ?? string.Empty,
+                BaseImportedMeshTicks: config.BaseImportedMeshTicks,
+                CapImportedMeshPath: config.CapImportedMeshPath ?? string.Empty,
+                CapImportedMeshTicks: config.CapImportedMeshTicks);
         }
 
         private static IndicatorAssemblyShapeKey BuildIndicatorAssemblyShapeKey(in IndicatorAssemblyConfig config)
@@ -760,6 +823,18 @@ namespace KnobForge.App.Controls
                 Vector3 envBottom = project.EnvironmentBottomColor;
                 float envIntensity = MathF.Max(0f, project.EnvironmentIntensity);
                 float envRoughMix = Math.Clamp(project.EnvironmentRoughnessMix, 0f, 1f);
+                if (project.EnvironmentPreset != EnvironmentPreset.Custom)
+                {
+                    EnvironmentPresetDefinition? preset = EnvironmentPresets.Get(project.EnvironmentPreset);
+                    if (preset.HasValue)
+                    {
+                        envTop = preset.Value.TopColor;
+                        envBottom = preset.Value.BottomColor;
+                        envIntensity = MathF.Max(0f, preset.Value.Intensity);
+                        envRoughMix = Math.Clamp(preset.Value.RoughnessMix, 0f, 1f);
+                    }
+                }
+
                 uniforms.EnvironmentTopColorAndIntensity = new Vector4(envTop, envIntensity);
                 uniforms.EnvironmentBottomColorAndRoughnessMix = new Vector4(envBottom, envRoughMix);
             }
@@ -787,6 +862,11 @@ namespace KnobForge.App.Controls
             float lightEffectY = _lightEffectInvertY ? -1f : 1f;
             float lightEffectZ = _lightEffectInvertZ ? -1f : 1f;
             uniforms.EnvironmentMapParams2 = new Vector4(lightEffectX, lightEffectY, lightEffectZ, 0f);
+            uniforms.EnvironmentMapParams3 = new Vector4(
+                _environmentMapTexture != IntPtr.Zero ? _environmentMapMaxMipLevel : 0f,
+                _brdfLutReady && _brdfLutTexture != IntPtr.Zero ? 1f : 0f,
+                0f,
+                0f);
             uniforms.PostProcessParams = new Vector4(1f, 1.10f, 0.55f, 0.40f);
             uniforms.PostProcessParams2 = Vector4.Zero;
             uniforms.TonemapParams = new Vector4((float)TonemapOperator.Aces, 1f, 0f, 0f);
@@ -805,7 +885,7 @@ namespace KnobForge.App.Controls
             {
                 uniforms.EnvironmentMapParams = new Vector4(
                     Math.Clamp(project.EnvironmentHdriBlend, 0f, 1f),
-                    0f,
+                    _environmentMapTexture != IntPtr.Zero ? 1f : 0f,
                     project.EnvironmentHdriRotationDegrees * (MathF.PI / 180f),
                     0f);
                 uniforms.PostProcessParams = new Vector4(
@@ -1128,6 +1208,94 @@ namespace KnobForge.App.Controls
                 Pearlescence: pearlescence);
         }
 
+        private static AssemblyPartMaterialState ResolveAssemblyPartMaterialState(
+            KnobProject? project,
+            MaterialNode? materialNode,
+            int partIndex,
+            bool accentPart)
+        {
+            AssemblyPartMaterialPalette palette = ResolveAssemblyPartMaterialPalette(materialNode);
+            Vector3 fallbackColor = accentPart ? palette.AccentColor : palette.BaseColor;
+            float fallbackMetallic = accentPart ? palette.AccentMetallic : palette.BaseMetallic;
+            float fallbackRoughness = accentPart ? palette.AccentRoughness : palette.BaseRoughness;
+
+            if (TryResolveAssemblyPresetMaterial(project, partIndex, out AssemblyPartMaterial presetMaterial))
+            {
+                return new AssemblyPartMaterialState(
+                    BaseColor: presetMaterial.BaseColor,
+                    Metallic: Math.Clamp(presetMaterial.Metallic, 0f, 1f),
+                    Roughness: Math.Clamp(presetMaterial.Roughness, 0.04f, 1f),
+                    Pearlescence: palette.Pearlescence,
+                    DiffuseStrength: MathF.Max(0f, presetMaterial.DiffuseStrength),
+                    SpecularStrength: MathF.Max(0f, presetMaterial.SpecularStrength));
+            }
+
+            return new AssemblyPartMaterialState(
+                BaseColor: fallbackColor,
+                Metallic: fallbackMetallic,
+                Roughness: fallbackRoughness,
+                Pearlescence: palette.Pearlescence,
+                DiffuseStrength: 1f,
+                SpecularStrength: 1f);
+        }
+
+        private static AssemblyPartMaterialState ResolveToggleSleeveMaterialState(KnobProject? project, MaterialNode? materialNode)
+        {
+            AssemblyPartMaterialPalette palette = ResolveAssemblyPartMaterialPalette(materialNode);
+            if (TryResolveAssemblyPresetMaterial(project, 2, out AssemblyPartMaterial presetMaterial))
+            {
+                float pearlescence = project != null
+                    ? Math.Clamp(project.ToggleTipSleevePearlescence, 0f, 1f)
+                    : palette.Pearlescence;
+                return new AssemblyPartMaterialState(
+                    BaseColor: presetMaterial.BaseColor,
+                    Metallic: Math.Clamp(presetMaterial.Metallic, 0f, 1f),
+                    Roughness: Math.Clamp(presetMaterial.Roughness, 0.04f, 1f),
+                    Pearlescence: pearlescence,
+                    DiffuseStrength: MathF.Max(0f, presetMaterial.DiffuseStrength),
+                    SpecularStrength: MathF.Max(0f, presetMaterial.SpecularStrength));
+            }
+
+            return new AssemblyPartMaterialState(
+                BaseColor: project?.ToggleTipSleeveColor ?? palette.AccentColor,
+                Metallic: project != null ? Math.Clamp(project.ToggleTipSleeveMetallic, 0f, 1f) : palette.AccentMetallic,
+                Roughness: project != null ? Math.Clamp(project.ToggleTipSleeveRoughness, 0.04f, 1f) : palette.AccentRoughness,
+                Pearlescence: project != null ? Math.Clamp(project.ToggleTipSleevePearlescence, 0f, 1f) : palette.Pearlescence,
+                DiffuseStrength: project?.ToggleTipSleeveDiffuseStrength ?? 1f,
+                SpecularStrength: project?.ToggleTipSleeveSpecularStrength ?? 1f);
+        }
+
+        private static bool TryResolveAssemblyPresetMaterial(KnobProject? project, int partIndex, out AssemblyPartMaterial partMaterial)
+        {
+            partMaterial = default;
+            if (project == null || partIndex < 0)
+            {
+                return false;
+            }
+
+            AssemblyMaterialPresetDefinition? preset = project.ProjectType switch
+            {
+                InteractorProjectType.FlipSwitch when project.ToggleMaterialPreset != ToggleMaterialPresetId.Custom &&
+                                                     ToggleMaterialPresets.IsSupported(project.ToggleMaterialPreset)
+                    => ToggleMaterialPresets.Resolve(project.ToggleMaterialPreset),
+                InteractorProjectType.ThumbSlider when project.SliderMaterialPreset != SliderMaterialPresetId.Custom &&
+                                                     SliderMaterialPresets.IsSupported(project.SliderMaterialPreset)
+                    => SliderMaterialPresets.Resolve(project.SliderMaterialPreset),
+                InteractorProjectType.PushButton when project.PushButtonMaterialPreset != PushButtonMaterialPresetId.Custom &&
+                                                    PushButtonMaterialPresets.IsSupported(project.PushButtonMaterialPreset)
+                    => PushButtonMaterialPresets.Resolve(project.PushButtonMaterialPreset),
+                _ => null
+            };
+
+            if (preset is null || partIndex >= preset.Value.PartMaterials.Length)
+            {
+                return false;
+            }
+
+            partMaterial = preset.Value.PartMaterials[partIndex];
+            return true;
+        }
+
         private readonly record struct AssemblyPartMaterialPalette(
             Vector3 BaseColor,
             float BaseMetallic,
@@ -1136,6 +1304,14 @@ namespace KnobForge.App.Controls
             float AccentMetallic,
             float AccentRoughness,
             float Pearlescence);
+
+        private readonly record struct AssemblyPartMaterialState(
+            Vector3 BaseColor,
+            float Metallic,
+            float Roughness,
+            float Pearlescence,
+            float DiffuseStrength,
+            float SpecularStrength);
 
         private static void LogCollarState(string pass, CollarNode? collarNode, MetalMeshGpuResources? collarResources)
         {

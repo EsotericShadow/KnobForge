@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using KnobForge.Core;
+using KnobForge.Core.MaterialGraph;
 using KnobForge.Core.Scene;
 using SkiaSharp;
 using System;
@@ -19,7 +20,7 @@ namespace KnobForge.App.Views
         private const int MaxUndoSnapshots = 64;
         private static readonly JsonSerializerOptions UndoFingerprintJsonOptions = new()
         {
-            Converters = { new JsonStringEnumConverter() }
+            Converters = { new JsonStringEnumConverter(), new MaterialGraphJsonConverter() }
         };
 
         private readonly List<InspectorUndoSnapshot> _undoSnapshots = new();
@@ -205,7 +206,9 @@ namespace KnobForge.App.Views
                 EnvironmentBottomColorZ = _project.EnvironmentBottomColor.Z,
                 EnvironmentIntensity = _project.EnvironmentIntensity,
                 EnvironmentRoughnessMix = _project.EnvironmentRoughnessMix,
+                EnvironmentPreset = _project.EnvironmentPreset,
                 ToneMappingOperator = _project.ToneMappingOperator,
+                BloomKernelShape = _project.BloomKernelShape,
                 EnvironmentExposure = _project.EnvironmentExposure,
                 EnvironmentBloomStrength = _project.EnvironmentBloomStrength,
                 EnvironmentBloomThreshold = _project.EnvironmentBloomThreshold,

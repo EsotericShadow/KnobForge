@@ -31,7 +31,7 @@ namespace KnobForge.App.Views
                 appData = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             }
 
-            return Path.Combine(appData, "KnobForge", "reference-profiles.json");
+            return Path.Combine(appData, "Monozukuri", "reference-profiles.json");
         }
 
         private void LoadUserReferenceProfiles()

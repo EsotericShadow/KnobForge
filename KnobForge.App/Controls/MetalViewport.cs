@@ -207,6 +207,7 @@ namespace KnobForge.App.Controls
         private const nuint DepthPixelFormat = 252; // MTLPixelFormatDepth32Float
         private const nuint NormalMapPixelFormat = 70; // MTLPixelFormatRGBA8Unorm
         private const nuint PaintMaskPixelFormat = 70; // MTLPixelFormatRGBA8Unorm
+        private const nuint BrdfLutPixelFormat = 64; // MTLPixelFormatRG16Float
         private const nuint PaintMaskTextureUsage = 5; // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
         private const nuint MTLPrimitiveTypeTriangle = 3;
         private const nuint MTLLoadActionLoad = 1; // MTLoadActionLoad
@@ -228,17 +229,20 @@ namespace KnobForge.App.Controls
         private const int MaxPendingPaintStamps = 8192;
         private const int MaxShadowPassLights = 4;
         private const int SpiralNormalMapSize = 1024;
+        private static bool _meshDiskCacheEvicted;
 
         private IntPtr _nativeView;
         private IntPtr _metalLayer;
         private IntPtr _mainColorTexture;
         private IntPtr _bloomExtractTexture;
         private IntPtr _bloomBlurTexture;
+        private IntPtr _bloomAccumTexture;
         private IntPtr _depthTexture;
         private IntPtr _msaaColorTexture;
         private IntPtr _msaaDepthTexture;
         private IntPtr _spiralNormalTexture;
         private IntPtr _environmentMapTexture;
+        private IntPtr _brdfLutTexture;
         private IntPtr _paintMaskTexture;
         private IntPtr _paintColorTexture;
         private IntPtr _paintMask2Texture;
@@ -288,6 +292,8 @@ namespace KnobForge.App.Controls
         private SpiralNormalMapKey _spiralNormalMapKey;
         private string _environmentMapTexturePath = string.Empty;
         private long _environmentMapTextureWriteTicks;
+        private float _environmentMapMaxMipLevel;
+        private bool _brdfLutReady;
         private MetalMeshGpuResources? _meshResources;
         private MetalMeshGpuResources? _collarResources;
         private MetalMeshGpuResources? _sliderBackplateResources;
@@ -297,6 +303,7 @@ namespace KnobForge.App.Controls
         private MetalMeshGpuResources? _toggleSleeveResources;
         private MetalMeshGpuResources? _pushButtonBaseResources;
         private MetalMeshGpuResources? _pushButtonCapResources;
+        private MetalMeshGpuResources? _pushButtonSkirtResources;
         private MetalMeshGpuResources? _indicatorBaseResources;
         private MetalMeshGpuResources? _indicatorHousingResources;
         private MetalMeshGpuResources? _indicatorLensResources;
@@ -402,6 +409,7 @@ namespace KnobForge.App.Controls
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
                 ReleaseEnvironmentMapTexture();
+                ReleaseBrdfLutTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
                 ReleasePaintMask2Texture();
@@ -514,6 +522,11 @@ namespace KnobForge.App.Controls
             Focusable = true;
             IsHitTestVisible = true;
             EnsureDefaultPaintLayer();
+            if (!_meshDiskCacheEvicted)
+            {
+                MeshDiskCache.EvictStale(TimeSpan.FromDays(30));
+                _meshDiskCacheEvicted = true;
+            }
         }
 
         public void InvalidateGpu()
@@ -624,6 +637,11 @@ namespace KnobForge.App.Controls
                 ObjC.Void_objc_msgSend(_bloomBlurTexture, Selectors.Release);
                 _bloomBlurTexture = IntPtr.Zero;
             }
+            if (_bloomAccumTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_bloomAccumTexture, Selectors.Release);
+                _bloomAccumTexture = IntPtr.Zero;
+            }
             _bloomTextureWidth = 0;
             _bloomTextureHeight = 0;
             ReleaseMsaaRenderTextures();
@@ -631,6 +649,7 @@ namespace KnobForge.App.Controls
                 ReleaseSpiralNormalTexture();
                 _spiralNormalMapKey = default;
                 ReleaseEnvironmentMapTexture();
+                ReleaseBrdfLutTexture();
                 ReleasePaintMaskTexture();
                 ReleasePaintColorTexture();
                 ReleasePaintMask2Texture();
@@ -790,6 +809,9 @@ namespace KnobForge.App.Controls
             bool drawPushButtonCap =
                 _project?.ProjectType == InteractorProjectType.PushButton &&
                 IsRenderableMesh(_pushButtonCapResources);
+            bool drawPushButtonSkirt =
+                _project?.ProjectType == InteractorProjectType.PushButton &&
+                IsRenderableMesh(_pushButtonSkirtResources);
             bool drawIndicatorBase =
                 _project?.ProjectType == InteractorProjectType.IndicatorLight &&
                 IsRenderableMesh(_indicatorBaseResources);
@@ -818,6 +840,7 @@ namespace KnobForge.App.Controls
                 drawToggleSleeve ||
                 drawPushButtonBase ||
                 drawPushButtonCap ||
+                drawPushButtonSkirt ||
                 drawIndicatorBase ||
                 drawIndicatorHousing ||
                 drawIndicatorLens ||
@@ -841,6 +864,7 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawToggleSleeve ? _toggleSleeveResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawPushButtonBase ? _pushButtonBaseResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawPushButtonCap ? _pushButtonCapResources : null);
+                sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawPushButtonSkirt ? _pushButtonSkirtResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorBase ? _indicatorBaseResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorHousing ? _indicatorHousingResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorLens ? _indicatorLensResources : null);
@@ -849,6 +873,7 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorAura ? _indicatorAuraResources : null);
 
                 EnsureEnvironmentMapTexture(_project);
+                EnsureBrdfLutTexture();
                 GpuUniforms knobUniforms = BuildUniforms(_project, modelNode, sceneReferenceRadius, Bounds.Size);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
                 postProcessUniforms = knobUniforms;
@@ -858,6 +883,14 @@ namespace KnobForge.App.Controls
                 }
                 hasPostProcessUniforms = true;
                 MaterialNode? materialNode = modelNode?.GetMaterialByIndex(0);
+                AssemblyPartMaterialState sliderBackplateMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 0, accentPart: false);
+                AssemblyPartMaterialState sliderThumbMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 1, accentPart: true);
+                AssemblyPartMaterialState toggleBaseMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 0, accentPart: false);
+                AssemblyPartMaterialState toggleLeverMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 1, accentPart: true);
+                AssemblyPartMaterialState toggleSleeveMaterial = ResolveToggleSleeveMaterialState(_project, materialNode);
+                AssemblyPartMaterialState pushButtonBaseMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 0, accentPart: false);
+                AssemblyPartMaterialState pushButtonCapMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 1, accentPart: true);
+                AssemblyPartMaterialState pushButtonSkirtMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 2, accentPart: false);
                 AssemblyPartMaterialPalette assemblyMaterialPalette = ResolveAssemblyPartMaterialPalette(materialNode);
                 GpuUniforms collarUniforms = drawCollar
                     ? BuildCollarUniforms(knobUniforms, collarNode!)
@@ -865,31 +898,23 @@ namespace KnobForge.App.Controls
                 GpuUniforms sliderBackplateUniforms = drawSliderBackplate
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.BaseColor,
-                        assemblyMaterialPalette.BaseMetallic,
-                        assemblyMaterialPalette.BaseRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        sliderBackplateMaterial.BaseColor,
+                        sliderBackplateMaterial.Metallic,
+                        sliderBackplateMaterial.Roughness,
+                        sliderBackplateMaterial.Pearlescence,
+                        sliderBackplateMaterial.DiffuseStrength,
+                        sliderBackplateMaterial.SpecularStrength)
                     : default;
                 GpuUniforms sliderThumbUniforms = drawSliderThumb
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.AccentColor,
-                        assemblyMaterialPalette.AccentMetallic,
-                        assemblyMaterialPalette.AccentRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        sliderThumbMaterial.BaseColor,
+                        sliderThumbMaterial.Metallic,
+                        sliderThumbMaterial.Roughness,
+                        sliderThumbMaterial.Pearlescence,
+                        sliderThumbMaterial.DiffuseStrength,
+                        sliderThumbMaterial.SpecularStrength)
                     : default;
-                Vector3 toggleSleeveColor = _project?.ToggleTipSleeveColor ?? assemblyMaterialPalette.AccentColor;
-                float toggleSleeveMetallic = _project != null
-                    ? Math.Clamp(_project.ToggleTipSleeveMetallic, 0f, 1f)
-                    : assemblyMaterialPalette.AccentMetallic;
-                float toggleSleeveRoughness = _project != null
-                    ? Math.Clamp(_project.ToggleTipSleeveRoughness, 0.04f, 1f)
-                    : assemblyMaterialPalette.AccentRoughness;
-                float toggleSleevePearlescence = _project != null
-                    ? Math.Clamp(_project.ToggleTipSleevePearlescence, 0f, 1f)
-                    : assemblyMaterialPalette.Pearlescence;
-                float toggleSleeveDiffuseStrength = _project?.ToggleTipSleeveDiffuseStrength ?? 1f;
-                float toggleSleeveSpecularStrength = _project?.ToggleTipSleeveSpecularStrength ?? 1f;
                 float toggleSleeveRust = _project?.ToggleTipSleeveRustAmount ?? 0f;
                 float toggleSleeveWear = _project?.ToggleTipSleeveWearAmount ?? 0f;
                 float toggleSleeveGunk = _project?.ToggleTipSleeveGunkAmount ?? 0f;
@@ -902,10 +927,12 @@ namespace KnobForge.App.Controls
                 GpuUniforms toggleBaseUniforms = drawToggleBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.BaseColor,
-                        assemblyMaterialPalette.BaseMetallic,
-                        assemblyMaterialPalette.BaseRoughness,
-                        assemblyMaterialPalette.Pearlescence,
+                        toggleBaseMaterial.BaseColor,
+                        toggleBaseMaterial.Metallic,
+                        toggleBaseMaterial.Roughness,
+                        toggleBaseMaterial.Pearlescence,
+                        toggleBaseMaterial.DiffuseStrength,
+                        toggleBaseMaterial.SpecularStrength,
                         surfaceBrushStrength: toggleBushingAnisotropyStrength,
                         surfaceBrushDensity: toggleBushingAnisotropyDensity,
                         surfaceCharacter: toggleBushingSurfaceCharacter,
@@ -914,20 +941,22 @@ namespace KnobForge.App.Controls
                 GpuUniforms toggleLeverUniforms = drawToggleLever
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.AccentColor,
-                        assemblyMaterialPalette.AccentMetallic,
-                        assemblyMaterialPalette.AccentRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        toggleLeverMaterial.BaseColor,
+                        toggleLeverMaterial.Metallic,
+                        toggleLeverMaterial.Roughness,
+                        toggleLeverMaterial.Pearlescence,
+                        toggleLeverMaterial.DiffuseStrength,
+                        toggleLeverMaterial.SpecularStrength)
                     : default;
                 GpuUniforms toggleSleeveUniforms = drawToggleSleeve
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        toggleSleeveColor,
-                        toggleSleeveMetallic,
-                        toggleSleeveRoughness,
-                        toggleSleevePearlescence,
-                        toggleSleeveDiffuseStrength,
-                        toggleSleeveSpecularStrength,
+                        toggleSleeveMaterial.BaseColor,
+                        toggleSleeveMaterial.Metallic,
+                        toggleSleeveMaterial.Roughness,
+                        toggleSleeveMaterial.Pearlescence,
+                        toggleSleeveMaterial.DiffuseStrength,
+                        toggleSleeveMaterial.SpecularStrength,
                         toggleSleeveRust,
                         toggleSleeveWear,
                         toggleSleeveGunk)
@@ -935,18 +964,32 @@ namespace KnobForge.App.Controls
                 GpuUniforms pushButtonBaseUniforms = drawPushButtonBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.BaseColor,
-                        assemblyMaterialPalette.BaseMetallic,
-                        assemblyMaterialPalette.BaseRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        pushButtonBaseMaterial.BaseColor,
+                        pushButtonBaseMaterial.Metallic,
+                        pushButtonBaseMaterial.Roughness,
+                        pushButtonBaseMaterial.Pearlescence,
+                        pushButtonBaseMaterial.DiffuseStrength,
+                        pushButtonBaseMaterial.SpecularStrength)
                     : default;
                 GpuUniforms pushButtonCapUniforms = drawPushButtonCap
                     ? BuildSliderPartUniforms(
                         knobUniforms,
-                        assemblyMaterialPalette.AccentColor,
-                        assemblyMaterialPalette.AccentMetallic,
-                        assemblyMaterialPalette.AccentRoughness,
-                        assemblyMaterialPalette.Pearlescence)
+                        pushButtonCapMaterial.BaseColor,
+                        pushButtonCapMaterial.Metallic,
+                        pushButtonCapMaterial.Roughness,
+                        pushButtonCapMaterial.Pearlescence,
+                        pushButtonCapMaterial.DiffuseStrength,
+                        pushButtonCapMaterial.SpecularStrength)
+                    : default;
+                GpuUniforms pushButtonSkirtUniforms = drawPushButtonSkirt
+                    ? BuildSliderPartUniforms(
+                        knobUniforms,
+                        pushButtonSkirtMaterial.BaseColor,
+                        pushButtonSkirtMaterial.Metallic,
+                        pushButtonSkirtMaterial.Roughness,
+                        pushButtonSkirtMaterial.Pearlescence,
+                        pushButtonSkirtMaterial.DiffuseStrength,
+                        pushButtonSkirtMaterial.SpecularStrength)
                     : default;
                 Vector3 emitterColor = new(180f / 255f, 1f, 210f / 255f);
                 float primaryEmitterIntensity = 0f;
@@ -1083,6 +1126,11 @@ namespace KnobForge.App.Controls
                             Selectors.SetFragmentTextureAtIndex,
                             _environmentMapTexture,
                             3);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.SetFragmentTextureAtIndex,
+                            _brdfLutTexture,
+                            9);
                         BindMaterialTextures(encoderPtr, materialNode);
                         ObjC.Void_objc_msgSend_IntPtr_UInt(
                             encoderPtr,
@@ -1271,6 +1319,28 @@ namespace KnobForge.App.Controls
                             (nuint)_pushButtonCapResources.IndexCount,
                             (nuint)_pushButtonCapResources.IndexType,
                             _pushButtonCapResources.IndexBuffer.Handle,
+                            0);
+                    }
+
+                    if (drawPushButtonSkirt)
+                    {
+                        MetalPipelineManager.SetFrontFacingWinding(
+                            new MTLRenderCommandEncoderHandle(encoderPtr),
+                            frontFacingClockwiseAssembly);
+                        ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                            encoderPtr,
+                            Selectors.SetVertexBufferOffsetAtIndex,
+                            _pushButtonSkirtResources!.VertexBuffer.Handle,
+                            0,
+                            0);
+                        UploadUniforms(encoderPtr, pushButtonSkirtUniforms);
+                        ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                            encoderPtr,
+                            Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                            3,
+                            (nuint)_pushButtonSkirtResources.IndexCount,
+                            (nuint)_pushButtonSkirtResources.IndexType,
+                            _pushButtonSkirtResources.IndexBuffer.Handle,
                             0);
                     }
 
@@ -1484,6 +1554,14 @@ namespace KnobForge.App.Controls
                                 RenderShadowPasses(encoderPtr, pushButtonCapUniforms, shadowConfig, _pushButtonCapResources!);
                             }
 
+                            if (drawPushButtonSkirt)
+                            {
+                                MetalPipelineManager.SetFrontFacingWinding(
+                                    new MTLRenderCommandEncoderHandle(encoderPtr),
+                                    frontFacingClockwiseAssembly);
+                                RenderShadowPasses(encoderPtr, pushButtonSkirtUniforms, shadowConfig, _pushButtonSkirtResources!);
+                            }
+
                             if (drawIndicatorBase)
                             {
                                 MetalPipelineManager.SetFrontFacingWinding(
@@ -1669,38 +1747,103 @@ namespace KnobForge.App.Controls
             }
 
             EnsureBloomTextures(sourceWidth, sourceHeight);
-            if (_bloomExtractTexture == IntPtr.Zero || _bloomBlurTexture == IntPtr.Zero)
+            if (_bloomExtractTexture == IntPtr.Zero || _bloomBlurTexture == IntPtr.Zero || _bloomAccumTexture == IntPtr.Zero)
             {
                 return false;
             }
 
+            BloomKernelShape bloomShape = _project?.BloomKernelShape ?? BloomKernelShape.Soft;
+            if (bloomShape != BloomKernelShape.Soft && !pipelineManager.HasBloomAdditiveBlurPipeline)
+            {
+                bloomShape = BloomKernelShape.Soft;
+            }
+
+            (float dirX, float dirY)[] directions = GetBloomDirections(bloomShape);
+            float texelX = 1f / MathF.Max(1f, _bloomTextureWidth);
+            float texelY = 1f / MathF.Max(1f, _bloomTextureHeight);
             GpuUniforms uniforms = baseUniforms;
-            uniforms.PostProcessParams2 = new Vector4(
-                1f / MathF.Max(1f, _bloomTextureWidth),
-                1f / MathF.Max(1f, _bloomTextureHeight),
-                0f,
-                0f);
+            uniforms.PostProcessParams2 = new Vector4(texelX, texelY, 0f, 0f);
 
             RenderBloomExtractPass(commandBuffer, _bloomExtractTexture, sourceTexture, uniforms);
 
-            uniforms.PostProcessParams2 = new Vector4(
-                1f / MathF.Max(1f, _bloomTextureWidth),
-                1f / MathF.Max(1f, _bloomTextureHeight),
-                1f,
-                0f);
-            RenderBloomBlurPass(commandBuffer, _bloomBlurTexture, _bloomExtractTexture, uniforms);
+            IntPtr bloomCompositeTexture;
+            if (bloomShape == BloomKernelShape.Soft)
+            {
+                uniforms.PostProcessParams2 = new Vector4(texelX, texelY, 1f, 0f);
+                RenderBloomBlurPass(commandBuffer, _bloomBlurTexture, _bloomExtractTexture, uniforms);
 
-            uniforms.PostProcessParams2 = new Vector4(
-                1f / MathF.Max(1f, _bloomTextureWidth),
-                1f / MathF.Max(1f, _bloomTextureHeight),
-                0f,
-                1f);
-            RenderBloomBlurPass(commandBuffer, _bloomExtractTexture, _bloomBlurTexture, uniforms);
+                uniforms.PostProcessParams2 = new Vector4(texelX, texelY, 0f, 1f);
+                RenderBloomBlurPass(commandBuffer, _bloomExtractTexture, _bloomBlurTexture, uniforms);
+                bloomCompositeTexture = _bloomExtractTexture;
+            }
+            else
+            {
+                for (int i = 0; i < directions.Length; i++)
+                {
+                    (float dirX, float dirY) direction = directions[i];
+                    uniforms.PostProcessParams2 = new Vector4(texelX, texelY, direction.dirX, direction.dirY);
+                    RenderBloomBlurPass(
+                        commandBuffer,
+                        _bloomAccumTexture,
+                        _bloomExtractTexture,
+                        uniforms,
+                        additiveBlend: i > 0,
+                        clearTarget: i == 0);
+                }
+
+                bloomCompositeTexture = _bloomAccumTexture;
+            }
 
             GpuUniforms compositeUniforms = uniforms;
+            compositeUniforms.PostProcessParams2 = new Vector4(texelX, texelY, GetBloomCompositeScale(bloomShape), 0f);
             ApplyBloomCompositeDebugOrientation(ref compositeUniforms);
-            RenderBloomCompositePass(commandBuffer, finalTargetTexture, sourceTexture, _bloomExtractTexture, compositeUniforms);
+            RenderBloomCompositePass(commandBuffer, finalTargetTexture, sourceTexture, bloomCompositeTexture, compositeUniforms);
             return true;
+        }
+
+        private static (float dirX, float dirY)[] GetBloomDirections(BloomKernelShape shape)
+        {
+            return shape switch
+            {
+                BloomKernelShape.Star4 => new[]
+                {
+                    (1.0f, 0.0f),
+                    (0.0f, 1.0f),
+                    (0.707f, 0.707f),
+                    (-0.707f, 0.707f)
+                },
+                BloomKernelShape.Star6 => new[]
+                {
+                    (1.0f, 0.0f),
+                    (0.5f, 0.866f),
+                    (-0.5f, 0.866f),
+                    (0.0f, 1.0f),
+                    (0.866f, 0.5f),
+                    (-0.866f, 0.5f)
+                },
+                BloomKernelShape.AnamorphicStreak => new[]
+                {
+                    (1.0f, 0.0f),
+                    (1.0f, 0.0f),
+                    (0.0f, 1.0f)
+                },
+                _ => new[]
+                {
+                    (1.0f, 0.0f),
+                    (0.0f, 1.0f)
+                }
+            };
+        }
+
+        private static float GetBloomCompositeScale(BloomKernelShape shape)
+        {
+            return shape switch
+            {
+                BloomKernelShape.Star4 => 0.50f,
+                BloomKernelShape.Star6 => 0.50f,
+                BloomKernelShape.AnamorphicStreak => 0.80f,
+                _ => 1.0f
+            };
         }
 
         private void RenderBloomExtractPass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, in GpuUniforms uniforms)
@@ -1752,7 +1895,13 @@ namespace KnobForge.App.Controls
             }
         }
 
-        private void RenderBloomBlurPass(IntPtr commandBuffer, IntPtr targetTexture, IntPtr sourceTexture, in GpuUniforms uniforms)
+        private void RenderBloomBlurPass(
+            IntPtr commandBuffer,
+            IntPtr targetTexture,
+            IntPtr sourceTexture,
+            in GpuUniforms uniforms,
+            bool additiveBlend = false,
+            bool clearTarget = true)
         {
             if (commandBuffer == IntPtr.Zero || targetTexture == IntPtr.Zero || sourceTexture == IntPtr.Zero)
             {
@@ -1768,7 +1917,7 @@ namespace KnobForge.App.Controls
             }
 
             ObjC.Void_objc_msgSend_IntPtr(attachment, Selectors.SetTexture, targetTexture);
-            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, 2); // MTLLoadActionClear
+            ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetLoadAction, clearTarget ? 2u : 1u); // MTLLoadActionClear/Load
             ObjC.Void_objc_msgSend_UInt(attachment, Selectors.SetStoreAction, MTLStoreActionStore);
             ObjC.Void_objc_msgSend_MTLClearColor(attachment, Selectors.SetClearColor, new MTLClearColor(0d, 0d, 0d, 1d));
 
@@ -1781,7 +1930,7 @@ namespace KnobForge.App.Controls
             try
             {
                 MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
-                pipelineManager.UseBloomBlurPipeline(new MTLRenderCommandEncoderHandle(encoderPtr));
+                pipelineManager.UseBloomBlurPipeline(new MTLRenderCommandEncoderHandle(encoderPtr), additiveBlend);
                 ObjC.Void_objc_msgSend_IntPtr_UInt(
                     encoderPtr,
                     Selectors.SetFragmentTextureAtIndex,

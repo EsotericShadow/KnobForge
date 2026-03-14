@@ -130,8 +130,8 @@ namespace KnobForge.App.Views
             ScratchAbrasionType abrasionType = _scratchAbrasionTypeCombo?.SelectedItem is ScratchAbrasionType selectedAbrasionType
                 ? selectedAbrasionType
                 : _project.ScratchAbrasionType;
-            bool brushTabActive = ReferenceEquals(_inspectorTabControl?.SelectedItem, _brushTabItem);
             bool hasModel = GetModelNode() != null;
+            bool userHidden = _brushDockHiddenByUser;
 
             ApplyQuickButtonState(_brushQuickToggleButton, brushEnabled);
             ApplyQuickButtonState(_brushQuickColorButton, channel == PaintChannel.Color);
@@ -145,11 +145,24 @@ namespace KnobForge.App.Views
             ApplyQuickButtonState(_brushQuickNeedleButton, abrasionType == ScratchAbrasionType.Needle);
             ApplyQuickButtonState(_brushQuickScuffButton, abrasionType == ScratchAbrasionType.Scuff);
 
+            // Use Popup.IsOpen instead of Border.IsVisible — the dock renders
+            // in a native overlay window to composite above the Metal viewport.
+            bool shouldShow = hasModel && !userHidden;
+
+            if (_brushDockPopup != null)
+            {
+                _brushDockPopup.IsOpen = shouldShow;
+            }
+
             if (_viewportBrushDock != null)
             {
-                _viewportBrushDock.IsVisible = brushTabActive;
                 _viewportBrushDock.IsEnabled = hasModel;
                 _viewportBrushDock.Opacity = hasModel ? 1d : 0.55d;
+
+                if (shouldShow)
+                {
+                    EnsureBrushDockDefaultPosition();
+                }
             }
         }
 
@@ -210,14 +223,14 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            button.Opacity = active ? 1d : 0.80d;
+            button.Opacity = active ? 1d : 0.75d;
             button.Background = active
-                ? new SolidColorBrush(Color.Parse("#284662"))
-                : new SolidColorBrush(Color.Parse("#1A2531"));
+                ? new SolidColorBrush(Color.Parse("#2A4A60"))  // AccentSubtle
+                : new SolidColorBrush(Color.Parse("#1A1F28")); // Surface2
             button.BorderBrush = active
-                ? new SolidColorBrush(Color.Parse("#63A2D8"))
-                : new SolidColorBrush(Color.Parse("#3A4A5C"));
-            button.BorderThickness = new Avalonia.Thickness(1);
+                ? new SolidColorBrush(Color.Parse("#4A90B8"))  // Accent
+                : new SolidColorBrush(Color.Parse("#2E3640")); // BorderDefault
+            button.BorderThickness = new Avalonia.Thickness(active ? 1.5 : 1);
         }
     }
 }

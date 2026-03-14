@@ -696,7 +696,7 @@ namespace KnobForge.App.Views
 
         private static string CreateRotaryPreviewTempPath()
         {
-            string folder = Path.Combine(Path.GetTempPath(), "KnobForge", "rotary-preview");
+            string folder = Path.Combine(Path.GetTempPath(), "Monozukuri", "rotary-preview");
             Directory.CreateDirectory(folder);
             return Path.Combine(folder, $"rotary_preview_{Guid.NewGuid():N}.png");
         }

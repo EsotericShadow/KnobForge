@@ -5,13 +5,13 @@ namespace KnobForge.App.Diagnostics;
 
 internal static class FatalLog
 {
-    private static readonly string PrimaryPath = Path.Combine(Path.GetTempPath(), "knobforge_fatal.log");
+    private static readonly string PrimaryPath = Path.Combine(Path.GetTempPath(), "monozukuri_fatal.log");
     private static readonly string FallbackPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         "Library",
         "Logs",
-        "KnobForge",
-        "knobforge_fatal.log");
+        "Monozukuri",
+        "monozukuri_fatal.log");
 
     public static void Append(string line)
     {

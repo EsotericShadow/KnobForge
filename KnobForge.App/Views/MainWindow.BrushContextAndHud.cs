@@ -111,18 +111,18 @@ namespace KnobForge.App.Views
                     ? _project.MetallicPaintTarget
                     : 0f;
 
-            if (_paintChannelTargetValueSlider != null && materialTargetMode)
+            if (_paintChannelTargetValueInput != null && materialTargetMode)
             {
                 double sliderValue = targetValue;
-                if (Math.Abs(_paintChannelTargetValueSlider.Value - sliderValue) > 0.0001d)
+                if (Math.Abs(_paintChannelTargetValueInput.Value - sliderValue) > 0.0001d)
                 {
-                    _paintChannelTargetValueSlider.Value = sliderValue;
+                    _paintChannelTargetValueInput.Value = sliderValue;
                 }
             }
 
-            if (_paintChannelTargetValueText != null)
+            if (_paintChannelTargetDisplayText != null)
             {
-                _paintChannelTargetValueText.Text = materialTargetMode
+                _paintChannelTargetDisplayText.Text = materialTargetMode
                     ? $"{targetValue:0.00}"
                     : string.Empty;
             }

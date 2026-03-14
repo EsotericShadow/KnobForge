@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using KnobForge.App.Controls;
 using KnobForge.Core;
 using KnobForge.Core.Scene;
 using System;
@@ -17,19 +18,19 @@ namespace KnobForge.App.Views
                 _collarEnabledCheckBox == null ||
                 _collarPresetCombo == null ||
                 _collarMeshPathTextBox == null ||
-                _collarScaleSlider == null ||
-                _collarBodyLengthSlider == null ||
-                _collarBodyThicknessSlider == null ||
-                _collarHeadLengthSlider == null ||
-                _collarHeadThicknessSlider == null ||
-                _collarRotateSlider == null ||
+                _collarScaleInput == null ||
+                _collarBodyLengthInput == null ||
+                _collarBodyThicknessInput == null ||
+                _collarHeadLengthInput == null ||
+                _collarHeadThicknessInput == null ||
+                _collarRotateInput == null ||
                 _collarMirrorXCheckBox == null ||
                 _collarMirrorYCheckBox == null ||
                 _collarMirrorZCheckBox == null ||
-                _collarOffsetXSlider == null ||
-                _collarOffsetYSlider == null ||
-                _collarElevationSlider == null ||
-                _collarInflateSlider == null)
+                _collarOffsetXInput == null ||
+                _collarOffsetYInput == null ||
+                _collarElevationInput == null ||
+                _collarInflateInput == null)
             {
                 return;
             }
@@ -69,7 +70,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -110,19 +111,19 @@ namespace KnobForge.App.Views
                 selectedOption.Preset,
                 selectedOption.ResolveImportedMeshPath(_collarMeshPathTextBox.Text));
             collar.ImportedMeshPath = resolvedImportedMeshPath;
-            collar.ImportedScale = (float)_collarScaleSlider.Value;
-            collar.ImportedBodyLengthScale = (float)_collarBodyLengthSlider.Value;
-            collar.ImportedBodyThicknessScale = (float)_collarBodyThicknessSlider.Value;
-            collar.ImportedHeadLengthScale = (float)_collarHeadLengthSlider.Value;
-            collar.ImportedHeadThicknessScale = (float)_collarHeadThicknessSlider.Value;
-            collar.ImportedRotationRadians = (float)DegreesToRadians(_collarRotateSlider.Value);
+            collar.ImportedScale = (float)_collarScaleInput.Value;
+            collar.ImportedBodyLengthScale = (float)_collarBodyLengthInput.Value;
+            collar.ImportedBodyThicknessScale = (float)_collarBodyThicknessInput.Value;
+            collar.ImportedHeadLengthScale = (float)_collarHeadLengthInput.Value;
+            collar.ImportedHeadThicknessScale = (float)_collarHeadThicknessInput.Value;
+            collar.ImportedRotationRadians = (float)DegreesToRadians(_collarRotateInput.Value);
             collar.ImportedMirrorX = _collarMirrorXCheckBox.IsChecked ?? false;
             collar.ImportedMirrorY = _collarMirrorYCheckBox.IsChecked ?? false;
             collar.ImportedMirrorZ = _collarMirrorZCheckBox.IsChecked ?? false;
-            collar.ImportedOffsetXRatio = (float)_collarOffsetXSlider.Value;
-            collar.ImportedOffsetYRatio = (float)_collarOffsetYSlider.Value;
-            collar.ElevationRatio = (float)_collarElevationSlider.Value;
-            collar.ImportedInflateRatio = (float)_collarInflateSlider.Value;
+            collar.ImportedOffsetXRatio = (float)_collarOffsetXInput.Value;
+            collar.ImportedOffsetYRatio = (float)_collarOffsetYInput.Value;
+            collar.ElevationRatio = (float)_collarElevationInput.Value;
+            collar.ImportedInflateRatio = (float)_collarInflateInput.Value;
 
             bool importedMaterialSourceChanged =
                 ReferenceEquals(sender, _collarPresetCombo) ||
@@ -156,16 +157,16 @@ namespace KnobForge.App.Views
         private void OnCollarMaterialChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
             if (_updatingUi ||
-                e.Property != Slider.ValueProperty ||
-                _collarMaterialBaseRSlider == null ||
-                _collarMaterialBaseGSlider == null ||
-                _collarMaterialBaseBSlider == null ||
-                _collarMaterialMetallicSlider == null ||
-                _collarMaterialRoughnessSlider == null ||
-                _collarMaterialPearlescenceSlider == null ||
-                _collarMaterialRustSlider == null ||
-                _collarMaterialWearSlider == null ||
-                _collarMaterialGunkSlider == null)
+                e.Property != ValueInput.ValueProperty ||
+                _collarMaterialBaseRInput == null ||
+                _collarMaterialBaseGInput == null ||
+                _collarMaterialBaseBInput == null ||
+                _collarMaterialMetallicInput == null ||
+                _collarMaterialRoughnessInput == null ||
+                _collarMaterialPearlescenceInput == null ||
+                _collarMaterialRustInput == null ||
+                _collarMaterialWearInput == null ||
+                _collarMaterialGunkInput == null)
             {
                 return;
             }
@@ -177,15 +178,15 @@ namespace KnobForge.App.Views
 
             CollarNode collar = EnsureCollarNode();
             Vector3 baseColor = new(
-                (float)_collarMaterialBaseRSlider.Value,
-                (float)_collarMaterialBaseGSlider.Value,
-                (float)_collarMaterialBaseBSlider.Value);
-            float metallic = (float)_collarMaterialMetallicSlider.Value;
-            float roughness = (float)_collarMaterialRoughnessSlider.Value;
-            float pearlescence = (float)_collarMaterialPearlescenceSlider.Value;
-            float rust = (float)_collarMaterialRustSlider.Value;
-            float wear = (float)_collarMaterialWearSlider.Value;
-            float gunk = (float)_collarMaterialGunkSlider.Value;
+                (float)_collarMaterialBaseRInput.Value,
+                (float)_collarMaterialBaseGInput.Value,
+                (float)_collarMaterialBaseBInput.Value);
+            float metallic = (float)_collarMaterialMetallicInput.Value;
+            float roughness = (float)_collarMaterialRoughnessInput.Value;
+            float pearlescence = (float)_collarMaterialPearlescenceInput.Value;
+            float rust = (float)_collarMaterialRustInput.Value;
+            float wear = (float)_collarMaterialWearInput.Value;
+            float gunk = (float)_collarMaterialGunkInput.Value;
 
             if (CollarNode.IsImportedMeshPreset(collar.Preset) &&
                 TryGetSelectedMaterialNode(out MaterialNode importedMaterial))
@@ -230,15 +231,15 @@ namespace KnobForge.App.Views
                 _indicatorShapeCombo == null ||
                 _indicatorReliefCombo == null ||
                 _indicatorProfileCombo == null ||
-                _indicatorWidthSlider == null ||
-                _indicatorLengthSlider == null ||
-                _indicatorPositionSlider == null ||
-                _indicatorThicknessSlider == null ||
-                _indicatorRoundnessSlider == null ||
-                _indicatorColorBlendSlider == null ||
-                _indicatorColorRSlider == null ||
-                _indicatorColorGSlider == null ||
-                _indicatorColorBSlider == null)
+                _indicatorWidthInput == null ||
+                _indicatorLengthInput == null ||
+                _indicatorPositionInput == null ||
+                _indicatorThicknessInput == null ||
+                _indicatorRoundnessInput == null ||
+                _indicatorColorBlendInput == null ||
+                _indicatorColorRInput == null ||
+                _indicatorColorGInput == null ||
+                _indicatorColorBInput == null)
             {
                 return;
             }
@@ -260,7 +261,7 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
@@ -276,32 +277,32 @@ namespace KnobForge.App.Views
             model.IndicatorShape = _indicatorShapeCombo.SelectedItem is IndicatorShape shape ? shape : IndicatorShape.Bar;
             model.IndicatorRelief = _indicatorReliefCombo.SelectedItem is IndicatorRelief relief ? relief : IndicatorRelief.Extrude;
             model.IndicatorProfile = _indicatorProfileCombo.SelectedItem is IndicatorProfile profile ? profile : IndicatorProfile.Straight;
-            model.IndicatorWidthRatio = (float)_indicatorWidthSlider.Value;
-            model.IndicatorLengthRatioTop = (float)_indicatorLengthSlider.Value;
-            model.IndicatorPositionRatio = (float)_indicatorPositionSlider.Value;
-            model.IndicatorThicknessRatio = (float)_indicatorThicknessSlider.Value;
-            model.IndicatorRoundness = (float)_indicatorRoundnessSlider.Value;
-            model.IndicatorColorBlend = (float)_indicatorColorBlendSlider.Value;
+            model.IndicatorWidthRatio = (float)_indicatorWidthInput.Value;
+            model.IndicatorLengthRatioTop = (float)_indicatorLengthInput.Value;
+            model.IndicatorPositionRatio = (float)_indicatorPositionInput.Value;
+            model.IndicatorThicknessRatio = (float)_indicatorThicknessInput.Value;
+            model.IndicatorRoundness = (float)_indicatorRoundnessInput.Value;
+            model.IndicatorColorBlend = (float)_indicatorColorBlendInput.Value;
             model.IndicatorColor = new Vector3(
-                (float)_indicatorColorRSlider.Value,
-                (float)_indicatorColorGSlider.Value,
-                (float)_indicatorColorBSlider.Value);
+                (float)_indicatorColorRInput.Value,
+                (float)_indicatorColorGInput.Value,
+                (float)_indicatorColorBInput.Value);
 
             NotifyProjectStateChanged();
         }
 
         private void OnMaterialBaseColorChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) ||
-                _materialBaseRSlider == null || _materialBaseGSlider == null || _materialBaseBSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) ||
+                _materialBaseRInput == null || _materialBaseGInput == null || _materialBaseBInput == null)
             {
                 return;
             }
 
             Vector3 color = new(
-                (float)_materialBaseRSlider.Value,
-                (float)_materialBaseGSlider.Value,
-                (float)_materialBaseBSlider.Value);
+                (float)_materialBaseRInput.Value,
+                (float)_materialBaseGInput.Value,
+                (float)_materialBaseBInput.Value);
             MaterialRegionTarget region = ResolveSelectedMaterialRegion();
             if (region == MaterialRegionTarget.WholeKnob)
             {
@@ -323,12 +324,12 @@ namespace KnobForge.App.Views
 
         private void OnMaterialMetallicChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) || _materialMetallicSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) || _materialMetallicInput == null)
             {
                 return;
             }
 
-            float metallic = (float)_materialMetallicSlider.Value;
+            float metallic = (float)_materialMetallicInput.Value;
             MaterialRegionTarget region = ResolveSelectedMaterialRegion();
             if (region == MaterialRegionTarget.WholeKnob)
             {
@@ -350,12 +351,12 @@ namespace KnobForge.App.Views
 
         private void OnMaterialRoughnessChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) || _materialRoughnessSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) || _materialRoughnessInput == null)
             {
                 return;
             }
 
-            float roughness = (float)_materialRoughnessSlider.Value;
+            float roughness = (float)_materialRoughnessInput.Value;
             MaterialRegionTarget region = ResolveSelectedMaterialRegion();
             if (region == MaterialRegionTarget.WholeKnob)
             {
@@ -403,42 +404,79 @@ namespace KnobForge.App.Views
             }
         }
 
-        private void OnMaterialPearlescenceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        private void OnAssemblyMaterialPresetChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) || _materialPearlescenceSlider == null)
+            if (_updatingUi || _assemblyMaterialPresetCombo == null || e.Property != ComboBox.SelectedItemProperty)
             {
                 return;
             }
 
-            material.Pearlescence = (float)_materialPearlescenceSlider.Value;
+            if (_assemblyMaterialPresetCombo.SelectedItem is not AssemblyMaterialPresetOption option)
+            {
+                return;
+            }
+
+            switch (_project.ProjectType)
+            {
+                case InteractorProjectType.ThumbSlider:
+                    _project.SliderMaterialPreset = Enum.IsDefined(typeof(SliderMaterialPresetId), option.Value)
+                        ? (SliderMaterialPresetId)option.Value
+                        : SliderMaterialPresetId.Custom;
+                    break;
+                case InteractorProjectType.FlipSwitch:
+                    _project.ToggleMaterialPreset = Enum.IsDefined(typeof(ToggleMaterialPresetId), option.Value)
+                        ? (ToggleMaterialPresetId)option.Value
+                        : ToggleMaterialPresetId.Custom;
+                    break;
+                case InteractorProjectType.PushButton:
+                    _project.PushButtonMaterialPreset = Enum.IsDefined(typeof(PushButtonMaterialPresetId), option.Value)
+                        ? (PushButtonMaterialPresetId)option.Value
+                        : PushButtonMaterialPresetId.Custom;
+                    break;
+                default:
+                    return;
+            }
+
+            RefreshAssemblyMaterialPresetUi();
+            NotifyProjectStateChanged();
+        }
+
+        private void OnMaterialPearlescenceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) || _materialPearlescenceInput == null)
+            {
+                return;
+            }
+
+            material.Pearlescence = (float)_materialPearlescenceInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnMaterialAgingChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) ||
-                _materialRustSlider == null || _materialWearSlider == null || _materialGunkSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) ||
+                _materialRustInput == null || _materialWearInput == null || _materialGunkInput == null)
             {
                 return;
             }
 
-            material.RustAmount = (float)_materialRustSlider.Value;
-            material.WearAmount = (float)_materialWearSlider.Value;
-            material.GunkAmount = (float)_materialGunkSlider.Value;
+            material.RustAmount = (float)_materialRustInput.Value;
+            material.WearAmount = (float)_materialWearInput.Value;
+            material.GunkAmount = (float)_materialGunkInput.Value;
             NotifyProjectStateChanged();
         }
 
         private void OnMaterialSurfaceCharacterChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!CanMutateSelectedMaterial(e, Slider.ValueProperty, out var material) ||
-                _materialBrushStrengthSlider == null || _materialBrushDensitySlider == null || _materialCharacterSlider == null)
+            if (!CanMutateSelectedMaterial(e, ValueInput.ValueProperty, out var material) ||
+                _materialBrushStrengthInput == null || _materialBrushDensityInput == null || _materialCharacterInput == null)
             {
                 return;
             }
 
-            material.RadialBrushStrength = (float)_materialBrushStrengthSlider.Value;
-            material.RadialBrushDensity = (float)_materialBrushDensitySlider.Value;
-            material.SurfaceCharacter = (float)_materialCharacterSlider.Value;
+            material.RadialBrushStrength = (float)_materialBrushStrengthInput.Value;
+            material.RadialBrushDensity = (float)_materialBrushDensityInput.Value;
+            material.SurfaceCharacter = (float)_materialCharacterInput.Value;
             NotifyProjectStateChanged();
         }
 
@@ -447,9 +485,9 @@ namespace KnobForge.App.Views
             if (_updatingUi ||
                 _spiralNormalInfluenceCheckBox == null ||
                 _basisDebugModeCombo == null ||
-                _microLodFadeStartSlider == null ||
-                _microLodFadeEndSlider == null ||
-                _microRoughnessLodBoostSlider == null)
+                _microLodFadeStartInput == null ||
+                _microLodFadeEndInput == null ||
+                _microRoughnessLodBoostInput == null)
             {
                 return;
             }
@@ -468,13 +506,13 @@ namespace KnobForge.App.Views
                     return;
                 }
             }
-            else if (e.Property != Slider.ValueProperty)
+            else if (e.Property != ValueInput.ValueProperty)
             {
                 return;
             }
 
-            float fadeStart = Math.Clamp((float)_microLodFadeStartSlider.Value, 0.1f, 10f);
-            float fadeEnd = Math.Clamp((float)_microLodFadeEndSlider.Value, 0.1f, 12f);
+            float fadeStart = Math.Clamp((float)_microLodFadeStartInput.Value, 0.1f, 10f);
+            float fadeEnd = Math.Clamp((float)_microLodFadeEndInput.Value, 0.1f, 12f);
             float minEnd = fadeStart + 0.01f;
             if (fadeEnd < minEnd)
             {
@@ -483,7 +521,7 @@ namespace KnobForge.App.Views
                 _updatingUi = true;
                 try
                 {
-                    _microLodFadeEndSlider.Value = fadeEnd;
+                    _microLodFadeEndInput.Value = fadeEnd;
                 }
                 finally
                 {
@@ -497,13 +535,18 @@ namespace KnobForge.App.Views
                 : BasisDebugMode.Off;
             _project.SpiralNormalLodFadeStart = fadeStart;
             _project.SpiralNormalLodFadeEnd = fadeEnd;
-            _project.SpiralRoughnessLodBoost = Math.Clamp((float)_microRoughnessLodBoostSlider.Value, 0f, 1f);
+            _project.SpiralRoughnessLodBoost = Math.Clamp((float)_microRoughnessLodBoostInput.Value, 0f, 1f);
             NotifyRenderOnly();
         }
         private bool CanMutateSelectedMaterial(AvaloniaPropertyChangedEventArgs e, AvaloniaProperty expectedProperty, out MaterialNode material)
         {
             material = null!;
             if (_updatingUi || e.Property != expectedProperty)
+            {
+                return false;
+            }
+
+            if (IsAssemblyMaterialPresetActive())
             {
                 return false;
             }
@@ -515,6 +558,17 @@ namespace KnobForge.App.Views
 
             material = selected;
             return true;
+        }
+
+        private bool IsAssemblyMaterialPresetActive()
+        {
+            return _project.ProjectType switch
+            {
+                InteractorProjectType.ThumbSlider => _project.SliderMaterialPreset != SliderMaterialPresetId.Custom,
+                InteractorProjectType.FlipSwitch => _project.ToggleMaterialPreset != ToggleMaterialPresetId.Custom,
+                InteractorProjectType.PushButton => _project.PushButtonMaterialPreset != PushButtonMaterialPresetId.Custom,
+                _ => false
+            };
         }
 
         private bool TryGetSelectedMaterialNode(out MaterialNode material)
@@ -538,6 +592,11 @@ namespace KnobForge.App.Views
 
         private MaterialRegionTarget ResolveSelectedMaterialRegion()
         {
+            if (_materialRegionCombo?.SelectedItem is MaterialRegionOption option)
+            {
+                return option.Target;
+            }
+
             if (_materialRegionCombo?.SelectedItem is MaterialRegionTarget region)
             {
                 return region;
@@ -650,11 +709,11 @@ namespace KnobForge.App.Views
         private void ApplyMaterialRegionValuesToSliders(MaterialNode material)
         {
             if (_materialRegionCombo == null ||
-                _materialBaseRSlider == null ||
-                _materialBaseGSlider == null ||
-                _materialBaseBSlider == null ||
-                _materialMetallicSlider == null ||
-                _materialRoughnessSlider == null)
+                _materialBaseRInput == null ||
+                _materialBaseGInput == null ||
+                _materialBaseBInput == null ||
+                _materialMetallicInput == null ||
+                _materialRoughnessInput == null)
             {
                 return;
             }
@@ -663,23 +722,24 @@ namespace KnobForge.App.Views
             _updatingUi = true;
             try
             {
-                if (_materialRegionCombo.SelectedItem is not MaterialRegionTarget)
+                if (_materialRegionCombo.SelectedItem is not MaterialRegionOption &&
+                    _materialRegionCombo.SelectedItem is not MaterialRegionTarget)
                 {
-                    _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
+                    SelectMaterialRegionOption(MaterialRegionTarget.WholeKnob);
                 }
 
                 MaterialRegionTarget region = ResolveSelectedMaterialRegion();
                 if (!material.PartMaterialsEnabled && region != MaterialRegionTarget.WholeKnob)
                 {
-                    _materialRegionCombo.SelectedItem = MaterialRegionTarget.WholeKnob;
+                    SelectMaterialRegionOption(MaterialRegionTarget.WholeKnob);
                     region = MaterialRegionTarget.WholeKnob;
                 }
                 Vector3 color = GetPartBaseColor(material, region);
-                _materialBaseRSlider.Value = color.X;
-                _materialBaseGSlider.Value = color.Y;
-                _materialBaseBSlider.Value = color.Z;
-                _materialMetallicSlider.Value = GetPartMetallic(material, region);
-                _materialRoughnessSlider.Value = GetPartRoughness(material, region);
+                _materialBaseRInput.Value = color.X;
+                _materialBaseGInput.Value = color.Y;
+                _materialBaseBInput.Value = color.Z;
+                _materialMetallicInput.Value = GetPartMetallic(material, region);
+                _materialRoughnessInput.Value = GetPartRoughness(material, region);
                 ApplyMaterialTextureValuesToUi(material);
             }
             finally

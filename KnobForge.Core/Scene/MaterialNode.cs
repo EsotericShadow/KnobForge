@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace KnobForge.Core.Scene
 {
@@ -122,6 +123,8 @@ namespace KnobForge.Core.Scene
         public string? RoughnessMapPath { get; set; }
         public string? MetallicMapPath { get; set; }
         public float NormalMapStrength { get; set; } = 1.0f;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public KnobForge.Core.MaterialGraph.MaterialGraph? Graph { get; set; }
         public bool HasAlbedoMap => !string.IsNullOrEmpty(AlbedoMapPath);
         public bool HasNormalMap => !string.IsNullOrEmpty(NormalMapPath);
         public bool HasRoughnessMap => !string.IsNullOrEmpty(RoughnessMapPath);

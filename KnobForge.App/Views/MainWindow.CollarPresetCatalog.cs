@@ -458,7 +458,7 @@ namespace KnobForge.App.Views
             {
                 for (int i = 0; i < CollarModelsDirectoryCandidates.Length; i++)
                 {
-                    candidates.Add(Path.Combine(desktop, "KnobForge", CollarModelsDirectoryCandidates[i]));
+                    candidates.Add(Path.Combine(desktop, "Monozukuri", CollarModelsDirectoryCandidates[i]));
                 }
             }
 

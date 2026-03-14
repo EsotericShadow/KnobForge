@@ -60,9 +60,9 @@ namespace KnobForge.App.Views
                 _paintLayerBlendModeCombo.SelectionChanged += OnPaintLayerBlendModeChanged;
             }
 
-            if (_paintLayerOpacitySlider != null)
+            if (_paintLayerOpacityInput != null)
             {
-                _paintLayerOpacitySlider.PropertyChanged += OnPaintLayerOpacityChanged;
+                _paintLayerOpacityInput.PropertyChanged += OnPaintLayerOpacityChanged;
             }
 
             if (_paintLayerNameTextBox != null)
@@ -264,7 +264,7 @@ namespace KnobForge.App.Views
 
         private void OnPaintLayerOpacityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property != Slider.ValueProperty || _metalViewport == null || _paintLayerOpacitySlider == null || _updatingUi)
+            if (e.Property != ValueInput.ValueProperty || _metalViewport == null || _paintLayerOpacityInput == null || _updatingUi)
             {
                 return;
             }
@@ -274,7 +274,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            _metalViewport.SetPaintLayerOpacity(index, (float)_paintLayerOpacitySlider.Value);
+            _metalViewport.SetPaintLayerOpacity(index, (float)_paintLayerOpacityInput.Value);
             RefreshPaintLayerListFromViewport(preferActiveSelection: false);
             CaptureUndoSnapshotIfChanged();
         }
@@ -375,16 +375,9 @@ namespace KnobForge.App.Views
                     _paintLayerBlendModeCombo.SelectedItem = selectLayer ? _paintLayerItems[targetIndex].BlendMode : PaintBlendMode.Normal;
                 }
 
-                if (_paintLayerOpacitySlider != null)
+                if (_paintLayerOpacityInput != null)
                 {
-                    _paintLayerOpacitySlider.Value = selectLayer ? _paintLayerItems[targetIndex].Opacity : 1d;
-                }
-
-                if (_paintLayerOpacityValueText != null)
-                {
-                    _paintLayerOpacityValueText.Text = selectLayer
-                        ? $"Opacity: {_paintLayerItems[targetIndex].Opacity * 100f:0}%"
-                        : "Opacity: 100%";
+                    _paintLayerOpacityInput.Value = selectLayer ? _paintLayerItems[targetIndex].Opacity : 1d;
                 }
 
                 if (_focusPaintLayerCheckBox != null)
@@ -404,9 +397,9 @@ namespace KnobForge.App.Views
                 _paintLayerBlendModeCombo.IsEnabled = hasSelection;
             }
 
-            if (_paintLayerOpacitySlider != null)
+            if (_paintLayerOpacityInput != null)
             {
-                _paintLayerOpacitySlider.IsEnabled = hasSelection;
+                _paintLayerOpacityInput.IsEnabled = hasSelection;
             }
 
             if (_renamePaintLayerButton != null)

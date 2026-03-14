@@ -77,7 +77,7 @@ public static partial class ImportedStlCollarMeshBuilder
 
         byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes($"{Path.GetFullPath(glbPath)}|{fileTicks}"));
         string hash = Convert.ToHexString(hashBytes).ToLowerInvariant()[..16];
-        return Path.Combine(Path.GetTempPath(), "KnobForge", "embedded_textures", hash);
+        return Path.Combine(Path.GetTempPath(), "Monozukuri", "embedded_textures", hash);
     }
 
     private static string? TryCreateTextureFilePath(

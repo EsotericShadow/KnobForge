@@ -90,7 +90,7 @@ namespace KnobForge.Core.Scene
         {
             return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "KnobForge");
+                "Monozukuri");
         }
 
         public float InnerRadiusRatio

@@ -205,7 +205,7 @@ namespace KnobForge.App.Views
         {
             string desktopRoot = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "KnobForge");
+                "Monozukuri");
             for (int i = 0; i < SliderModelsDirectoryCandidates.Length; i++)
             {
                 string candidate = Path.Combine(desktopRoot, SliderModelsDirectoryCandidates[i]);

@@ -738,7 +738,7 @@
                                 <StackPanel Margin="16"
                                             HorizontalAlignment="Center"
                                             Spacing="8">
-                                    <controls:SpriteKnobSlider x:Name="RotaryPreviewKnob"
+                                    <controls:SpriteSheetPreviewKnob x:Name="RotaryPreviewKnob"
                                                                Minimum="0"
                                                                Maximum="1"
                                                                KnobDiameter="180"

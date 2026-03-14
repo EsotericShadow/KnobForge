@@ -35,6 +35,7 @@ public sealed partial class MetalPipelineManager
     private readonly IMTLRenderPipelineState _fullscreenBlitPipeline;
     private readonly IMTLRenderPipelineState? _fullscreenBloomExtractPipeline;
     private readonly IMTLRenderPipelineState? _fullscreenBloomBlurPipeline;
+    private readonly IMTLRenderPipelineState? _fullscreenBloomBlurAdditivePipeline;
     private readonly IMTLRenderPipelineState? _fullscreenBloomCompositePipeline;
     private readonly IntPtr _defaultDepthStencilState;
     private readonly IntPtr _shadowDepthStencilState;
@@ -212,6 +213,13 @@ public sealed partial class MetalPipelineManager
             _fullscreenVertexFunction,
             _fullscreenBloomBlurFragmentFunction,
             "bloom blur");
+        _fullscreenBloomBlurAdditivePipeline = CreateFullscreenPipeline(
+            device,
+            _fullscreenVertexFunction,
+            _fullscreenBloomBlurFragmentFunction,
+            "bloom blur additive",
+            additiveColorBlending: true,
+            enableBlending: true);
         _fullscreenBloomCompositePipeline = CreateFullscreenPipeline(
             device,
             _fullscreenVertexFunction,
@@ -223,7 +231,9 @@ public sealed partial class MetalPipelineManager
         IntPtr device,
         IMTLFunction vertexFunction,
         IMTLFunction? fragmentFunction,
-        string label)
+        string label,
+        bool additiveColorBlending = false,
+        bool enableBlending = false)
     {
         if (fragmentFunction is null || fragmentFunction.Handle == IntPtr.Zero)
         {
@@ -235,9 +245,9 @@ public sealed partial class MetalPipelineManager
             vertexFunction.Handle,
             fragmentFunction.Handle,
             sampleCount: 1,
-            additiveColorBlending: false,
+            additiveColorBlending: additiveColorBlending,
             enableDepth: false,
-            enableBlending: false);
+            enableBlending: enableBlending);
         if (pipelineStatePtr == IntPtr.Zero)
         {
             LogError($"Failed to create fullscreen {label} Metal render pipeline state.");
@@ -321,6 +331,9 @@ public sealed partial class MetalPipelineManager
         _fullscreenBloomBlurPipeline is { Handle: not 0 } &&
         _fullscreenBloomCompositePipeline is { Handle: not 0 };
 
+    public bool HasBloomAdditiveBlurPipeline =>
+        _fullscreenBloomBlurAdditivePipeline is { Handle: not 0 };
+
     public void UseFullscreenBlitPipeline(IMTLRenderCommandEncoder encoder)
     {
         if (encoder is null)
@@ -357,19 +370,22 @@ public sealed partial class MetalPipelineManager
         SetFrontFacingWinding(encoder, clockwise: true);
     }
 
-    public void UseBloomBlurPipeline(IMTLRenderCommandEncoder encoder)
+    public void UseBloomBlurPipeline(IMTLRenderCommandEncoder encoder, bool additiveBlend = false)
     {
         if (encoder is null)
         {
             throw new ArgumentNullException(nameof(encoder));
         }
 
-        if (encoder.Handle == IntPtr.Zero || _fullscreenBloomBlurPipeline is null || _fullscreenBloomBlurPipeline.Handle == IntPtr.Zero)
+        IMTLRenderPipelineState? pipeline = additiveBlend
+            ? _fullscreenBloomBlurAdditivePipeline
+            : _fullscreenBloomBlurPipeline;
+        if (encoder.Handle == IntPtr.Zero || pipeline is null || pipeline.Handle == IntPtr.Zero)
         {
             return;
         }
 
-        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, _fullscreenBloomBlurPipeline.Handle);
+        ObjC.Void_objc_msgSend_IntPtr(encoder.Handle, Selectors.SetRenderPipelineState, pipeline.Handle);
         UseDepthReadOnlyState(encoder);
         SetBackfaceCulling(encoder, false);
         SetFrontFacingWinding(encoder, clockwise: true);
