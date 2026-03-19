@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using KnobForge.App.Diagnostics;
 using KnobForge.Core;
 using KnobForge.Core.MaterialGraph;
 using KnobForge.Core.Scene;
@@ -32,8 +33,10 @@ namespace KnobForge.App.Views
             error = string.Empty;
             try
             {
+                FatalLog.Append($">>> [ProjectLoad] Begin '{path}'");
                 if (!KnobProjectFileStore.TryLoadEnvelope(path, out KnobProjectFileEnvelope? envelope, out error) || envelope == null)
                 {
+                    FatalLog.Append($">>> [ProjectLoad] EnvelopeFailed '{path}' Error='{error}'");
                     return false;
                 }
 
@@ -45,12 +48,14 @@ namespace KnobForge.App.Views
                 catch (Exception ex)
                 {
                     error = $"Project snapshot is invalid: {ex.Message}";
+                    FatalLog.Append($">>> [ProjectLoad] SnapshotInvalid '{path}' Error='{error}'");
                     return false;
                 }
 
                 if (snapshot == null)
                 {
                     error = "Project snapshot is missing.";
+                    FatalLog.Append($">>> [ProjectLoad] SnapshotMissing '{path}'");
                     return false;
                 }
 
@@ -78,6 +83,7 @@ namespace KnobForge.App.Views
                 catch (Exception ex)
                 {
                     error = $"Failed to apply project state: {ex.Message}";
+                    FatalLog.Append($">>> [ProjectLoad] ApplyFailed '{path}' Error='{error}'");
                     return false;
                 }
                 finally
@@ -85,20 +91,24 @@ namespace KnobForge.App.Views
                     _applyingUndoRedo = previousApplyingUndoRedo;
                 }
 
+                FatalLog.Append($">>> [ProjectLoad] SnapshotApplied '{path}'");
                 RefreshSceneTree();
                 RefreshInspectorFromProject(InspectorRefreshTabPolicy.FollowSceneSelection);
                 InitializeUndoRedoHistory(resetStacks: true);
+                FatalLog.Append($">>> [ProjectLoad] UiRefreshed '{path}'");
 
                 _currentProjectFilePath = Path.GetFullPath(path);
                 UpdateWindowTitleForProject();
                 KnobProjectFileStore.MarkRecentProject(_currentProjectFilePath);
                 RefreshNativeMenuBar();
+                FatalLog.Append($">>> [ProjectLoad] Success '{path}'");
                 return true;
             }
             catch (Exception ex)
             {
                 error = $"Failed to load project: {ex.Message}";
                 Console.Error.WriteLine($">>> [ProjectLoad] Unexpected exception loading '{path}': {ex}");
+                FatalLog.Append($">>> [ProjectLoad] Unexpected '{path}' Error='{error}'");
                 return false;
             }
         }
