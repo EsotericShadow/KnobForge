@@ -23,7 +23,7 @@ using System.Collections.Generic;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private const int MinFrameCount = 1;
         private const int MaxFrameCount = 1440;

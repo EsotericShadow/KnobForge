@@ -108,7 +108,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="8"/>
         </Style>
 
         <Style Selector="Button#NewProjectButton:pointerover">
@@ -121,7 +121,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="8"/>
         </Style>
 
         <Style Selector="Button#EmptyStateNewProjectButton:pointerover">
@@ -283,7 +283,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <Border Width="40"
                                 Height="40"
-                                CornerRadius="10"
+                                CornerRadius="12"
                                 Background="{StaticResource AccentSubtleBrush}"
                                 BorderBrush="{StaticResource AccentBrush}"
                                 BorderThickness="1">
@@ -309,7 +309,7 @@
                                 <Border Background="{StaticResource Surface2Brush}"
                                         BorderBrush="{StaticResource BorderDefaultBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="10"
+                                        CornerRadius="12"
                                         Padding="8,3">
                                     <TextBlock x:Name="LauncherVersionTextBlock"
                                                Text="v1.0"
@@ -369,7 +369,7 @@
                                     Background="{StaticResource Surface1Brush}"
                                     BorderBrush="{StaticResource BorderSubtleBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="10"
+                                    CornerRadius="12"
                                     Padding="14"
                                     Margin="0,0,0,10"
                                     Cursor="Hand">
@@ -377,7 +377,7 @@
                                     <Border Grid.Column="0"
                                             Width="140"
                                             Height="140"
-                                            CornerRadius="6"
+                                            CornerRadius="8"
                                             ClipToBounds="True"
                                             Background="{StaticResource Surface2Brush}"
                                             BorderBrush="{StaticResource BorderDefaultBrush}"

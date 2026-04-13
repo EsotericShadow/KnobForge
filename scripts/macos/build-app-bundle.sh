@@ -14,11 +14,12 @@ APP_VERSION="${APP_VERSION:-1.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 BUNDLE_IDENTIFIER="${BUNDLE_IDENTIFIER:-com.knobforge.app}"
 PUBLISH_DIR="${PUBLISH_DIR:-$ROOT_DIR/artifacts/macos/publish/$RID_SEGMENT}"
-APP_BUNDLE_DIR="${APP_BUNDLE_DIR:-$ROOT_DIR/artifacts/macos/KnobForge.app}"
+APP_BUNDLE_DIR="${APP_BUNDLE_DIR:-$ROOT_DIR/artifacts/macos/Monozukuri.app}"
 MACOS_EXECUTABLE_NAME="Monozukuri"
 PUBLISHED_APPHOST_NAME="KnobForge.App"
+BUNDLED_APPHOST_NAME="${BUNDLED_APPHOST_NAME:-Monozukuri}"
 APP_ICON_SOURCE="${APP_ICON_SOURCE:-$ROOT_DIR/icon.ico}"
-APP_ICON_FILENAME="${APP_ICON_FILENAME:-KnobForge.icns}"
+APP_ICON_FILENAME="${APP_ICON_FILENAME:-Monozukuri.icns}"
 RESTORE="${RESTORE:-1}"
 CODESIGN_ENABLED="${CODESIGN_ENABLED:-1}"
 APP_SIGN_IDENTITY="${APP_SIGN_IDENTITY:--}"
@@ -149,13 +150,22 @@ mkdir -p "$APP_BUNDLE_DIR/Contents/Resources/publish"
 cp -R "$PUBLISH_DIR"/. "$APP_BUNDLE_DIR/Contents/Resources/publish/"
 cp "$INFO_PLIST_TEMPLATE" "$APP_BUNDLE_DIR/Contents/Info.plist"
 
+if [[ -f "$APP_BUNDLE_DIR/Contents/Resources/publish/$PUBLISHED_APPHOST_NAME" ]]; then
+  cp "$APP_BUNDLE_DIR/Contents/Resources/publish/$PUBLISHED_APPHOST_NAME" \
+     "$APP_BUNDLE_DIR/Contents/Resources/publish/$BUNDLED_APPHOST_NAME"
+fi
+
 cat > "$APP_BUNDLE_DIR/Contents/MacOS/$MACOS_EXECUTABLE_NAME" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PUBLISH_DIR="$APP_ROOT/Resources/publish"
-APPHOST="$PUBLISH_DIR/KnobForge.App"
+APPHOST="$PUBLISH_DIR/Monozukuri"
+
+if [[ ! -e "$APPHOST" ]]; then
+  APPHOST="$PUBLISH_DIR/KnobForge.App"
+fi
 
 if [[ ! -x "$APPHOST" ]]; then
   chmod +x "$APPHOST" 2>/dev/null || true
@@ -176,10 +186,10 @@ generate_app_icon "$APP_BUNDLE_DIR/Contents/Resources/$APP_ICON_FILENAME"
 
 chmod +x "$APP_BUNDLE_DIR/Contents/MacOS/$MACOS_EXECUTABLE_NAME"
 
-if [[ -x "$APP_BUNDLE_DIR/Contents/Resources/publish/$PUBLISHED_APPHOST_NAME" ]]; then
+if [[ -x "$APP_BUNDLE_DIR/Contents/Resources/publish/$BUNDLED_APPHOST_NAME" ]]; then
   true
 else
-  chmod +x "$APP_BUNDLE_DIR/Contents/Resources/publish/$PUBLISHED_APPHOST_NAME" 2>/dev/null || true
+  chmod +x "$APP_BUNDLE_DIR/Contents/Resources/publish/$BUNDLED_APPHOST_NAME" 2>/dev/null || true
 fi
 
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"

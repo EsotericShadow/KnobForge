@@ -72,7 +72,7 @@ public static class PushButtonAssemblyMeshBuilder
             return default;
         }
 
-        string pushButtonRootDirectory = ResolvePushButtonRootDirectory();
+        IReadOnlyList<string> pushButtonRootDirectories = ResolvePushButtonRootDirectories();
         float knobRadius = MathF.Max(40f, modelNode.Radius);
         float knobHeight = MathF.Max(20f, modelNode.Height);
 
@@ -104,8 +104,8 @@ public static class PushButtonAssemblyMeshBuilder
         float skirtRadius = project.PushButtonSkirtRadius > 0f
             ? project.PushButtonSkirtRadius
             : bezelRadius + 2f;
-        string baseImportedMeshPath = ResolveImportedMeshPath(project.PushButtonBaseImportedMeshPath, pushButtonRootDirectory, PushButtonPartKind.Base);
-        string capImportedMeshPath = ResolveImportedMeshPath(project.PushButtonCapImportedMeshPath, pushButtonRootDirectory, PushButtonPartKind.Cap);
+        string baseImportedMeshPath = ResolveImportedMeshPath(project.PushButtonBaseImportedMeshPath, pushButtonRootDirectories, PushButtonPartKind.Base);
+        string capImportedMeshPath = ResolveImportedMeshPath(project.PushButtonCapImportedMeshPath, pushButtonRootDirectories, PushButtonPartKind.Cap);
 
         return new PushButtonAssemblyConfig(
             Enabled: true,
@@ -849,29 +849,27 @@ public static class PushButtonAssemblyMeshBuilder
         return Vector3.UnitZ;
     }
 
-    private static string ResolvePushButtonRootDirectory()
+    private static IReadOnlyList<string> ResolvePushButtonRootDirectories()
     {
-        string desktopRoot = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "Monozukuri");
-        for (int i = 0; i < PushButtonRootDirectoryCandidates.Length; i++)
+        var directories = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string root in EnumeratePushButtonSearchRoots())
         {
-            string candidate = Path.Combine(desktopRoot, PushButtonRootDirectoryCandidates[i]);
-            if (Directory.Exists(candidate))
+            for (int i = 0; i < PushButtonRootDirectoryCandidates.Length; i++)
             {
-                return candidate;
+                TryAddExistingPushButtonDirectory(directories, seen, Path.Combine(root, PushButtonRootDirectoryCandidates[i]));
             }
         }
 
-        return Path.Combine(desktopRoot, PushButtonRootDirectoryCandidates[0]);
+        return directories;
     }
 
     private static string ResolveImportedMeshPath(
         string configuredPath,
-        string pushButtonRootDirectory,
+        IReadOnlyList<string> pushButtonRootDirectories,
         PushButtonPartKind partKind)
     {
-        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, pushButtonRootDirectory);
+        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, pushButtonRootDirectories);
         if (!string.IsNullOrWhiteSpace(explicitPath))
         {
             return explicitPath;
@@ -882,10 +880,10 @@ public static class PushButtonAssemblyMeshBuilder
             return string.Empty;
         }
 
-        return ResolveLibraryImportedMeshPath(pushButtonRootDirectory, configuredPath, partKind);
+        return ResolveLibraryImportedMeshPath(pushButtonRootDirectories, configuredPath, partKind);
     }
 
-    private static string? TryResolveExplicitMeshPath(string configuredPath, string pushButtonRootDirectory)
+    private static string? TryResolveExplicitMeshPath(string configuredPath, IReadOnlyList<string> pushButtonRootDirectories)
     {
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
@@ -898,32 +896,48 @@ public static class PushButtonAssemblyMeshBuilder
             return File.Exists(trimmed) ? trimmed : null;
         }
 
-        if (string.IsNullOrWhiteSpace(pushButtonRootDirectory))
+        foreach (string root in EnumeratePushButtonSearchRoots())
         {
-            return null;
+            string combinedFromRoot = Path.GetFullPath(Path.Combine(root, trimmed));
+            if (File.Exists(combinedFromRoot))
+            {
+                return combinedFromRoot;
+            }
         }
 
-        string combined = Path.GetFullPath(Path.Combine(pushButtonRootDirectory, trimmed));
-        return File.Exists(combined) ? combined : null;
+        for (int i = 0; i < pushButtonRootDirectories.Count; i++)
+        {
+            string combined = Path.GetFullPath(Path.Combine(pushButtonRootDirectories[i], trimmed));
+            if (File.Exists(combined))
+            {
+                return combined;
+            }
+        }
+
+        return null;
     }
 
     private static string ResolveLibraryImportedMeshPath(
-        string pushButtonRootDirectory,
+        IReadOnlyList<string> pushButtonRootDirectories,
         string configuredPath,
         PushButtonPartKind partKind)
     {
-        if (string.IsNullOrWhiteSpace(pushButtonRootDirectory) || !Directory.Exists(pushButtonRootDirectory))
+        if (pushButtonRootDirectories.Count == 0)
         {
             return string.Empty;
         }
 
         string fileName = Path.GetFileName(configuredPath);
-        foreach (string directory in EnumeratePartDirectories(pushButtonRootDirectory, partKind))
+        for (int i = 0; i < pushButtonRootDirectories.Count; i++)
         {
-            string candidate = Path.Combine(directory, fileName);
-            if (File.Exists(candidate) && SupportedExtensions.Any(ext => candidate.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            string pushButtonRootDirectory = pushButtonRootDirectories[i];
+            foreach (string directory in EnumeratePartDirectories(pushButtonRootDirectory, partKind))
             {
-                return candidate;
+                string candidate = Path.Combine(directory, fileName);
+                if (File.Exists(candidate) && SupportedExtensions.Any(ext => candidate.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return candidate;
+                }
             }
         }
 
@@ -942,6 +956,43 @@ public static class PushButtonAssemblyMeshBuilder
             {
                 yield return candidate;
             }
+        }
+    }
+
+    private static IEnumerable<string> EnumeratePushButtonSearchRoots()
+    {
+        string currentDirectory = Environment.CurrentDirectory;
+        if (!string.IsNullOrWhiteSpace(currentDirectory))
+        {
+            yield return currentDirectory;
+        }
+
+        string? probe = AppContext.BaseDirectory;
+        for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+        {
+            yield return probe;
+            probe = Directory.GetParent(probe)?.FullName;
+        }
+
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        if (!string.IsNullOrWhiteSpace(desktop))
+        {
+            yield return Path.Combine(desktop, "Monozukuri");
+            yield return Path.Combine(desktop, "KnobForge");
+        }
+    }
+
+    private static void TryAddExistingPushButtonDirectory(ICollection<string> directories, ISet<string> seen, string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+        {
+            return;
+        }
+
+        string normalized = Path.GetFullPath(candidate);
+        if (seen.Add(normalized))
+        {
+            directories.Add(candidate);
         }
     }
 

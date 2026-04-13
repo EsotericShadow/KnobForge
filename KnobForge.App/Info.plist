@@ -7,9 +7,9 @@
     <key>CFBundleDisplayName</key>
     <string>Monozukuri</string>
     <key>CFBundleIconFile</key>
-    <string>KnobForge.icns</string>
+    <string>Monozukuri.icns</string>
     <key>CFBundleIconName</key>
-    <string>KnobForge</string>
+    <string>Monozukuri</string>
     <key>CFBundleIdentifier</key>
     <string>com.knobforge.app</string>
     <key>CFBundleExecutable</key>
@@ -35,7 +35,7 @@
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>CFBundleTypeIconFile</key>
-            <string>KnobForge.icns</string>
+            <string>Monozukuri.icns</string>
             <key>LSHandlerRank</key>
             <string>Owner</string>
             <key>LSItemContentTypes</key>
@@ -53,7 +53,7 @@
             <key>UTTypeDescription</key>
             <string>Monozukuri Project</string>
             <key>UTTypeIconFile</key>
-            <string>KnobForge.icns</string>
+            <string>Monozukuri.icns</string>
             <key>UTTypeConformsTo</key>
             <array>
                 <string>public.data</string>

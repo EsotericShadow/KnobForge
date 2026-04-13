@@ -24,15 +24,15 @@ using ShapeRectangle = Avalonia.Controls.Shapes.Rectangle;
 
 namespace KnobForge.App.Views
 {
-    public partial class ProjectLauncherWindow : Window
+    public partial class ProjectLauncherWindow : AppWindow
     {
-        private const string Surface0Hex = "#0F1317";
-        private const string Surface1Hex = "#141820";
-        private const string Surface2Hex = "#1A1F28";
-        private const string Surface3Hex = "#222830";
-        private const string BorderSubtleHex = "#252C35";
-        private const string BorderDefaultHex = "#2E3640";
-        private const string BorderStrongHex = "#3A4450";
+        private const string Surface0Hex = "#0D1117";
+        private const string Surface1Hex = "#151B24";
+        private const string Surface2Hex = "#1E2430";
+        private const string Surface3Hex = "#262D38";
+        private const string BorderSubtleHex = "#2A3140";
+        private const string BorderDefaultHex = "#333D4A";
+        private const string BorderStrongHex = "#404C5A";
         private const string TextPrimaryHex = "#E2EAF2";
         private const string TextSecondaryHex = "#A8B4C0";
         private const string TextTertiaryHex = "#707C88";
@@ -344,7 +344,7 @@ namespace KnobForge.App.Views
                 BorderThickness = new Thickness(1),
                 Foreground = BrushFromHex(TextSecondaryHex),
                 Margin = new Thickness(0, 14, 0, 0),
-                CornerRadius = new CornerRadius(6)
+                CornerRadius = new CornerRadius(8)
             };
             cancelButton.Click += (_, _) => dialog.Close();
             Grid.SetRow(cancelButton, 4);
@@ -368,7 +368,7 @@ namespace KnobForge.App.Views
                 Background = BrushFromHex(Surface1Hex),
                 BorderBrush = BrushFromHex(BorderDefaultHex),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(16, 14),
                 Cursor = new Cursor(StandardCursorType.Hand)
             };
@@ -383,7 +383,7 @@ namespace KnobForge.App.Views
             {
                 Width = 44,
                 Height = 44,
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(12),
                 Background = BrushFromHex(Surface2Hex),
                 BorderBrush = BrushFromHex(BorderSubtleHex),
                 BorderThickness = new Thickness(1),
@@ -640,7 +640,7 @@ namespace KnobForge.App.Views
                 BorderThickness = new Thickness(1),
                 Foreground = BrushFromHex(TextPrimaryHex),
                 Padding = new Thickness(14, 8),
-                CornerRadius = new CornerRadius(6)
+                CornerRadius = new CornerRadius(8)
             };
             okButton.Click += (_, _) => dialog.Close();
 

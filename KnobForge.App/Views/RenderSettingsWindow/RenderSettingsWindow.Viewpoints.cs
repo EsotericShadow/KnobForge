@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private void WireViewpointEditorHandlers()
         {

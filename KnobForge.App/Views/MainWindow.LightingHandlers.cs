@@ -145,6 +145,11 @@ namespace KnobForge.App.Views
                 (byte)Math.Clamp((int)_lightRInput.Value, 0, 255),
                 (byte)Math.Clamp((int)_lightGInput.Value, 0, 255),
                 (byte)Math.Clamp((int)_lightBInput.Value, 0, 255));
+            UpdateColorSwatch(_lightColorSwatch,
+                _lightRInput.Value,
+                _lightGInput.Value,
+                _lightBInput.Value,
+                255.0);
             NotifyProjectStateChanged();
         }
 

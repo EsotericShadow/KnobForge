@@ -25,9 +25,17 @@ namespace KnobForge.App.Views
                 ReferenceEquals(sender, _envTonemapCombo) ||
                 ReferenceEquals(sender, _envPresetCombo) ||
                 ReferenceEquals(sender, _envBloomKernelShapeCombo);
+            bool isToggle = ReferenceEquals(sender, _envReflectionOnlyPreviewCheckBox);
             if (isCombo)
             {
                 if (e.Property != ComboBox.SelectedItemProperty)
+                {
+                    return;
+                }
+            }
+            else if (isToggle)
+            {
+                if (e.Property != ToggleButton.IsCheckedProperty)
                 {
                     return;
                 }
@@ -113,7 +121,70 @@ namespace KnobForge.App.Views
                 _project.EnvironmentBloomKnee = (float)_envBloomKneeInput.Value;
             }
 
+            if (_envBloomRadiusInput != null)
+            {
+                _project.BloomRadius = (float)_envBloomRadiusInput.Value;
+            }
+
+            if (_envBloomCompositeIntensityInput != null)
+            {
+                _project.BloomCompositeIntensity = (float)_envBloomCompositeIntensityInput.Value;
+            }
+
+            if (_envGlareRotationInput != null)
+            {
+                _project.GlareRotationDegrees = (float)_envGlareRotationInput.Value;
+            }
+
+            if (_envBloomTintRInput != null)
+            {
+                _project.BloomTintR = (float)_envBloomTintRInput.Value;
+            }
+
+            if (_envBloomTintGInput != null)
+            {
+                _project.BloomTintG = (float)_envBloomTintGInput.Value;
+            }
+
+            if (_envBloomTintBInput != null)
+            {
+                _project.BloomTintB = (float)_envBloomTintBInput.Value;
+            }
+
+            UpdateColorSwatch(_envTopColorSwatch,
+                _envTopRInput?.Value ?? 0d,
+                _envTopGInput?.Value ?? 0d,
+                _envTopBInput?.Value ?? 0d);
+            UpdateColorSwatch(_envBottomColorSwatch,
+                _envBottomRInput?.Value ?? 0d,
+                _envBottomGInput?.Value ?? 0d,
+                _envBottomBInput?.Value ?? 0d);
+            UpdateColorSwatch(_bloomTintColorSwatch,
+                _envBloomTintRInput?.Value ?? 1d,
+                _envBloomTintGInput?.Value ?? 1d,
+                _envBloomTintBInput?.Value ?? 1d);
+
             _project.BloomKernelShape = ResolveSelectedBloomKernelShape();
+
+            if (_envReflectionStrengthInput != null)
+            {
+                _project.ReflectionStrength = (float)_envReflectionStrengthInput.Value;
+            }
+
+            if (_envReflectionFresnelBiasInput != null)
+            {
+                _project.ReflectionFresnelBias = (float)_envReflectionFresnelBiasInput.Value;
+            }
+
+            if (_envClearCoatReflectionStrengthInput != null)
+            {
+                _project.ClearCoatReflectionStrength = (float)_envClearCoatReflectionStrengthInput.Value;
+            }
+
+            if (_envReflectionOnlyPreviewCheckBox != null)
+            {
+                _project.ReflectionOnlyPreview = _envReflectionOnlyPreviewCheckBox.IsChecked ?? false;
+            }
 
             if (_envHdriBlendInput != null)
             {

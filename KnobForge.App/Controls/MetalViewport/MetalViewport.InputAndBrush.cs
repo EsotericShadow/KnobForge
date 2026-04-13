@@ -82,7 +82,7 @@ namespace KnobForge.App.Controls
                 if (panDelta != Vector2.Zero)
                 {
                     _panPx += panDelta;
-                    InvalidateGpu();
+                    InvalidateViewOnly();
                     e.Handled = true;
                 }
             }
@@ -148,7 +148,7 @@ namespace KnobForge.App.Controls
             {
                 _isOrbiting = true;
                 e.Pointer.Capture(overlay);
-                InvalidateGpu();
+                InvalidateViewOnly();
                 PublishPaintHudSnapshot();
                 return;
             }
@@ -157,7 +157,7 @@ namespace KnobForge.App.Controls
             {
                 _isPanning = true;
                 e.Pointer.Capture(overlay);
-                InvalidateGpu();
+                InvalidateViewOnly();
                 PublishPaintHudSnapshot();
                 return;
             }
@@ -228,13 +228,13 @@ namespace KnobForge.App.Controls
                 _orbitYawDeg -= (float)delta.X * 0.4f;
                 _orbitPitchDeg += (float)delta.Y * 0.4f;
                 _orbitPitchDeg = Math.Clamp(_orbitPitchDeg, -89f, 89f);
-                InvalidateGpu();
+                InvalidateViewOnly();
                 PublishPaintHudSnapshot();
             }
             else if (_isPanning)
             {
                 _panPx += new Vector2((float)delta.X, (float)delta.Y);
-                InvalidateGpu();
+                InvalidateViewOnly();
                 PublishPaintHudSnapshot();
             }
         }
@@ -265,7 +265,7 @@ namespace KnobForge.App.Controls
         {
             _zoom *= (float)Math.Pow(1.1, e.Delta.Y);
             _zoom = Math.Clamp(_zoom, 0.2f, 8f);
-            InvalidateGpu();
+            InvalidateViewOnly();
             PublishPaintHudSnapshot();
         }
 

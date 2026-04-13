@@ -65,6 +65,14 @@ struct GpuUniforms
     float4 dynamicLightParams;
     GpuLight dynamicLights[MAX_LIGHTS];
     float4 environmentMapParams3;
+    float4 bloomTintAndIntensity;
+    float4 reflectionParams;
+    float4 directShadowCameraPosAndNear;
+    float4 directShadowRightAndScaleX;
+    float4 directShadowUpAndScaleY;
+    float4 directShadowForwardAndFar;
+    float4 directShadowProjectionOffsetsAndTexel;
+    float4 directShadowParams;
 };
 
 struct VertexOut
@@ -84,6 +92,78 @@ static inline float3 Hadamard(float3 a, float3 b)
 static inline float3 Clamp01(float3 value)
 {
     return clamp(value, 0.0, 1.0);
+}
+
+static inline float2 EncodeDepth16(float depth01)
+{
+    float depth = clamp(depth01, 0.0, 1.0);
+    float scaled = round(depth * 65535.0);
+    float high = floor(scaled / 256.0);
+    float low = scaled - (high * 256.0);
+    return float2(high, low) / 255.0;
+}
+
+static inline float DecodeDepth16(float2 rg)
+{
+    float high = clamp(rg.x, 0.0, 1.0) * 255.0;
+    float low = clamp(rg.y, 0.0, 1.0) * 255.0;
+    return clamp((high * 256.0 + low) / 65535.0, 0.0, 1.0);
+}
+
+static inline float ComputeDirectShadowDepth01(float3 worldPos, constant GpuUniforms& uniforms)
+{
+    float nearPlane = max(0.05, uniforms.directShadowCameraPosAndNear.w);
+    float farPlane = max(nearPlane + 1.0, uniforms.directShadowForwardAndFar.w);
+    float lightDepth = dot(worldPos - uniforms.directShadowCameraPosAndNear.xyz,
+                           uniforms.directShadowForwardAndFar.xyz);
+    return clamp((lightDepth - nearPlane) / max(farPlane - nearPlane, 1e-4), 0.0, 1.0);
+}
+
+static inline float2 ComputeDirectShadowClip(float3 worldPos, constant GpuUniforms& uniforms)
+{
+    return float2(
+        dot(worldPos, uniforms.directShadowRightAndScaleX.xyz) * uniforms.directShadowRightAndScaleX.w + uniforms.directShadowProjectionOffsetsAndTexel.x,
+        dot(worldPos, uniforms.directShadowUpAndScaleY.xyz) * uniforms.directShadowUpAndScaleY.w + uniforms.directShadowProjectionOffsetsAndTexel.y);
+}
+
+static inline float ComputeDirectShadowVisibility(
+    texture2d<float> directShadowMap,
+    constant GpuUniforms& uniforms,
+    float3 worldPos,
+    float NdotL)
+{
+    if (uniforms.directShadowParams.x <= 0.5)
+    {
+        return 1.0;
+    }
+
+    float2 shadowClip = ComputeDirectShadowClip(worldPos, uniforms);
+    if (abs(shadowClip.x) > 1.0 || abs(shadowClip.y) > 1.0)
+    {
+        return 1.0;
+    }
+
+    float2 uv = float2(shadowClip.x * 0.5 + 0.5, 0.5 - (shadowClip.y * 0.5));
+    float receiverDepth = ComputeDirectShadowDepth01(worldPos, uniforms);
+    float baseBias = max(0.0, uniforms.directShadowParams.z);
+    float depthBias = baseBias * (0.35 + (0.65 * (1.0 - clamp(NdotL, 0.0, 1.0))));
+    float2 texel = max(uniforms.directShadowProjectionOffsetsAndTexel.zw, float2(1e-5));
+    constexpr sampler shadowSampler(filter::nearest, address::clamp_to_edge);
+    float visibility = 0.0;
+    float2 centerDepth = directShadowMap.sample(shadowSampler, clamp(uv, float2(0.0), float2(1.0))).rg;
+    visibility += receiverDepth <= (DecodeDepth16(centerDepth) + depthBias) ? 1.0 : 0.0;
+    float2 rightDepth = directShadowMap.sample(shadowSampler, clamp(uv + float2(texel.x, 0.0), float2(0.0), float2(1.0))).rg;
+    visibility += receiverDepth <= (DecodeDepth16(rightDepth) + depthBias) ? 1.0 : 0.0;
+    float2 leftDepth = directShadowMap.sample(shadowSampler, clamp(uv + float2(-texel.x, 0.0), float2(0.0), float2(1.0))).rg;
+    visibility += receiverDepth <= (DecodeDepth16(leftDepth) + depthBias) ? 1.0 : 0.0;
+    float2 upDepth = directShadowMap.sample(shadowSampler, clamp(uv + float2(0.0, texel.y), float2(0.0), float2(1.0))).rg;
+    visibility += receiverDepth <= (DecodeDepth16(upDepth) + depthBias) ? 1.0 : 0.0;
+    float2 downDepth = directShadowMap.sample(shadowSampler, clamp(uv + float2(0.0, -texel.y), float2(0.0), float2(1.0))).rg;
+    visibility += receiverDepth <= (DecodeDepth16(downDepth) + depthBias) ? 1.0 : 0.0;
+
+    visibility /= 5.0;
+    float shadowStrength = clamp(uniforms.directShadowParams.w, 0.0, 1.0);
+    return mix(1.0, visibility, shadowStrength);
 }
 
 static inline float3 EvaluateEnvironmentColor(float3 direction, float3 envBottom, float3 envTop)
@@ -187,6 +267,46 @@ static inline float ValueNoise2(float2 p)
     float d = Hash21(i + float2(1.0, 1.0));
     float2 u = f * f * (3.0 - 2.0 * f);
     return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+static inline float ComputeSpecularAaVariance(float3 shadingNormal, float strength)
+{
+    float3 dndx = dfdx(shadingNormal);
+    float3 dndy = dfdy(shadingNormal);
+    float variance = 0.5 * (dot(dndx, dndx) + dot(dndy, dndy));
+    return clamp(variance * strength, 0.0, 0.18);
+}
+
+static inline float3 ComputeBentReflectionDirection(
+    float3 normal,
+    float3 viewDir,
+    float3 tangent,
+    float3 bitangent,
+    float anisotropy)
+{
+    float bendAmount = clamp(abs(anisotropy), 0.0, 1.0);
+    if (bendAmount <= 1e-5)
+    {
+        return reflect(-viewDir, normal);
+    }
+
+    float3 dominantAxis = anisotropy >= 0.0 ? bitangent : tangent;
+    float3 anisotropicTangent = cross(dominantAxis, viewDir);
+    if (dot(anisotropicTangent, anisotropicTangent) <= 1e-8)
+    {
+        return reflect(-viewDir, normal);
+    }
+
+    anisotropicTangent = normalize(anisotropicTangent);
+    float3 anisotropicNormal = cross(anisotropicTangent, dominantAxis);
+    if (dot(anisotropicNormal, anisotropicNormal) <= 1e-8)
+    {
+        return reflect(-viewDir, normal);
+    }
+
+    anisotropicNormal = normalize(anisotropicNormal);
+    float3 bentNormal = normalize(mix(normal, anisotropicNormal, bendAmount));
+    return reflect(-viewDir, bentNormal);
 }
 
 static inline void ApplyModeShaping(int mode, float diffuseBoost, float specularBoost, thread float& diffuse, thread float& spec)
@@ -375,7 +495,15 @@ vertex VertexOut vertex_main(
     // Metal NDC depth is [0, 1], not [-1, 1].
     float clipZ = clamp(depth01, 0.001, 0.999);
 
-    if (uniforms.shadowParams.x > 0.5)
+    int shadowMode = int(round(uniforms.shadowParams.x));
+    if (shadowMode == 2 && uniforms.directShadowParams.x > 0.5)
+    {
+        float2 shadowClip = ComputeDirectShadowClip(worldPos, uniforms);
+        clipX = shadowClip.x;
+        clipY = shadowClip.y;
+        clipZ = clamp(ComputeDirectShadowDepth01(worldPos, uniforms), 0.001, 0.999);
+    }
+    else if (shadowMode == 1)
     {
         clipX = (clipX * uniforms.shadowParams.w) + uniforms.shadowParams.y;
         clipY = (clipY * uniforms.shadowParams.w) + uniforms.shadowParams.z;
@@ -406,12 +534,19 @@ fragment float4 fragment_main(
     texture2d<float> roughnessMap [[texture(6)]],
     texture2d<float> metallicMap [[texture(7)]],
     texture2d<float> paintMask2 [[texture(8)]],
-    texture2d<float> brdfLut [[texture(9)]])
+    texture2d<float> brdfLut [[texture(9)]],
+    texture2d<float> directShadowMap [[texture(10)]])
 {
-    if (uniforms.shadowParams.x > 0.5)
+    int shadowMode = int(round(uniforms.shadowParams.x));
+    if (shadowMode == 1)
     {
         float shadowAlpha = clamp(uniforms.shadowColorAndOpacity.w, 0.0, 1.0);
         return float4(0.0, 0.0, 0.0, shadowAlpha);
+    }
+    if (shadowMode == 2)
+    {
+        float2 encodedDepth = EncodeDepth16(ComputeDirectShadowDepth01(inVertex.worldPos, uniforms));
+        return float4(encodedDepth.x, encodedDepth.y, 0.0, 1.0);
     }
 
     constexpr sampler normalSampler(filter::linear, mip_filter::linear, address::clamp_to_edge);
@@ -620,6 +755,8 @@ fragment float4 fragment_main(
     float uvFootprint = max(length(duvDx), length(duvDy));
     float texelsPerPixel = 1.0 / max(uvFootprint * 1024.0, 1e-5);
     float microDetailVisibility = smoothstep(fadeStart, fadeEnd, texelsPerPixel);
+    float brushPixelsPerCycle = 1.0 / max(uvFootprint * max(brushDensity * 0.75, 1.0), 1e-5);
+    float brushDetailVisibility = smoothstep(0.85, 1.75, brushPixelsPerCycle);
 
     if (uvInside && topMask > 0.0)
     {
@@ -728,6 +865,14 @@ fragment float4 fragment_main(
         metallic = mix(metallic, metallicTarget, metallicAlpha);
     }
 
+    float surfaceDetailVisibility = min(microDetailVisibility, brushDetailVisibility);
+    float specularAaStrength = mix(0.35, 0.95, brushStrength * topMask);
+    float normalVarianceAa = ComputeSpecularAaVariance(normal, specularAaStrength);
+    float proceduralRoughnessAa =
+        (1.0 - surfaceDetailVisibility) *
+        (0.06 + (0.12 * brushStrength * topMask * (0.35 + (0.65 * surfaceCharacter))));
+    roughness = clamp(sqrt(max(roughness * roughness + normalVarianceAa + proceduralRoughnessAa, 0.0)), 0.04, 1.0);
+
     float shininess = 4.0 + ((128.0 - 4.0) * (1.0 - roughness));
 
     float tangentSign = inVertex.worldTangentSign.w >= 0.0 ? 1.0 : -1.0;
@@ -792,7 +937,7 @@ fragment float4 fragment_main(
     }
 
     float anisotropy = clamp(
-        brushStrength * topMask * (0.35 + 0.65 * surfaceCharacter) * mix(0.8, 1.2, brushDensityFactor),
+        brushStrength * topMask * (0.35 + 0.65 * surfaceCharacter) * mix(0.8, 1.2, brushDensityFactor) * brushDetailVisibility,
         0.0,
         0.95);
     float alpha = max(0.02, roughness * roughness);
@@ -800,19 +945,24 @@ fragment float4 fragment_main(
     float alphaB = max(0.02, alpha * (1.0 + anisotropy));
 
     float NdotV = max(0.0, dot(normal, viewDir));
+    float reflectionStrength = clamp(uniforms.reflectionParams.x, 0.0, 4.0);
+    float fresnelBias = clamp(uniforms.reflectionParams.y, 0.0, 1.0);
+    float clearCoatReflectionStrength = clamp(uniforms.reflectionParams.z, 0.0, 4.0);
+    bool reflectionOnly = uniforms.reflectionParams.w > 0.5;
     float maxBase = max(1e-6, max(baseColor.x, max(baseColor.y, baseColor.z)));
     float3 baseHue = baseColor / maxBase;
     // Keep a minimum metallic reflectance floor so pure-black tint does not collapse
     // to a dead absorber with no visible light response.
     float metalReflectance = max(0.08, maxBase);
     float3 metalSpecColor = Clamp01(baseHue * metalReflectance);
-    float3 F0 = mix(float3(0.04), metalSpecColor, metallic);
-    float metallicSpecFloor = mix(0.04, 0.08, metallic);
+    float3 F0 = mix(float3(fresnelBias), metalSpecColor, metallic);
+    float metallicSpecFloor = mix(fresnelBias, max(fresnelBias, 0.08), metallic);
     F0 = max(F0, float3(metallicSpecFloor));
     float3 fresnelView = F0 + (float3(1.0) - F0) * pow(1.0 - NdotV, 5.0);
-    float clearCoatF0 = 0.04;
+    float clearCoatF0 = fresnelBias;
     float clearCoatAlpha = max(0.02, clearCoatRoughness * clearCoatRoughness);
     float clearCoatAlphaSq = clearCoatAlpha * clearCoatAlpha;
+    int shadowedSceneLightIndex = int(round(uniforms.directShadowParams.y));
 
     int sceneLightCount = min(MAX_LIGHTS, int(round(uniforms.projectionOffsetsAndLightCount.z)));
     int dynamicLightCount = min(MAX_LIGHTS, int(round(uniforms.dynamicLightParams.x)));
@@ -884,13 +1034,22 @@ fragment float4 fragment_main(
         ApplyModeShaping(lightingMode, light.params0.y, light.params0.z, shapedDiffuse, shapedSpec);
 
         float effectiveIntensity = intensity * attenuation;
-        shapedDiffuse *= effectiveIntensity;
+        float shadowVisibility = 1.0;
+        if (!dynamicLight &&
+            uniforms.directShadowParams.x > 0.5 &&
+            lightIndex == shadowedSceneLightIndex)
+        {
+            float3 shadowReceiverPos = inVertex.worldPos + (normal * (referenceRadius * 0.0025));
+            shadowVisibility = ComputeDirectShadowVisibility(directShadowMap, uniforms, shadowReceiverPos, NdotL);
+        }
+
+        shapedDiffuse *= effectiveIntensity * shadowVisibility;
         float specShapeScale = rawSpec > 1e-5 ? (shapedSpec / rawSpec) : 1.0;
 
         float metalSpecBoost = 1.0 + metallic;
         float artisticSpecBoost = 0.55 + 0.45 * max(0.0, light.params0.z);
         float3 specularTerm = specBrdf * NdotL;
-        specularTerm *= specularStrength * effectiveIntensity * metalSpecBoost * max(0.0, specShapeScale) * artisticSpecBoost;
+        specularTerm *= specularStrength * effectiveIntensity * shadowVisibility * metalSpecBoost * max(0.0, specShapeScale) * artisticSpecBoost;
         float clearCoatTerm = 0.0;
         if (clearCoatAmount > 1e-4 && NdotL > 1e-5)
         {
@@ -902,7 +1061,7 @@ fragment float4 fragment_main(
             float coatG = coatGv * coatGl;
             float coatF = clearCoatF0 + (1.0 - clearCoatF0) * pow(1.0 - VdotH, 5.0);
             float coatBrdf = (coatD * coatG * coatF) / max(4.0 * NdotV * NdotL, 1e-4);
-            clearCoatTerm = coatBrdf * NdotL * clearCoatAmount * effectiveIntensity;
+            clearCoatTerm = coatBrdf * NdotL * clearCoatAmount * effectiveIntensity * shadowVisibility;
         }
 
         accum += Hadamard(baseColor, lightColor) * (shapedDiffuse * diffuseStrength);
@@ -916,7 +1075,7 @@ fragment float4 fragment_main(
     float envRoughMix = clamp(uniforms.environmentBottomColorAndRoughnessMix.w, 0.0, 1.0);
 
     float3 R = reflect(-viewDir, normal);
-    float3 envDir = R;
+    float3 envDir = ComputeBentReflectionDirection(normal, viewDir, tangent, bitangent, anisotropy);
     float3 envColor = EvaluateEnvironmentLighting(
         environmentMap,
         envDir,
@@ -932,6 +1091,7 @@ fragment float4 fragment_main(
     float3 chromeTint = mix(metalSpecColor, float3(1.0), 0.35);
     float3 specTint = mix(float3(1.0), chromeTint, metallic);
     float3 envF = fresnelView;
+    float3 envReflectionAccum = float3(0.0);
     if (useBrdfLut)
     {
         constexpr sampler brdfSampler(filter::linear, address::clamp_to_edge);
@@ -945,9 +1105,11 @@ fragment float4 fragment_main(
     float envDiffuseEnergy = 0.35;
     float roughEnergy = mix(1.0, 0.65, roughness * envRoughMix);
     float anisotropicEnergy = mix(1.0, 1.35, anisotropy);
-    float envBrush = mix(1.0, 1.08, brushStrength * topMask * (0.35 + (0.65 * surfaceCharacter)));
+    float envBrush = mix(1.0, 1.08, brushStrength * topMask * (0.35 + (0.65 * surfaceCharacter)) * brushDetailVisibility);
     accum += envDiffuse * envIntensity * envDiffuseEnergy;
-    accum += envSpecular * envIntensity * roughEnergy * anisotropicEnergy * envBrush;
+    float3 envReflectionTerm = envSpecular * envIntensity * roughEnergy * anisotropicEnergy * envBrush * reflectionStrength;
+    accum += envReflectionTerm;
+    envReflectionAccum += envReflectionTerm;
     if (clearCoatAmount > 1e-4)
     {
         float clearCoatFresnelView = clearCoatF0 + (1.0 - clearCoatF0) * pow(1.0 - NdotV, 5.0);
@@ -963,7 +1125,9 @@ fragment float4 fragment_main(
             envOrientation,
             clearCoatRoughness,
             maxMipLevel);
-        accum += clearCoatEnvColor * clearCoatFresnelView * envIntensity * clearCoatAmount * clearCoatEnvEnergy;
+        float3 clearCoatReflection = clearCoatEnvColor * clearCoatFresnelView * envIntensity * clearCoatAmount * clearCoatEnvEnergy * clearCoatReflectionStrength;
+        accum += clearCoatReflection;
+        envReflectionAccum += clearCoatReflection;
     }
 
     if (pearlescence > 1e-4)
@@ -1026,7 +1190,8 @@ fragment float4 fragment_main(
         float3 transmitted = (transmittedEnv * 0.72 + transmittedEnvWide * 0.28) * (0.95 + 0.25 * envIntensity)
             + transmittedBody * 0.20
             + internalGlow * 0.32;
-        float3 surfaceSpec = envColor * (fresnel + 0.22 * grazingBoost) * (1.05 + 0.95 * max(0.0, specularStrength));
+        float3 surfaceSpec = envColor * (fresnel + 0.22 * grazingBoost) * (1.05 + 0.95 * max(0.0, specularStrength)) * reflectionStrength;
+        envReflectionAccum += surfaceSpec;
         float refractionWeight = clamp((1.0 - fresnel) * (0.75 + 0.25 * lensTransmission), 0.0, 1.0);
         float lensCenter = pow(max(1e-4, NdotV), 0.24);
         float lensHalo = pow(1.0 - NdotV, 1.35);
@@ -1051,6 +1216,12 @@ fragment float4 fragment_main(
         float glowShape = 0.60 * centerGlow + 0.40 * edgeGlow;
         float glowEnergy = emitterGlowStrength * (0.65 + 0.35 * envIntensity);
         accum += emitterGlowColor * glowEnergy * glowShape;
+    }
+
+    if (reflectionOnly)
+    {
+        accum = envReflectionAccum;
+        outputAlpha = 1.0;
     }
 
     accum = max(float3(0.0), accum);
@@ -1143,7 +1314,8 @@ fragment float4 fragment_bloom_composite(
 
     float4 baseColor = sourceTexture.sample(blitSampler, inVertex.uv);
     float bloomScale = max(0.0, uniforms.postProcessParams2.z);
-    float3 bloom = bloomTexture.sample(blitSampler, bloomUv).rgb * bloomScale;
+    float3 bloomTint = uniforms.bloomTintAndIntensity.rgb;
+    float3 bloom = bloomTexture.sample(blitSampler, bloomUv).rgb * bloomScale * bloomTint;
     float bloomAlpha = clamp(max(bloom.r, max(bloom.g, bloom.b)), 0.0, 1.0);
     float outAlpha = clamp(max(baseColor.a, bloomAlpha), 0.0, 1.0);
     return float4(baseColor.rgb + bloom, outAlpha);

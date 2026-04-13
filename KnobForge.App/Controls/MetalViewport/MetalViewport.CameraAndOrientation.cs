@@ -13,6 +13,229 @@ namespace KnobForge.App.Controls
 {
     public sealed partial class MetalViewport
     {
+        public event Action? DebugStateChanged;
+
+        public bool CameraInvertX
+        {
+            get => _orientation.InvertX;
+            set
+            {
+                if (_orientation.InvertX == value)
+                {
+                    return;
+                }
+
+                _orientation.InvertX = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool CameraInvertY
+        {
+            get => _orientation.InvertY;
+            set
+            {
+                if (_orientation.InvertY == value)
+                {
+                    return;
+                }
+
+                _orientation.InvertY = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool CameraInvertZ
+        {
+            get => _orientation.InvertZ;
+            set
+            {
+                if (_orientation.InvertZ == value)
+                {
+                    return;
+                }
+
+                _orientation.InvertZ = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool CameraFlip180
+        {
+            get => _orientation.FlipCamera180;
+            set
+            {
+                if (_orientation.FlipCamera180 == value)
+                {
+                    return;
+                }
+
+                _orientation.FlipCamera180 = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool LightEffectInvertX
+        {
+            get => _lightEffectInvertX;
+            set
+            {
+                if (_lightEffectInvertX == value)
+                {
+                    return;
+                }
+
+                _lightEffectInvertX = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool LightEffectInvertY
+        {
+            get => _lightEffectInvertY;
+            set
+            {
+                if (_lightEffectInvertY == value)
+                {
+                    return;
+                }
+
+                _lightEffectInvertY = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool LightEffectInvertZ
+        {
+            get => _lightEffectInvertZ;
+            set
+            {
+                if (_lightEffectInvertZ == value)
+                {
+                    return;
+                }
+
+                _lightEffectInvertZ = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool BloomCompositeInvertX
+        {
+            get => _bloomCompositeInvertX;
+            set
+            {
+                if (_bloomCompositeInvertX == value)
+                {
+                    return;
+                }
+
+                _bloomCompositeInvertX = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool BloomCompositeInvertY
+        {
+            get => _bloomCompositeInvertY;
+            set
+            {
+                if (_bloomCompositeInvertY == value)
+                {
+                    return;
+                }
+
+                _bloomCompositeInvertY = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool GizmoInvertX
+        {
+            get => _gizmoInvertX;
+            set
+            {
+                if (_gizmoInvertX == value)
+                {
+                    return;
+                }
+
+                _gizmoInvertX = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool GizmoInvertY
+        {
+            get => _gizmoInvertY;
+            set
+            {
+                if (_gizmoInvertY == value)
+                {
+                    return;
+                }
+
+                _gizmoInvertY = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool GizmoInvertZ
+        {
+            get => _gizmoInvertZ;
+            set
+            {
+                if (_gizmoInvertZ == value)
+                {
+                    return;
+                }
+
+                _gizmoInvertZ = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public bool InvertKnobWinding
+        {
+            get => _invertKnobFrontFaceWinding;
+            set
+            {
+                if (_invertKnobFrontFaceWinding == value)
+                {
+                    return;
+                }
+
+                _invertKnobFrontFaceWinding = value;
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
+            }
+        }
+
+        public void PrintDebugState() => PrintOrientation();
+
+        public void ResetDebugAxes()
+        {
+            ResetOrientationDebugState();
+            InvalidateViewOnly();
+        }
+
+        private void NotifyDebugStateChanged()
+        {
+            DebugStateChanged?.Invoke();
+        }
+
         private bool TryScreenToScene(SKPoint screenPoint, out SKPoint scenePoint)
         {
             GetScreenCenterPx(out float centerX, out float centerY);
@@ -254,6 +477,7 @@ namespace KnobForge.App.Controls
             _invertKnobFrontFaceWinding = true;
             _invertImportedStlFrontFaceWinding = true;
             PrintOrientation();
+            NotifyDebugStateChanged();
         }
 
         private MenuItem CreateToggleMenuItem(string header, bool isChecked, Action onToggle)
@@ -268,7 +492,8 @@ namespace KnobForge.App.Controls
             {
                 onToggle();
                 PrintOrientation();
-                InvalidateGpu();
+                NotifyDebugStateChanged();
+                InvalidateViewOnly();
             };
             return item;
         }
@@ -310,7 +535,7 @@ namespace KnobForge.App.Controls
                 onClick();
                 if (invalidateGpu)
                 {
-                    InvalidateGpu();
+                    InvalidateViewOnly();
                 }
             };
             return item;

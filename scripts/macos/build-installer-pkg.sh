@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-APP_BUNDLE_DIR="${APP_BUNDLE_DIR:-$ROOT_DIR/artifacts/macos/KnobForge.app}"
+APP_BUNDLE_DIR="${APP_BUNDLE_DIR:-$ROOT_DIR/artifacts/macos/Monozukuri.app}"
 OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/artifacts/macos}"
 PLIST_BUDDY="/usr/libexec/PlistBuddy"
 INSTALL_LOCATION="${INSTALL_LOCATION:-/Applications}"

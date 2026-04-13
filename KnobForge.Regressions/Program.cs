@@ -1,8 +1,12 @@
 using KnobForge.App.ProjectFiles;
 using KnobForge.Core;
+using KnobForge.Core.Export;
 using KnobForge.Core.Scene;
+using KnobForge.Rendering;
 using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
+using SkiaSharp;
 
 internal static class Program
 {
@@ -38,6 +42,10 @@ internal static class Program
             RunTest("Project-type switch matrix keeps expected defaults + valid selection", failures, ProjectTypeSwitchMatrixMaintainsExpectedDefaultsAndSelection);
             RunTest("Project-type switch undo/redo replay restores exact state", failures, ProjectTypeSwitchUndoRedoReplayRestoresExactState);
             RunTest("Project-type switch transition states round-trip via envelope", failures, () => ProjectTypeSwitchTransitionStatesRoundTripViaEnvelope(root));
+            RunTest("Environment look controls clamp to supported ranges", failures, EnvironmentLookControlsClampToSupportedRanges);
+            RunTest("Project-type defaults reset environment look controls", failures, ProjectTypeDefaultsResetEnvironmentLookControls);
+            RunTest("Export camera distance scale adjusts distance and zoom", failures, ExportCameraDistanceScaleAdjustsDistanceAndZoom);
+            RunTest("Export fallback framing honors padding and distance scale", failures, ExportFallbackFramingHonorsPaddingAndDistanceScale);
         }
         finally
         {
@@ -752,6 +760,133 @@ internal static class Program
         }
     }
 
+    private static void EnvironmentLookControlsClampToSupportedRanges()
+    {
+        var project = new KnobProject();
+
+        project.BloomRadius = 99f;
+        AssertNearlyEqual(4f, project.BloomRadius, 1e-5f, "bloom radius max clamp");
+        project.BloomRadius = -2f;
+        AssertNearlyEqual(0.25f, project.BloomRadius, 1e-5f, "bloom radius min clamp");
+
+        project.GlareRotationDegrees = 999f;
+        AssertNearlyEqual(180f, project.GlareRotationDegrees, 1e-5f, "glare rotation max clamp");
+        project.GlareRotationDegrees = -999f;
+        AssertNearlyEqual(-180f, project.GlareRotationDegrees, 1e-5f, "glare rotation min clamp");
+
+        project.BloomCompositeIntensity = 9f;
+        AssertNearlyEqual(4f, project.BloomCompositeIntensity, 1e-5f, "bloom composite max clamp");
+        project.BloomCompositeIntensity = -1f;
+        AssertNearlyEqual(0f, project.BloomCompositeIntensity, 1e-5f, "bloom composite min clamp");
+
+        project.ReflectionStrength = 9f;
+        AssertNearlyEqual(4f, project.ReflectionStrength, 1e-5f, "reflection strength max clamp");
+        project.ReflectionStrength = -1f;
+        AssertNearlyEqual(0f, project.ReflectionStrength, 1e-5f, "reflection strength min clamp");
+
+        project.ReflectionFresnelBias = 9f;
+        AssertNearlyEqual(1f, project.ReflectionFresnelBias, 1e-5f, "fresnel bias max clamp");
+        project.ReflectionFresnelBias = -1f;
+        AssertNearlyEqual(0f, project.ReflectionFresnelBias, 1e-5f, "fresnel bias min clamp");
+
+        project.ClearCoatReflectionStrength = 9f;
+        AssertNearlyEqual(4f, project.ClearCoatReflectionStrength, 1e-5f, "clear-coat reflection max clamp");
+        project.ClearCoatReflectionStrength = -1f;
+        AssertNearlyEqual(0f, project.ClearCoatReflectionStrength, 1e-5f, "clear-coat reflection min clamp");
+    }
+
+    private static void ProjectTypeDefaultsResetEnvironmentLookControls()
+    {
+        var project = new KnobProject();
+
+        foreach (InteractorProjectType type in ProjectTypeMatrix)
+        {
+            project.BloomRadius = 3.5f;
+            project.GlareRotationDegrees = 42f;
+            project.BloomCompositeIntensity = 2.75f;
+            project.ReflectionStrength = 2.25f;
+            project.ReflectionFresnelBias = 0.35f;
+            project.ClearCoatReflectionStrength = 2.5f;
+            project.ReflectionOnlyPreview = true;
+
+            project.ApplyInteractorProjectTypeDefaults(type);
+
+            AssertNearlyEqual(1f, project.BloomRadius, 1e-5f, $"{type} bloom radius");
+            AssertNearlyEqual(0f, project.GlareRotationDegrees, 1e-5f, $"{type} glare rotation");
+            AssertNearlyEqual(1f, project.BloomCompositeIntensity, 1e-5f, $"{type} bloom composite");
+            AssertNearlyEqual(1f, project.ReflectionStrength, 1e-5f, $"{type} reflection strength");
+            AssertNearlyEqual(0.04f, project.ReflectionFresnelBias, 1e-5f, $"{type} fresnel bias");
+            AssertNearlyEqual(1f, project.ClearCoatReflectionStrength, 1e-5f, $"{type} clear-coat reflection");
+            if (project.ReflectionOnlyPreview)
+            {
+                throw new InvalidOperationException($"{type} reflection-only preview was not reset.");
+            }
+        }
+    }
+
+    private static void ExportCameraDistanceScaleAdjustsDistanceAndZoom()
+    {
+        var settings = new KnobExportSettings
+        {
+            CameraDistanceScale = 2f,
+            Padding = 0f
+        };
+        var cameraState = new ViewportCameraState(0f, 0f, 4f, SKPoint.Empty);
+
+        Camera camera = InvokePrivateStatic<Camera>(
+            typeof(KnobExporter),
+            "BuildExportCamera",
+            10f,
+            settings,
+            256,
+            512,
+            new OrientationDebug(),
+            cameraState);
+
+        AssertNearlyEqual(120f, camera.Position.Length(), 1e-4f, "scaled export camera distance");
+        AssertNearlyEqual(4f, camera.Zoom, 1e-4f, "scaled export camera zoom");
+        AssertNearlyEqual(0f, camera.Position.X, 1e-4f, "scaled export camera position X");
+        AssertNearlyEqual(0f, camera.Position.Y, 1e-4f, "scaled export camera position Y");
+        AssertNearlyEqual(120f, camera.Position.Z, 1e-4f, "scaled export camera position Z");
+    }
+
+    private static void ExportFallbackFramingHonorsPaddingAndDistanceScale()
+    {
+        var settings = new KnobExportSettings
+        {
+            CameraDistanceScale = 4f,
+            Padding = 16f
+        };
+
+        ViewportCameraState exportState = InvokePrivateStatic<ViewportCameraState>(
+            typeof(KnobExporter),
+            "BuildExportViewportCameraState",
+            20f,
+            settings,
+            256,
+            512,
+            null);
+
+        Camera fallbackCamera = InvokePrivateStatic<Camera>(
+            typeof(KnobExporter),
+            "BuildExportCamera",
+            20f,
+            settings,
+            256,
+            512,
+            new OrientationDebug(),
+            null);
+
+        float expectedZoom = ((512f - (settings.Padding * 2f)) / (20f * 2f)) / settings.CameraDistanceScale;
+        AssertNearlyEqual(30f, exportState.OrbitYawDeg, 1e-5f, "fallback viewport yaw");
+        AssertNearlyEqual(-20f, exportState.OrbitPitchDeg, 1e-5f, "fallback viewport pitch");
+        AssertNearlyEqual(expectedZoom, exportState.Zoom, 1e-4f, "fallback viewport zoom");
+        AssertNearlyEqual(0f, exportState.PanPx.X, 1e-5f, "fallback viewport pan X");
+        AssertNearlyEqual(0f, exportState.PanPx.Y, 1e-5f, "fallback viewport pan Y");
+        AssertNearlyEqual(80f, fallbackCamera.Position.Length(), 1e-4f, "fallback export camera distance");
+        AssertNearlyEqual(expectedZoom, fallbackCamera.Zoom, 1e-4f, "fallback export camera zoom");
+    }
+
     private static List<ProjectTypeTransitionSample> BuildProjectTypeTransitionSamples()
     {
         var samples = new List<ProjectTypeTransitionSample>();
@@ -1101,6 +1236,23 @@ internal static class Program
         };
 
         return JsonSerializer.Serialize(snapshot);
+    }
+
+    private static T InvokePrivateStatic<T>(Type ownerType, string methodName, params object?[] arguments)
+    {
+        MethodInfo? method = ownerType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
+        if (method == null)
+        {
+            throw new InvalidOperationException($"could not locate {ownerType.Name}.{methodName}.");
+        }
+
+        object? result = method.Invoke(null, arguments);
+        if (result is T typedResult)
+        {
+            return typedResult;
+        }
+
+        throw new InvalidOperationException($"{ownerType.Name}.{methodName} returned an unexpected result.");
     }
 
     private static void AssertNearlyEqual(float expected, float actual, float tolerance, string fieldName)

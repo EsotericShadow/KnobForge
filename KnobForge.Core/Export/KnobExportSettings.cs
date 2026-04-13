@@ -74,6 +74,8 @@ namespace KnobForge.Core.Export
 
     public static class ExportOutputStrategies
     {
+        private const float DefaultCameraDistanceScale = 0.6f;
+
         private static readonly ExportOutputStrategyDefinition[] Definitions =
         new[]
         {
@@ -88,7 +90,7 @@ namespace KnobForge.Core.Export
                 0f,
                 false,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None),
             new ExportOutputStrategyDefinition(
                 ExportOutputStrategy.JuceFilmstripRetina,
@@ -101,7 +103,7 @@ namespace KnobForge.Core.Export
                 0f,
                 false,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None),
             new ExportOutputStrategyDefinition(
                 ExportOutputStrategy.IPlug2Filmstrip101,
@@ -114,7 +116,7 @@ namespace KnobForge.Core.Export
                 0f,
                 false,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None),
             new ExportOutputStrategyDefinition(
                 ExportOutputStrategy.HiseFilmstrip128,
@@ -127,7 +129,7 @@ namespace KnobForge.Core.Export
                 0f,
                 false,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None),
             new ExportOutputStrategyDefinition(
                 ExportOutputStrategy.KnobForgeUiGrid128,
@@ -140,7 +142,7 @@ namespace KnobForge.Core.Export
                 12f,
                 false,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None),
             new ExportOutputStrategyDefinition(
                 ExportOutputStrategy.AtlasGridMaster,
@@ -153,7 +155,7 @@ namespace KnobForge.Core.Export
                 2f,
                 true,
                 true,
-                6f,
+                DefaultCameraDistanceScale,
                 ExportFilterPreset.None)
         };
 

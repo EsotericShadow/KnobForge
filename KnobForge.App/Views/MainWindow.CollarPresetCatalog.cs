@@ -456,9 +456,18 @@ namespace KnobForge.App.Views
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             if (!string.IsNullOrWhiteSpace(desktop))
             {
-                for (int i = 0; i < CollarModelsDirectoryCandidates.Length; i++)
+                string[] desktopRoots =
                 {
-                    candidates.Add(Path.Combine(desktop, "Monozukuri", CollarModelsDirectoryCandidates[i]));
+                    Path.Combine(desktop, "Monozukuri"),
+                    Path.Combine(desktop, "KnobForge")
+                };
+
+                for (int i = 0; i < desktopRoots.Length; i++)
+                {
+                    for (int j = 0; j < CollarModelsDirectoryCandidates.Length; j++)
+                    {
+                        candidates.Add(Path.Combine(desktopRoots[i], CollarModelsDirectoryCandidates[j]));
+                    }
                 }
             }
 

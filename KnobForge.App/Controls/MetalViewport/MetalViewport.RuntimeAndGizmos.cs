@@ -16,6 +16,25 @@ namespace KnobForge.App.Controls
 {
     public sealed partial class MetalViewport
     {
+        private void RunInAutoreleasePool(Action action)
+        {
+            if (!OperatingSystem.IsMacOS())
+            {
+                action();
+                return;
+            }
+
+            IntPtr pool = ObjC.objc_autoreleasePoolPush();
+            try
+            {
+                action();
+            }
+            finally
+            {
+                ObjC.objc_autoreleasePoolPop(pool);
+            }
+        }
+
         private void StartRenderLoop()
         {
             if (!OperatingSystem.IsMacOS())
@@ -91,11 +110,16 @@ namespace KnobForge.App.Controls
             double width = Math.Max(1d, size.Width);
             double height = Math.Max(1d, size.Height);
             double scale = GetRenderScale();
+            nuint drawableWidth = (nuint)Math.Max(1d, Math.Ceiling(width * scale));
+            nuint drawableHeight = (nuint)Math.Max(1d, Math.Ceiling(height * scale));
 
             ObjC.Void_objc_msgSend_CGRect(_nativeView, Selectors.SetFrame, new CGRect(0d, 0d, width, height));
             ObjC.Void_objc_msgSend_CGRect(_metalLayer, Selectors.SetFrame, new CGRect(0d, 0d, width, height));
-            ObjC.Void_objc_msgSend_CGSize(_metalLayer, Selectors.SetDrawableSize, new CGSize(width * scale, height * scale));
+            ObjC.Void_objc_msgSend_CGSize(_metalLayer, Selectors.SetDrawableSize, new CGSize(drawableWidth, drawableHeight));
             ObjC.Void_objc_msgSend_Double(_metalLayer, Selectors.SetContentsScale, scale);
+            _configuredDrawableWidth = drawableWidth;
+            _configuredDrawableHeight = drawableHeight;
+            _configuredDrawableScale = scale;
         }
 
         private void EnsureDepthTexture(nuint width, nuint height)
@@ -187,6 +211,69 @@ namespace KnobForge.App.Controls
             _mainColorTexture = texture;
             _mainColorTextureWidth = width;
             _mainColorTextureHeight = height;
+        }
+
+        private void EnsureDirectShadowTextures(nuint size)
+        {
+            if (_context is null || size == 0)
+            {
+                return;
+            }
+
+            if (_directShadowTexture != IntPtr.Zero &&
+                _directShadowDepthTexture != IntPtr.Zero &&
+                _directShadowTextureSize == size)
+            {
+                return;
+            }
+
+            ReleaseDirectShadowTextures();
+
+            IntPtr colorDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                (nuint)MetalRendererContext.DefaultColorFormat,
+                size,
+                size,
+                false);
+            if (colorDescriptor == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(colorDescriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+            IntPtr colorTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, colorDescriptor);
+            if (colorTexture == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr depthDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
+                ObjCClasses.MTLTextureDescriptor,
+                Selectors.Texture2DDescriptorWithPixelFormatWidthHeightMipmapped,
+                DepthPixelFormat,
+                size,
+                size,
+                false);
+            if (depthDescriptor == IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(colorTexture, Selectors.Release);
+                return;
+            }
+
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetUsage, 5); // MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+            ObjC.Void_objc_msgSend_UInt(depthDescriptor, Selectors.SetStorageMode, 2); // MTLStorageModePrivate
+            IntPtr depthTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, depthDescriptor);
+            if (depthTexture == IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(colorTexture, Selectors.Release);
+                return;
+            }
+
+            _directShadowTexture = colorTexture;
+            _directShadowDepthTexture = depthTexture;
+            _directShadowTextureSize = size;
         }
 
         private void EnsureBloomTextures(nuint width, nuint height)
@@ -609,6 +696,23 @@ namespace KnobForge.App.Controls
             _environmentMapMaxMipLevel = 0f;
         }
 
+        private void ReleaseDirectShadowTextures()
+        {
+            if (_directShadowDepthTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_directShadowDepthTexture, Selectors.Release);
+                _directShadowDepthTexture = IntPtr.Zero;
+            }
+
+            if (_directShadowTexture != IntPtr.Zero)
+            {
+                ObjC.Void_objc_msgSend(_directShadowTexture, Selectors.Release);
+                _directShadowTexture = IntPtr.Zero;
+            }
+
+            _directShadowTextureSize = 0;
+        }
+
         private void EnsureBrdfLutTexture()
         {
             if (_brdfLutReady || _brdfLutTexture != IntPtr.Zero || _context is null || _context.Device.Handle == IntPtr.Zero)
@@ -693,7 +797,7 @@ namespace KnobForge.App.Controls
         {
             _paintColorTextureNeedsClear = true;
             _paintColorTextureVersion = -1;
-            _dirty = true;
+            InvalidateGpu();
         }
 
         private void ApplyPendingPaintStamps(IntPtr commandBuffer)

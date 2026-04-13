@@ -9,6 +9,24 @@ namespace KnobForge.App.Controls
 {
     public sealed partial class MetalViewport
     {
+        private readonly record struct DirectShadowMapConfig(
+            bool Enabled,
+            int SceneLightIndex,
+            Vector3 CameraPos,
+            Vector3 Right,
+            Vector3 Up,
+            Vector3 Forward,
+            float ScaleX,
+            float ScaleY,
+            float OffsetX,
+            float OffsetY,
+            float NearPlane,
+            float FarPlane,
+            float TexelSizeX,
+            float TexelSizeY,
+            float DepthBias,
+            float Strength);
+
         private void RenderShadowPasses(
             IntPtr encoderPtr,
             in GpuUniforms baseUniforms,
@@ -31,7 +49,9 @@ namespace KnobForge.App.Controls
                 0);
 
             int sampleCount = Math.Clamp(config.SampleCount, 1, ShadowSampleKernel.Length);
-            const float shadowDepthBiasClip = 0.004f;
+            // Keep the projected shadow slightly behind the caster, but not so far
+            // back that close-fitting collars miss the knob surface entirely.
+            const float shadowDepthBiasClip = 0.00075f;
 
             float weightSum = 0f;
             for (int i = 0; i < sampleCount; i++)
@@ -73,6 +93,284 @@ namespace KnobForge.App.Controls
                     mesh.IndexBuffer.Handle,
                     0);
             }
+        }
+
+        private DirectShadowMapConfig ResolveDirectShadowMapConfig(
+            KnobProject? project,
+            float sceneReferenceRadius,
+            Vector3 cameraRight,
+            Vector3 cameraUp,
+            Vector3 cameraForward,
+            nuint shadowMapSize)
+        {
+            if (project == null ||
+                !project.ShadowsEnabled ||
+                project.ShadowStrength <= 1e-4f ||
+                shadowMapSize == 0 ||
+                !TryResolveDirectShadowLight(project, cameraRight, cameraUp, cameraForward, out int sceneLightIndex, out KnobLight light))
+            {
+                return default;
+            }
+
+            Vector3 sceneCenter = Vector3.Zero;
+            Vector3 lightForward;
+            if (light.Type == LightType.Directional)
+            {
+                Vector3 lightToSource = ApplyLightOrientation(GetDirectionalVector(light));
+                if (lightToSource.LengthSquared() <= 1e-8f)
+                {
+                    return default;
+                }
+
+                lightForward = -Vector3.Normalize(lightToSource);
+            }
+            else
+            {
+                Vector3 lightPos = ApplyLightOrientation(new Vector3(light.X, light.Y, light.Z));
+                Vector3 toScene = sceneCenter - lightPos;
+                if (toScene.LengthSquared() <= 1e-8f)
+                {
+                    toScene = -Vector3.UnitZ;
+                }
+
+                lightForward = Vector3.Normalize(toScene);
+            }
+
+            if (lightForward.LengthSquared() <= 1e-8f)
+            {
+                return default;
+            }
+
+            Vector3 helperUp = MathF.Abs(Vector3.Dot(lightForward, Vector3.UnitZ)) > 0.92f
+                ? Vector3.UnitY
+                : Vector3.UnitZ;
+            Vector3 lightRight = Vector3.Cross(helperUp, lightForward);
+            if (lightRight.LengthSquared() <= 1e-8f)
+            {
+                lightRight = Vector3.UnitX;
+            }
+            else
+            {
+                lightRight = Vector3.Normalize(lightRight);
+            }
+
+            Vector3 lightUp = Vector3.Cross(lightForward, lightRight);
+            if (lightUp.LengthSquared() <= 1e-8f)
+            {
+                lightUp = Vector3.UnitY;
+            }
+            else
+            {
+                lightUp = Vector3.Normalize(lightUp);
+            }
+
+            float orthoRadius = MathF.Max(24f, sceneReferenceRadius * 1.18f);
+            float scale = 1f / MathF.Max(1f, orthoRadius);
+            float padding = MathF.Max(6f, orthoRadius * 0.40f);
+            float lightDistanceToCenter = orthoRadius + padding;
+            Vector3 cameraPos = sceneCenter - (lightForward * lightDistanceToCenter);
+            float nearPlane = MathF.Max(0.05f, padding * 0.35f);
+            float farPlane = MathF.Max(nearPlane + 1f, padding + (orthoRadius * 2.35f));
+            float texelSize = 1f / MathF.Max(1f, (float)shadowMapSize);
+            float depthBias = MathF.Max(0.0009f, texelSize * 2.0f);
+
+            return new DirectShadowMapConfig(
+                Enabled: true,
+                SceneLightIndex: sceneLightIndex,
+                CameraPos: cameraPos,
+                Right: lightRight,
+                Up: lightUp,
+                Forward: lightForward,
+                ScaleX: scale,
+                ScaleY: scale,
+                OffsetX: -Vector3.Dot(sceneCenter, lightRight) * scale,
+                OffsetY: -Vector3.Dot(sceneCenter, lightUp) * scale,
+                NearPlane: nearPlane,
+                FarPlane: farPlane,
+                TexelSizeX: texelSize,
+                TexelSizeY: texelSize,
+                DepthBias: depthBias,
+                Strength: Math.Clamp(project.ShadowStrength, 0f, 1f));
+        }
+
+        private bool TryResolveDirectShadowLight(
+            KnobProject project,
+            Vector3 cameraRight,
+            Vector3 cameraUp,
+            Vector3 cameraForward,
+            out int sceneLightIndex,
+            out KnobLight light)
+        {
+            sceneLightIndex = -1;
+            light = null!;
+
+            if (project.Lights.Count == 0)
+            {
+                return false;
+            }
+
+            project.EnsureSelection();
+            if (project.ShadowMode == ShadowLightMode.Selected)
+            {
+                int selectedIndex = project.SelectedLightIndex;
+                if ((uint)selectedIndex < (uint)project.Lights.Count)
+                {
+                    KnobLight selected = project.Lights[selectedIndex];
+                    if (TryEvaluateShadowLight(project, selected, cameraRight, cameraUp, cameraForward, out _, out float weight, out _) &&
+                        weight > 1e-6f)
+                    {
+                        sceneLightIndex = selectedIndex;
+                        light = selected;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            float bestWeight = 0f;
+            int bestIndex = -1;
+            for (int i = 0; i < project.Lights.Count; i++)
+            {
+                if (!TryEvaluateShadowLight(project, project.Lights[i], cameraRight, cameraUp, cameraForward, out _, out float weight, out _))
+                {
+                    continue;
+                }
+
+                if (weight <= bestWeight)
+                {
+                    continue;
+                }
+
+                bestWeight = weight;
+                bestIndex = i;
+            }
+
+            if (bestIndex < 0)
+            {
+                return false;
+            }
+
+            sceneLightIndex = bestIndex;
+            light = project.Lights[bestIndex];
+            return true;
+        }
+
+        private void ApplyDirectShadowConfig(ref GpuUniforms uniforms, in DirectShadowMapConfig config)
+        {
+            if (!config.Enabled)
+            {
+                uniforms.DirectShadowCameraPosAndNear = Vector4.Zero;
+                uniforms.DirectShadowRightAndScaleX = Vector4.Zero;
+                uniforms.DirectShadowUpAndScaleY = Vector4.Zero;
+                uniforms.DirectShadowForwardAndFar = Vector4.Zero;
+                uniforms.DirectShadowProjectionOffsetsAndTexel = Vector4.Zero;
+                uniforms.DirectShadowParams = Vector4.Zero;
+                return;
+            }
+
+            uniforms.DirectShadowCameraPosAndNear = new Vector4(config.CameraPos, config.NearPlane);
+            uniforms.DirectShadowRightAndScaleX = new Vector4(config.Right, config.ScaleX);
+            uniforms.DirectShadowUpAndScaleY = new Vector4(config.Up, config.ScaleY);
+            uniforms.DirectShadowForwardAndFar = new Vector4(config.Forward, config.FarPlane);
+            uniforms.DirectShadowProjectionOffsetsAndTexel = new Vector4(
+                config.OffsetX,
+                config.OffsetY,
+                config.TexelSizeX,
+                config.TexelSizeY);
+            uniforms.DirectShadowParams = new Vector4(
+                1f,
+                config.SceneLightIndex,
+                config.DepthBias,
+                config.Strength);
+        }
+
+        private IntPtr BeginDirectShadowMapPass(IntPtr commandBuffer, nuint shadowMapSize)
+        {
+            if (commandBuffer == IntPtr.Zero || shadowMapSize == 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            EnsureDirectShadowTextures(shadowMapSize);
+            if (_directShadowTexture == IntPtr.Zero || _directShadowDepthTexture == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            IntPtr passDescriptor = ObjC.IntPtr_objc_msgSend(ObjCClasses.MTLRenderPassDescriptor, Selectors.RenderPassDescriptor);
+            if (passDescriptor == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            IntPtr colorAttachments = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.ColorAttachments);
+            IntPtr colorAttachment = ObjC.IntPtr_objc_msgSend_UInt(colorAttachments, Selectors.ObjectAtIndexedSubscript, 0);
+            IntPtr depthAttachment = ObjC.IntPtr_objc_msgSend(passDescriptor, Selectors.DepthAttachment);
+            if (colorAttachment == IntPtr.Zero || depthAttachment == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            ObjC.Void_objc_msgSend_IntPtr(colorAttachment, Selectors.SetTexture, _directShadowTexture);
+            ObjC.Void_objc_msgSend_UInt(colorAttachment, Selectors.SetLoadAction, MTLLoadActionClear);
+            ObjC.Void_objc_msgSend_UInt(colorAttachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_MTLClearColor(colorAttachment, Selectors.SetClearColor, new MTLClearColor(1d, 1d, 1d, 1d));
+
+            ObjC.Void_objc_msgSend_IntPtr(depthAttachment, Selectors.SetTexture, _directShadowDepthTexture);
+            ObjC.Void_objc_msgSend_UInt(depthAttachment, Selectors.SetLoadAction, MTLLoadActionClear);
+            ObjC.Void_objc_msgSend_UInt(depthAttachment, Selectors.SetStoreAction, MTLStoreActionStore);
+            ObjC.Void_objc_msgSend_Double(depthAttachment, Selectors.SetClearDepth, 1d);
+
+            IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
+            if (encoderPtr == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            MetalPipelineManager pipelineManager = MetalPipelineManager.Instance;
+            pipelineManager.UsePipeline(new MTLRenderCommandEncoderHandle(encoderPtr), 1);
+            ObjC.Void_objc_msgSend_IntPtr_UInt(
+                encoderPtr,
+                Selectors.SetVertexTextureAtIndex,
+                _paintMaskTexture,
+                1);
+            return encoderPtr;
+        }
+
+        private void RenderDirectShadowCaster(
+            IntPtr encoderPtr,
+            in GpuUniforms baseUniforms,
+            MetalMeshGpuResources? mesh,
+            bool frontFacingClockwise)
+        {
+            if (encoderPtr == IntPtr.Zero || !IsRenderableMesh(mesh))
+            {
+                return;
+            }
+
+            MetalPipelineManager.SetFrontFacingWinding(
+                new MTLRenderCommandEncoderHandle(encoderPtr),
+                frontFacingClockwise);
+            ObjC.Void_objc_msgSend_IntPtr_UInt_UInt(
+                encoderPtr,
+                Selectors.SetVertexBufferOffsetAtIndex,
+                mesh!.VertexBuffer.Handle,
+                0,
+                0);
+
+            GpuUniforms shadowUniforms = baseUniforms;
+            shadowUniforms.ShadowParams = new Vector4(2f, 0f, 0f, 0f);
+            shadowUniforms.ShadowColorAndOpacity = Vector4.Zero;
+            UploadUniforms(encoderPtr, shadowUniforms);
+            ObjC.Void_objc_msgSend_UInt_UInt_UInt_IntPtr_UInt(
+                encoderPtr,
+                Selectors.DrawIndexedPrimitivesIndexCountIndexTypeIndexBufferIndexBufferOffset,
+                3, // MTLPrimitiveTypeTriangle
+                (nuint)mesh.IndexCount,
+                (nuint)mesh.IndexType,
+                mesh.IndexBuffer.Handle,
+                0);
         }
 
         private IReadOnlyList<ShadowPassConfig> ResolveShadowPassConfigs(

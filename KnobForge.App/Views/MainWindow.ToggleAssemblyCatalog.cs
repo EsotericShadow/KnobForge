@@ -50,19 +50,19 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            string? toggleModelsDirectory = ResolveToggleModelsDirectory();
+            IReadOnlyList<string> toggleModelsDirectories = ResolveToggleModelsDirectories();
 
             _toggleBaseMeshOptions.Clear();
             _toggleLeverMeshOptions.Clear();
 
             _toggleBaseMeshOptions.Add(new ToggleMeshOption("Auto (library/default)", string.Empty));
-            foreach (string path in EnumerateDiscoveredToggleModelPaths(toggleModelsDirectory, ToggleBaseDirectoryNames))
+            foreach (string path in EnumerateDiscoveredToggleModelPaths(toggleModelsDirectories, ToggleBaseDirectoryNames))
             {
                 _toggleBaseMeshOptions.Add(new ToggleMeshOption(BuildToggleMeshOptionLabel(path), path));
             }
 
             _toggleLeverMeshOptions.Add(new ToggleMeshOption("Auto (library/default)", string.Empty));
-            foreach (string path in EnumerateDiscoveredToggleModelPaths(toggleModelsDirectory, ToggleLeverDirectoryNames))
+            foreach (string path in EnumerateDiscoveredToggleModelPaths(toggleModelsDirectories, ToggleLeverDirectoryNames))
             {
                 _toggleLeverMeshOptions.Add(new ToggleMeshOption(BuildToggleMeshOptionLabel(path), path));
             }
@@ -97,7 +97,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            string normalized = NormalizePathForCompare(configuredPath);
+            string normalized = NormalizePathForCompare(ResolveBestToggleMeshPath(options, configuredPath));
             bool exists = options.Any(option => string.Equals(NormalizePathForCompare(option.MeshPath), normalized, StringComparison.OrdinalIgnoreCase));
             if (exists)
             {
@@ -114,7 +114,7 @@ namespace KnobForge.App.Views
                 return new ToggleMeshOption("Auto (library/default)", string.Empty);
             }
 
-            string normalized = NormalizePathForCompare(configuredPath);
+            string normalized = NormalizePathForCompare(ResolveBestToggleMeshPath(options, configuredPath));
             if (string.IsNullOrWhiteSpace(normalized))
             {
                 return options[0];
@@ -135,25 +135,39 @@ namespace KnobForge.App.Views
             return string.Empty;
         }
 
-        private static IEnumerable<string> EnumerateDiscoveredToggleModelPaths(string? toggleModelsDirectory, string[] preferredDirectories)
+        private static IEnumerable<string> EnumerateDiscoveredToggleModelPaths(IEnumerable<string> toggleModelsDirectories, string[] preferredDirectories)
         {
-            if (string.IsNullOrWhiteSpace(toggleModelsDirectory) || !Directory.Exists(toggleModelsDirectory))
-            {
-                return Enumerable.Empty<string>();
-            }
-
             var paths = new List<string>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            for (int i = 0; i < preferredDirectories.Length; i++)
+            foreach (string toggleModelsDirectory in toggleModelsDirectories)
             {
-                string directory = Path.Combine(toggleModelsDirectory, preferredDirectories[i]);
-                if (!Directory.Exists(directory))
+                if (string.IsNullOrWhiteSpace(toggleModelsDirectory) || !Directory.Exists(toggleModelsDirectory))
                 {
                     continue;
                 }
 
-                foreach (string path in EnumerateSupportedToggleModelFiles(directory))
+                for (int i = 0; i < preferredDirectories.Length; i++)
+                {
+                    string directory = Path.Combine(toggleModelsDirectory, preferredDirectories[i]);
+                    if (!Directory.Exists(directory))
+                    {
+                        continue;
+                    }
+
+                    foreach (string path in EnumerateSupportedToggleModelFiles(directory))
+                    {
+                        string normalized = NormalizePathForCompare(path);
+                        if (!seen.Add(normalized))
+                        {
+                            continue;
+                        }
+
+                        paths.Add(path);
+                    }
+                }
+
+                foreach (string path in EnumerateSupportedToggleModelFiles(toggleModelsDirectory))
                 {
                     string normalized = NormalizePathForCompare(path);
                     if (!seen.Add(normalized))
@@ -163,17 +177,6 @@ namespace KnobForge.App.Views
 
                     paths.Add(path);
                 }
-            }
-
-            foreach (string path in EnumerateSupportedToggleModelFiles(toggleModelsDirectory))
-            {
-                string normalized = NormalizePathForCompare(path);
-                if (!seen.Add(normalized))
-                {
-                    continue;
-                }
-
-                paths.Add(path);
             }
 
             return paths;
@@ -203,21 +206,82 @@ namespace KnobForge.App.Views
                 path.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static string? ResolveToggleModelsDirectory()
+        private static string ResolveBestToggleMeshPath(IEnumerable<ToggleMeshOption> options, string configuredPath)
         {
-            string desktopRoot = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "Monozukuri");
-            for (int i = 0; i < ToggleModelsDirectoryCandidates.Length; i++)
+            if (string.IsNullOrWhiteSpace(configuredPath))
             {
-                string candidate = Path.Combine(desktopRoot, ToggleModelsDirectoryCandidates[i]);
-                if (Directory.Exists(candidate))
+                return string.Empty;
+            }
+
+            string normalizedConfiguredPath = NormalizePathForCompare(configuredPath);
+            ToggleMeshOption? directMatch = options.FirstOrDefault(option =>
+                string.Equals(NormalizePathForCompare(option.MeshPath), normalizedConfiguredPath, StringComparison.OrdinalIgnoreCase));
+            if (directMatch != null)
+            {
+                return directMatch.MeshPath;
+            }
+
+            string fileName = Path.GetFileName(configuredPath.Trim());
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return configuredPath;
+            }
+
+            ToggleMeshOption? fileNameMatch = options.FirstOrDefault(option =>
+                string.Equals(Path.GetFileName(option.MeshPath), fileName, StringComparison.OrdinalIgnoreCase));
+            return fileNameMatch?.MeshPath ?? configuredPath;
+        }
+
+        private static IReadOnlyList<string> ResolveToggleModelsDirectories()
+        {
+            var directories = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in EnumerateToggleSearchRoots())
+            {
+                for (int i = 0; i < ToggleModelsDirectoryCandidates.Length; i++)
                 {
-                    return candidate;
+                    TryAddExistingToggleDirectory(directories, seen, Path.Combine(root, ToggleModelsDirectoryCandidates[i]));
                 }
             }
 
-            return null;
+            return directories;
+        }
+
+        private static IEnumerable<string> EnumerateToggleSearchRoots()
+        {
+            string currentDirectory = Environment.CurrentDirectory;
+            if (!string.IsNullOrWhiteSpace(currentDirectory))
+            {
+                yield return currentDirectory;
+            }
+
+            string? probe = AppContext.BaseDirectory;
+            for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+            {
+                yield return probe;
+                probe = Directory.GetParent(probe)?.FullName;
+            }
+
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (!string.IsNullOrWhiteSpace(desktop))
+            {
+                yield return Path.Combine(desktop, "Monozukuri");
+                yield return Path.Combine(desktop, "KnobForge");
+            }
+        }
+
+        private static void TryAddExistingToggleDirectory(ICollection<string> directories, ISet<string> seen, string candidate)
+        {
+            if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+            {
+                return;
+            }
+
+            string normalized = NormalizePathForCompare(candidate);
+            if (seen.Add(normalized))
+            {
+                directories.Add(candidate);
+            }
         }
     }
 }

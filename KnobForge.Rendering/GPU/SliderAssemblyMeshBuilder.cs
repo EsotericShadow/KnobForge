@@ -53,6 +53,11 @@ public static class SliderAssemblyMeshBuilder
         Path.Combine("models", "slider_models"),
         "slider_models"
     };
+    private static readonly string[] SliderStandaloneThumbDirectoryCandidates =
+    {
+        Path.Combine("models", "thumb_models"),
+        "thumb_models"
+    };
 
     public static SliderAssemblyConfig ResolveConfig(KnobProject? project, RenderQualityTier quality = RenderQualityTier.Normal)
     {
@@ -73,7 +78,8 @@ public static class SliderAssemblyMeshBuilder
             return default;
         }
 
-        string sliderRootDirectory = ResolveSliderRootDirectory();
+        IReadOnlyList<string> sliderModelDirectories = ResolveSliderModelDirectories();
+        IReadOnlyList<string> sliderThumbModelDirectories = ResolveSliderThumbModelDirectories(sliderModelDirectories);
         float knobRadius = MathF.Max(40f, modelNode.Radius);
         float defaultBackplateWidth = knobRadius * 0.62f;
         float defaultBackplateHeight = knobRadius * 2.30f;
@@ -98,8 +104,8 @@ public static class SliderAssemblyMeshBuilder
         int thumbRidgeCount = ScaleSegments(project.SliderThumbRidgeCount > 0 ? project.SliderThumbRidgeCount : 5, quality, 3, 16);
         float thumbRidgeDepth = ResolveDimensionOverride(project.SliderThumbRidgeDepth, thumbDepth * 0.06f);
         float thumbCornerRadius = ResolveDimensionOverride(project.SliderThumbCornerRadius, MathF.Min(thumbWidth, thumbHeight) * 0.12f);
-        string backplateImportedMeshPath = ResolveImportedMeshPath(project.SliderBackplateImportedMeshPath, sliderRootDirectory);
-        string thumbImportedMeshPath = ResolveImportedMeshPath(project.SliderThumbImportedMeshPath, sliderRootDirectory);
+        string backplateImportedMeshPath = ResolveImportedMeshPath(project.SliderBackplateImportedMeshPath, sliderModelDirectories, SliderPartKind.Backplate);
+        string thumbImportedMeshPath = ResolveImportedMeshPath(project.SliderThumbImportedMeshPath, sliderThumbModelDirectories, SliderPartKind.Thumb);
 
         return new SliderAssemblyConfig(
             Enabled: true,
@@ -745,21 +751,19 @@ public static class SliderAssemblyMeshBuilder
         return new Vector3(0f, y, config.ThumbDepth * 0.25f);
     }
 
-    private static string ResolveSliderRootDirectory()
+    private static IReadOnlyList<string> ResolveSliderModelDirectories()
     {
-        string desktopRoot = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "Monozukuri");
-        for (int i = 0; i < SliderRootDirectoryCandidates.Length; i++)
+        var directories = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string root in EnumerateSliderSearchRoots())
         {
-            string candidate = Path.Combine(desktopRoot, SliderRootDirectoryCandidates[i]);
-            if (Directory.Exists(candidate))
+            for (int i = 0; i < SliderRootDirectoryCandidates.Length; i++)
             {
-                return candidate;
+                TryAddExistingDirectory(directories, seen, Path.Combine(root, SliderRootDirectoryCandidates[i]));
             }
         }
 
-        return Path.Combine(desktopRoot, SliderRootDirectoryCandidates[0]);
+        return directories;
     }
 
     private static float ResolveDimensionOverride(float overrideValue, float fallbackValue)
@@ -772,26 +776,189 @@ public static class SliderAssemblyMeshBuilder
         return fallbackValue;
     }
 
-    private static string ResolveImportedMeshPath(string configuredPath, string sliderRootDirectory)
+    private static IReadOnlyList<string> ResolveSliderThumbModelDirectories(IReadOnlyList<string> sliderModelDirectories)
+    {
+        var directories = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        for (int i = 0; i < sliderModelDirectories.Count; i++)
+        {
+            TryAddExistingDirectory(directories, seen, sliderModelDirectories[i]);
+        }
+
+        foreach (string root in EnumerateSliderSearchRoots())
+        {
+            for (int i = 0; i < SliderStandaloneThumbDirectoryCandidates.Length; i++)
+            {
+                TryAddExistingDirectory(directories, seen, Path.Combine(root, SliderStandaloneThumbDirectoryCandidates[i]));
+            }
+        }
+
+        return directories;
+    }
+
+    private static string ResolveImportedMeshPath(string configuredPath, IReadOnlyList<string> modelDirectories, SliderPartKind partKind)
     {
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
             return string.Empty;
         }
 
+        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, modelDirectories);
+        if (!string.IsNullOrWhiteSpace(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        string? remapped = TryResolveDiscoveredSliderModelPathByFileName(configuredPath, modelDirectories, partKind);
+        return remapped ?? string.Empty;
+    }
+
+    private static string? TryResolveExplicitMeshPath(string configuredPath, IReadOnlyList<string> modelDirectories)
+    {
         string trimmed = configuredPath.Trim();
         if (Path.IsPathRooted(trimmed))
         {
-            return File.Exists(trimmed) ? trimmed : string.Empty;
+            return File.Exists(trimmed) ? trimmed : null;
         }
 
-        if (string.IsNullOrWhiteSpace(sliderRootDirectory))
+        foreach (string root in EnumerateSliderSearchRoots())
         {
-            return string.Empty;
+            string combined = Path.GetFullPath(Path.Combine(root, trimmed));
+            if (File.Exists(combined))
+            {
+                return combined;
+            }
         }
 
-        string combined = Path.GetFullPath(Path.Combine(sliderRootDirectory, trimmed));
-        return File.Exists(combined) ? combined : string.Empty;
+        for (int i = 0; i < modelDirectories.Count; i++)
+        {
+            string combined = Path.GetFullPath(Path.Combine(modelDirectories[i], trimmed));
+            if (File.Exists(combined))
+            {
+                return combined;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? TryResolveDiscoveredSliderModelPathByFileName(
+        string configuredPath,
+        IReadOnlyList<string> modelDirectories,
+        SliderPartKind partKind)
+    {
+        string fileName = Path.GetFileName(configuredPath.Trim());
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return null;
+        }
+
+        foreach (string candidate in EnumerateDiscoveredSliderModelPaths(modelDirectories, partKind))
+        {
+            if (string.Equals(Path.GetFileName(candidate), fileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> EnumerateDiscoveredSliderModelPaths(IReadOnlyList<string> modelDirectories, SliderPartKind partKind)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string[] preferredDirectories = partKind == SliderPartKind.Backplate
+            ? new[] { "backplate_models", "backplates", "backplate" }
+            : new[] { "sliderthumb_models", "thumb_models", "thumbs", "slider_thumbs" };
+
+        for (int i = 0; i < modelDirectories.Count; i++)
+        {
+            string modelDirectory = modelDirectories[i];
+            if (string.IsNullOrWhiteSpace(modelDirectory) || !Directory.Exists(modelDirectory))
+            {
+                continue;
+            }
+
+            for (int j = 0; j < preferredDirectories.Length; j++)
+            {
+                string partDirectory = Path.Combine(modelDirectory, preferredDirectories[j]);
+                if (!Directory.Exists(partDirectory))
+                {
+                    continue;
+                }
+
+                foreach (string file in Directory.EnumerateFiles(partDirectory, "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    if (!IsSupportedModelPath(file))
+                    {
+                        continue;
+                    }
+
+                    if (seen.Add(file))
+                    {
+                        yield return file;
+                    }
+                }
+            }
+
+            foreach (string file in Directory.EnumerateFiles(modelDirectory, "*.*", SearchOption.TopDirectoryOnly))
+            {
+                if (!IsSupportedModelPath(file))
+                {
+                    continue;
+                }
+
+                if (seen.Add(file))
+                {
+                    yield return file;
+                }
+            }
+        }
+    }
+
+    private static bool IsSupportedModelPath(string path)
+    {
+        return path.EndsWith(".glb", StringComparison.OrdinalIgnoreCase) ||
+               path.EndsWith(".stl", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IEnumerable<string> EnumerateSliderSearchRoots()
+    {
+        string currentDirectory = Environment.CurrentDirectory;
+        if (!string.IsNullOrWhiteSpace(currentDirectory))
+        {
+            yield return currentDirectory;
+        }
+
+        string? probe = AppContext.BaseDirectory;
+        for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+        {
+            yield return probe;
+            probe = Directory.GetParent(probe)?.FullName;
+        }
+
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        if (!string.IsNullOrWhiteSpace(desktop))
+        {
+            yield return Path.Combine(desktop, "Monozukuri");
+            yield return Path.Combine(desktop, "KnobForge");
+            yield return desktop;
+        }
+    }
+
+    private static void TryAddExistingDirectory(ICollection<string> directories, ISet<string> seen, string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+        {
+            return;
+        }
+
+        string normalized = Path.GetFullPath(candidate);
+        if (seen.Add(normalized))
+        {
+            directories.Add(candidate);
+        }
     }
 
     private static long ResolveFileTicks(string path)

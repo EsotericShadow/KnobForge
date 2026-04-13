@@ -652,6 +652,7 @@ namespace KnobForge.App.Controls
             _paintColorTextureVersion = -1;
             _paintMask2TextureVersion = -1;
             _paintTextureFocusedLayerIndex = int.MinValue;
+            _resourceSyncDirty = true;
         }
 
         public string ExportViewportStateJson()
@@ -761,7 +762,8 @@ namespace KnobForge.App.Controls
             _invertImportedCollarOrbit = false;
             _invertKnobFrontFaceWinding = state.InvertKnobFrontFaceWinding;
             _invertImportedStlFrontFaceWinding = state.InvertImportedStlFrontFaceWinding;
-            InvalidateGpu();
+            NotifyDebugStateChanged();
+            InvalidateViewOnly();
             return true;
         }
 

@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private readonly record struct PreviewRenderRequest(
             int FrameCount,
@@ -31,7 +31,9 @@ namespace KnobForge.App.Views
             int SupersampleScale,
             int RenderResolution,
             float Padding,
-            ViewportCameraState CameraState);
+            ViewportCameraState CameraState,
+            RenderQualityTier QualityTier,
+            bool AutoFitCamera);
 
         private readonly record struct RotaryPreviewSheet(
             string SpriteSheetPath,

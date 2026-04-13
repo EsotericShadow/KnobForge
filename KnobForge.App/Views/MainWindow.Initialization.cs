@@ -66,9 +66,18 @@ namespace KnobForge.App.Views
                 _envTopRInput == null || _envTopGInput == null || _envTopBInput == null ||
                 _envBottomRInput == null || _envBottomGInput == null || _envBottomBInput == null ||
                 _envPresetCombo == null || _envBloomKernelShapeCombo == null || _environmentManualSettingsPanel == null ||
+                _envBloomRadiusInput == null || _envBloomCompositeIntensityInput == null || _envGlareRotationInput == null ||
+                _envBloomTintRInput == null || _envBloomTintGInput == null || _envBloomTintBInput == null ||
+                _envReflectionStrengthInput == null || _envReflectionFresnelBiasInput == null ||
+                _envClearCoatReflectionStrengthInput == null || _envReflectionOnlyPreviewCheckBox == null ||
                 _shadowEnabledCheckBox == null || _shadowSourceModeCombo == null || _shadowStrengthInput == null || _shadowSoftnessInput == null ||
                 _shadowDistanceInput == null || _shadowScaleInput == null || _shadowQualityInput == null ||
                 _shadowGrayInput == null || _shadowDiffuseInfluenceInput == null ||
+                _debugCameraInvertXCheckBox == null || _debugCameraInvertYCheckBox == null || _debugCameraInvertZCheckBox == null ||
+                _debugCameraFlip180CheckBox == null || _debugLightEffectInvertXCheckBox == null || _debugLightEffectInvertYCheckBox == null ||
+                _debugLightEffectInvertZCheckBox == null || _debugBloomCompositeInvertXCheckBox == null || _debugBloomCompositeInvertYCheckBox == null ||
+                _debugGizmoInvertXCheckBox == null || _debugGizmoInvertYCheckBox == null || _debugGizmoInvertZCheckBox == null ||
+                _debugInvertKnobWindingCheckBox == null || _debugResetAxesButton == null || _debugPrintStateButton == null ||
                 _brushPaintEnabledCheckBox == null || _brushPaintChannelCombo == null || _brushTypeCombo == null || _brushPaintColorPicker == null || _scratchAbrasionTypeCombo == null ||
                 _brushSizeInput == null || _brushOpacityInput == null || _brushDarknessInput == null || _brushSpreadInput == null ||
                 _paintCoatMetallicInput == null || _paintCoatRoughnessInput == null ||
@@ -1102,9 +1111,49 @@ namespace KnobForge.App.Views
             {
                 _envBloomKneeInput.PropertyChanged += OnEnvironmentChanged;
             }
+            if (_envBloomRadiusInput != null)
+            {
+                _envBloomRadiusInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomCompositeIntensityInput != null)
+            {
+                _envBloomCompositeIntensityInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envGlareRotationInput != null)
+            {
+                _envGlareRotationInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomTintRInput != null)
+            {
+                _envBloomTintRInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomTintGInput != null)
+            {
+                _envBloomTintGInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envBloomTintBInput != null)
+            {
+                _envBloomTintBInput.PropertyChanged += OnEnvironmentChanged;
+            }
             if (_envBloomKernelShapeCombo != null)
             {
                 _envBloomKernelShapeCombo.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envReflectionStrengthInput != null)
+            {
+                _envReflectionStrengthInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envReflectionFresnelBiasInput != null)
+            {
+                _envReflectionFresnelBiasInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envClearCoatReflectionStrengthInput != null)
+            {
+                _envClearCoatReflectionStrengthInput.PropertyChanged += OnEnvironmentChanged;
+            }
+            if (_envReflectionOnlyPreviewCheckBox != null)
+            {
+                _envReflectionOnlyPreviewCheckBox.PropertyChanged += OnEnvironmentChanged;
             }
             if (_envHdriBlendInput != null)
             {

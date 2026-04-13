@@ -226,10 +226,10 @@ namespace KnobForge.App.Views
             button.Opacity = active ? 1d : 0.75d;
             button.Background = active
                 ? new SolidColorBrush(Color.Parse("#2A4A60"))  // AccentSubtle
-                : new SolidColorBrush(Color.Parse("#1A1F28")); // Surface2
+                : new SolidColorBrush(Color.Parse("#1E2430")); // Surface2
             button.BorderBrush = active
                 ? new SolidColorBrush(Color.Parse("#4A90B8"))  // Accent
-                : new SolidColorBrush(Color.Parse("#2E3640")); // BorderDefault
+                : new SolidColorBrush(Color.Parse("#333D4A")); // BorderDefault
             button.BorderThickness = new Avalonia.Thickness(active ? 1.5 : 1);
         }
     }

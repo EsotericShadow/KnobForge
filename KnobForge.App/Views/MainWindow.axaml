@@ -22,7 +22,7 @@
                     <Border Background="{StaticResource Surface0Brush}"
                             BorderBrush="{StaticResource BorderDefaultBrush}"
                             BorderThickness="1"
-                            CornerRadius="6"
+                            CornerRadius="10"
                             Padding="8,4">
                         <TextBlock VerticalAlignment="Center"
                                    Classes="title"
@@ -42,33 +42,33 @@
                             Spacing="8"
                             VerticalAlignment="Center">
                     <Button x:Name="NewProjectButton"
+                            Classes="toolbar-button"
                             Content="New"
-                            MinWidth="72"
                             ToolTip.Tip="Open a new Monozukuri window"/>
 
                     <Button x:Name="ChangeProjectTypeButton"
+                            Classes="toolbar-button"
                             Content="Change type..."
-                            MinWidth="140"
                             ToolTip.Tip="Switch this project between Rotary Knob, Flip Switch, Thumb Slider, or Push Button"/>
 
                     <Button x:Name="OpenProjectButton"
+                            Classes="toolbar-button"
                             Content="Open..."
-                            MinWidth="100"
                             ToolTip.Tip="Open an existing .knob project"/>
 
                     <Button x:Name="SaveProjectButton"
+                            Classes="toolbar-button"
                             Content="Save"
-                            MinWidth="72"
                             ToolTip.Tip="Save current project"/>
 
                     <Button x:Name="SaveProjectAsButton"
+                            Classes="toolbar-button"
                             Content="Save as..."
-                            MinWidth="140"
                             ToolTip.Tip="Save current project to a new file"/>
 
                     <Button x:Name="RenderButton"
+                            Classes="toolbar-button-accent"
                             Content="Render..."
-                            MinWidth="100"
                             ToolTip.Tip="Open spritesheet render window"/>
 
                 </StackPanel>
@@ -86,7 +86,7 @@
                 <Border Background="{StaticResource Surface1Brush}"
                         BorderBrush="{StaticResource BorderDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="5"
+                        CornerRadius="8"
                         Padding="8,4">
                     <TextBlock x:Name="ContextStripNodeText"
                                Classes="hint"
@@ -98,7 +98,7 @@
                         Background="{StaticResource Surface1Brush}"
                         BorderBrush="{StaticResource BorderDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="5"
+                        CornerRadius="8"
                         Padding="8,4">
                     <TextBlock x:Name="ContextStripToolText"
                                Classes="hint"
@@ -219,10 +219,10 @@
                     <TabControl Grid.Row="2" x:Name="InspectorTabControl">
                     <TabItem x:Name="LightingTabItem" Header="Lighting">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="10" Margin="4">
+                            <StackPanel Spacing="6" Margin="4">
                                 <Expander Header="Mode" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Mode"/>
                                             <ComboBox Grid.Column="1" x:Name="LightingModeCombo"/>
                                         </Grid>
@@ -245,29 +245,29 @@
                                 </Expander>
 
                                 <Expander Header="Transform" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Type"/>
                                             <ComboBox Grid.Column="1" x:Name="LightTypeCombo"/>
                                         </Grid>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="X"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="LightXInput" Minimum="-2000" Maximum="2000" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Y"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="LightYInput" Minimum="-2000" Maximum="2000" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Z"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="LightZInput" Minimum="-3000" Maximum="3000" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Direction"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="DirectionInput" Minimum="0" Maximum="360" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                         </Grid>
@@ -275,22 +275,22 @@
                                 </Expander>
 
                                 <Expander Header="Intensity" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Intensity"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="IntensityInput" Minimum="0" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Falloff"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="FalloffInput" Minimum="0" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander Header="Color · Advanced" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                <Expander Header="Color · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0"
                                                        Classes="param-label"
                                                        Text="Color"
@@ -310,23 +310,33 @@
                                                     <controls:ValueInput Grid.Column="1" x:Name="LightBInput" Minimum="0" Maximum="255" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
                                             </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    x:Name="LightColorSwatch"
+                                                    Width="16"
+                                                    Height="16"
+                                                    CornerRadius="8"
+                                                    Background="{StaticResource Surface0Brush}"
+                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    VerticalAlignment="Top"
+                                                    Margin="4,6,0,0"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander Header="Artistic · Advanced" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                <Expander Header="Artistic · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Diffuse boost"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="DiffuseBoostInput" Minimum="0" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Specular boost"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="SpecularBoostInput" Minimum="0" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Specular power"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="SpecularPowerInput" Minimum="1" Maximum="256" Step="0.1" DecimalPlaces="1"/>
                                         </Grid>
@@ -334,7 +344,7 @@
                                 </Expander>
 
                                 <Expander Header="Camera" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <TextBlock Classes="hint"
                                                    Text="Cmd+LMB: orbit, MMB: pan, Wheel: zoom, R: reset"
                                                    TextWrapping="Wrap"/>
@@ -347,7 +357,7 @@
 
                     <TabItem x:Name="ModelTabItem" Header="Model">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="10" Margin="4">
+                            <StackPanel Spacing="6" Margin="4">
                                 <TextBlock x:Name="NodeInspectorContextText"
                                            Classes="hint"
                                            Text="Selected: Model"
@@ -355,13 +365,13 @@
 
 
                                 <Expander x:Name="NodeReferenceProfilesExpander" Header="Reference profiles" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Reference style"/>
                                             <ComboBox Grid.Column="1" x:Name="ReferenceStyleCombo"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Save current as"/>
                                             <TextBox Grid.Column="1" x:Name="ReferenceStyleSaveNameTextBox"
                                                      Watermark="My Custom Knob"/>
@@ -375,8 +385,8 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeTransformExpander" Header="Transform" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Rotation"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="RotationInput" Minimum="0" Maximum="360" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                         </Grid>
@@ -384,54 +394,54 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeBodyShapeExpander" Header="Shape" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Body style"/>
                                             <ComboBox Grid.Column="1" x:Name="BodyStyleCombo"/>
                                         </Grid>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Radius"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ModelRadiusInput" Minimum="40" Maximum="500" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Height"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ModelHeightInput" Minimum="20" Maximum="320" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Top scale"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ModelTopScaleInput" Minimum="0.30" Maximum="1.30" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Bevel"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ModelBevelInput" Minimum="0" Maximum="120" Step="1" DecimalPlaces="0"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Bevel curve"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="BevelCurveInput" Minimum="0.4" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Crown profile" ToolTip.Tip="Negative = concave, positive = convex"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CrownProfileInput" Minimum="-1" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Body taper"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="BodyTaperInput" Minimum="-0.35" Maximum="0.35" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Body bulge"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="BodyBulgeInput" Minimum="-0.35" Maximum="0.35" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Segments"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ModelSegmentsInput" Minimum="12" Maximum="180" Step="1" DecimalPlaces="0"/>
                                         </Grid>
@@ -439,12 +449,12 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeSliderAssemblyExpander" Header="Slider assembly" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <Expander Header="Setup" IsExpanded="True">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Text="Backplate and thumb mesh configuration." Classes="hint"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Mode"/>
                                                     <ComboBox Grid.Column="1" x:Name="SliderAssemblyModeCombo"/>
                                                 </Grid>
@@ -452,6 +462,7 @@
                                                 <TextBlock Classes="section-tag" Text="MESH SOURCES"/>
                                                 <DockPanel LastChildFill="True">
                                                     <Button x:Name="RefreshSliderLibraryButton"
+                                                            Classes="ghost-button"
                                                             Content="↻"
                                                             ToolTip.Tip="Refresh mesh library"
                                                             DockPanel.Dock="Right"
@@ -459,23 +470,23 @@
                                                             MinWidth="32"
                                                             Padding="6,4"/>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Backplate mesh"/>
                                                         <ComboBox Grid.Column="1" x:Name="SliderBackplateMeshCombo"/>
                                                     </Grid>
                                                 </DockPanel>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thumb mesh"/>
                                                     <ComboBox Grid.Column="1" x:Name="SliderThumbMeshCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thumb profile"/>
                                                     <ComboBox Grid.Column="1" x:Name="SliderThumbProfileCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Track style"/>
                                                     <ComboBox Grid.Column="1" x:Name="SliderTrackStyleCombo"/>
                                                 </Grid>
@@ -483,71 +494,71 @@
                                             </StackPanel>
                                         </Expander>
 
-                                        <Expander Header="Geometry · Advanced" IsExpanded="False">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Geometry · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Classes="section-tag" Text="BACKPLATE"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Backplate width" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderBackplateWidthInput" Minimum="0" Maximum="2000" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Backplate height" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderBackplateHeightInput" Minimum="0" Maximum="3000" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Backplate thickness" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderBackplateThicknessInput" Minimum="0" Maximum="400" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Track width" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderTrackWidthInput" Minimum="0" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Track depth" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderTrackDepthInput" Minimum="0" Maximum="160" Step="0.1" DecimalPlaces="2" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Rail height" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderRailHeightInput" Minimum="0" Maximum="120" Step="0.1" DecimalPlaces="2" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Rail spacing" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderRailSpacingInput" Minimum="0" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="THUMB"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thumb width" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbWidthInput" Minimum="0" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thumb height" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbHeightInput" Minimum="0" Maximum="1600" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thumb depth" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbDepthInput" Minimum="0" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Ridge count" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbRidgeCountInput" Minimum="0" Maximum="16" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Ridge depth" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbRidgeDepthInput" Minimum="0" Maximum="120" Step="0.1" DecimalPlaces="2" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Corner radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="SliderThumbCornerRadiusInput" Minimum="0" Maximum="120" Step="0.1" DecimalPlaces="2" Suffix=" px"/>
                                                 </Grid>
@@ -557,12 +568,12 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeToggleAssemblyExpander" Header="Toggle assembly" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <Expander Header="Setup" IsExpanded="True">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Text="Base and lever mesh configuration with state control." Classes="hint"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Mode"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleAssemblyModeCombo"/>
                                                 </Grid>
@@ -570,6 +581,7 @@
                                                 <TextBlock Classes="section-tag" Text="MESH SOURCES"/>
                                                 <DockPanel LastChildFill="True">
                                                     <Button x:Name="RefreshToggleLibraryButton"
+                                                            Classes="ghost-button"
                                                             Content="↻"
                                                             ToolTip.Tip="Refresh mesh library"
                                                             DockPanel.Dock="Right"
@@ -577,146 +589,146 @@
                                                             MinWidth="32"
                                                             Padding="6,4"/>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base mesh"/>
                                                         <ComboBox Grid.Column="1" x:Name="ToggleBaseMeshCombo"/>
                                                     </Grid>
                                                 </DockPanel>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Lever mesh"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleLeverMeshCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="States"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleStateCountCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="State"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleStateIndexInput" Minimum="0" Maximum="2" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Max angle"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleMaxAngleInput" Minimum="5" Maximum="85" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                                 </Grid>
                                             </StackPanel>
                                         </Expander>
 
-                                        <Expander Header="Base &amp; plate · Advanced" IsExpanded="False">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Base &amp; plate · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Classes="section-tag" Text="PLATE"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Plate width" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePlateWidthInput" Minimum="0" Maximum="2200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Plate height" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePlateHeightInput" Minimum="0" Maximum="2600" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Plate thickness" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePlateThicknessInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Plate offset Y"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePlateOffsetYInput" Minimum="-1200" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Plate offset Z"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePlateOffsetZInput" Minimum="-1200" Maximum="1200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="BUSHING"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Bushing radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleBushingRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Bushing height" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleBushingHeightInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Sides"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleBushingSidesInput" Minimum="3" Maximum="32" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Lower shape"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleLowerBushingShapeCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Upper shape"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleUpperBushingShapeCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Radius scale"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLowerBushingRadiusScaleInput" Minimum="0.25" Maximum="4" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Height ratio"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLowerBushingHeightRatioInput" Minimum="0.05" Maximum="2" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Radius scale"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingRadiusScaleInput" Minimum="0.25" Maximum="4" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Height ratio"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingHeightRatioInput" Minimum="0.05" Maximum="2" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="SURFACE"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl amount"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingKnurlAmountInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl density"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingKnurlDensityInput" Minimum="3" Maximum="96" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl depth"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingKnurlDepthInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
                                                 <Separator Margin="0,4,0,4"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Aniso strength"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingAnisotropyStrengthInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Aniso density"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingAnisotropyDensityInput" Minimum="3" Maximum="128" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Aniso angle"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingAnisotropyAngleInput" Minimum="-180" Maximum="180" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Surface character"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleUpperBushingSurfaceCharacterInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
@@ -727,72 +739,72 @@
                                             </StackPanel>
                                         </Expander>
 
-                                        <Expander Header="Lever &amp; pivot · Advanced" IsExpanded="False">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Lever &amp; pivot · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Classes="section-tag" Text="HOUSING"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Housing radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePivotHousingRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Housing depth" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePivotHousingDepthInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Housing bevel" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePivotHousingBevelInput" Minimum="0" Maximum="250" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Ball radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePivotBallRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Clearance"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="TogglePivotClearanceInput" Minimum="0" Maximum="128" Step="0.01" DecimalPlaces="2" Suffix=" px"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="LEVER"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Lever length" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLeverLengthInput" Minimum="0" Maximum="2200" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Bottom radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLeverRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Top radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLeverTopRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Sides"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLeverSidesInput" Minimum="6" Maximum="64" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Pivot offset"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleLeverPivotOffsetInput" Minimum="-800" Maximum="800" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="TIP"/>
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Tip radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Tip latitude segments"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipLatitudeSegmentsInput" Minimum="4" Maximum="64" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Tip longitude segments"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipLongitudeSegmentsInput" Minimum="6" Maximum="128" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
@@ -803,65 +815,65 @@
                                             </StackPanel>
                                         </Expander>
 
-                                        <Expander Header="Tip sleeve · Advanced" IsExpanded="False">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Tip sleeve · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <CheckBox x:Name="ToggleTipSleeveEnabledCheckBox"
                                                           Content="Enable sleeve"/>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Length" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveLengthInput" Minimum="0" Maximum="900" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Thickness" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveThicknessInput" Minimum="0" Maximum="220" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Outer radius" ToolTip.Tip="Set to 0 for automatic sizing"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveOuterRadiusInput" Minimum="0" Maximum="500" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Coverage"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveCoverageInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Sides"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveSidesInput" Minimum="6" Maximum="64" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Style"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleTipSleeveStyleCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Tip style"/>
                                                     <ComboBox Grid.Column="1" x:Name="ToggleTipSleeveTipStyleCombo"/>
                                                 </Grid>
 
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Pattern count"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleevePatternCountInput" Minimum="3" Maximum="64" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Pattern depth"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleevePatternDepthInput" Minimum="0" Maximum="0.9" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Tip amount"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveTipAmountInput" Minimum="0" Maximum="0.95" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" RowDefinitions="Auto" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0"
                                                                Classes="param-label"
                                                                Text="Color"
@@ -883,42 +895,42 @@
                                                     </StackPanel>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Metallic"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveMetallicInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Roughness"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveRoughnessInput" Minimum="0.04" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Pearlescence"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleevePearlescenceInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Diffuse strength"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveDiffuseStrengthInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Specular strength"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveSpecularStrengthInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Rust"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveRustInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Wear"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveWearInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Gunk"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="ToggleTipSleeveGunkInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
@@ -928,88 +940,89 @@
                                 </Expander>
 
                                 <Expander x:Name="NodePushButtonAssemblyExpander" Header="Push button assembly" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <Expander Header="Setup" IsExpanded="True">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Text="Cap, bezel, skirt, and imported mesh configuration for button assemblies." Classes="hint"/>
 
                                                 <TextBlock Classes="section-tag" Text="MESH SOURCES"/>
 
                                                 <DockPanel LastChildFill="True">
                                                     <Button x:Name="RefreshPushButtonLibraryButton"
+                                                            Classes="ghost-button"
                                                             Content="↻"
                                                             ToolTip.Tip="Refresh mesh library"
                                                             DockPanel.Dock="Right"
                                                             Margin="8,0,0,0"
                                                             MinWidth="32"
                                                             Padding="6,4"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base mesh"/>
                                                         <ComboBox Grid.Column="1" x:Name="PushButtonBaseMeshCombo"/>
                                                     </Grid>
                                                 </DockPanel>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Cap mesh"/>
                                                     <ComboBox Grid.Column="1" x:Name="PushButtonCapMeshCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Cap profile"/>
                                                     <ComboBox Grid.Column="1" x:Name="PushButtonCapProfileCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Bezel profile"/>
                                                     <ComboBox Grid.Column="1" x:Name="PushButtonBezelProfileCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Skirt style"/>
                                                     <ComboBox Grid.Column="1" x:Name="PushButtonSkirtStyleCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Press amount"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonPressAmountInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                 </Grid>
                                             </StackPanel>
                                         </Expander>
 
-                                        <Expander Header="Geometry · Advanced" IsExpanded="False">
-                                            <StackPanel Spacing="6" Margin="0,6,0,0">
+                                        <Expander Header="Geometry · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                            <StackPanel Spacing="5" Margin="0,6,0,0">
                                                 <TextBlock Classes="section-tag" Text="CAP"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Cap overhang"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonCapOverhangInput" Minimum="0" Maximum="64" Step="0.1" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Cap segments"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonCapSegmentsInput" Minimum="0" Maximum="128" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="BEZEL"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Chamfer size"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonBezelChamferSizeInput" Minimum="0" Maximum="32" Step="0.1" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Bezel segments"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonBezelSegmentsInput" Minimum="0" Maximum="128" Step="1" DecimalPlaces="0"/>
                                                 </Grid>
 
                                                 <TextBlock Classes="section-tag" Text="SKIRT"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Skirt height"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonSkirtHeightInput" Minimum="0" Maximum="32" Step="0.1" DecimalPlaces="2"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Skirt radius"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PushButtonSkirtRadiusInput" Minimum="0" Maximum="64" Step="0.1" DecimalPlaces="2"/>
                                                 </Grid>
@@ -1019,18 +1032,18 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeSpiralRidgeExpander" Header="Spiral ridge" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Ridge height"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="SpiralRidgeHeightInput" Minimum="0" Maximum="24" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Ridge width"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="SpiralRidgeWidthInput" Minimum="0.4" Maximum="30" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Spiral turns"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="SpiralTurnsInput" Minimum="150" Maximum="250" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -1038,49 +1051,49 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeGripExpander" Header="Grip" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Grip style"/>
                                             <ComboBox Grid.Column="1" x:Name="GripStyleCombo"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Grip type"/>
                                             <ComboBox Grid.Column="1" x:Name="GripTypeCombo"/>
                                         </Grid>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Grip start"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripStartInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Grip height"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripHeightInput" Minimum="0.05" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl density"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripDensityInput" Minimum="4" Maximum="320" Step="0.1" DecimalPlaces="1"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl pitch"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripPitchInput" Minimum="0.2" Maximum="24" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl depth"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripDepthInput" Minimum="0" Maximum="20" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl width"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripWidthInput" Minimum="0.05" Maximum="3" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Knurl sharpness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="GripSharpnessInput" Minimum="0.5" Maximum="8" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -1088,7 +1101,7 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeCollarExpander" Header="Collar" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <CheckBox x:Name="CollarEnabledCheckBox"
                                                   Content="Enable"/>
 
@@ -1099,6 +1112,7 @@
                                                        Margin="0,0,8,0"
                                                        Text="Preset"/>
                                             <Button x:Name="RefreshCollarLibraryButton"
+                                                    Classes="ghost-button"
                                                     Content="Refresh library"
                                                     DockPanel.Dock="Right"
                                                     Margin="8,0,0,0"
@@ -1110,7 +1124,7 @@
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                                             <Border Width="34"
                                                                     Height="34"
-                                                                    CornerRadius="4"
+                                                                    CornerRadius="6"
                                                                     BorderBrush="{StaticResource BorderStrongBrush}"
                                                                     BorderThickness="1"
                                                                     IsVisible="{Binding HasThumbnail}">
@@ -1127,7 +1141,7 @@
                                             </ComboBox>
                                         </DockPanel>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Mesh path (.glb/.stl)"/>
                                             <TextBox Grid.Column="1" x:Name="CollarMeshPathTextBox"
                                                      Watermark="/Users/.../ouroboros.glb"/>
@@ -1144,37 +1158,37 @@
                                                    TextWrapping="Wrap"/>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Scale"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarScaleInput" Minimum="0.05" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Body length"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarBodyLengthInput" Minimum="0.6" Maximum="2.4" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Body thickness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarBodyThicknessInput" Minimum="0.5" Maximum="2.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Head length"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarHeadLengthInput" Minimum="0.5" Maximum="2.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Head thickness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarHeadThicknessInput" Minimum="0.5" Maximum="2.8" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Rotation"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarRotateInput" Minimum="-180" Maximum="180" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Mirror flip"/>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                                 <CheckBox x:Name="CollarMirrorXCheckBox" Content="X"/>
@@ -1183,29 +1197,29 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Offset X"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarOffsetXInput" Minimum="-1.5" Maximum="1.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Offset Y"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarOffsetYInput" Minimum="-1.5" Maximum="1.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Elevation"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarElevationInput" Minimum="-1.5" Maximum="1.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Inflate"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarInflateInput" Minimum="-0.2" Maximum="0.2" Step="0.001" DecimalPlaces="3"/>
                                         </Grid>
 
                                         <Separator Margin="0,4,0,4"/>
 
-                                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0"
                                                        Classes="param-label"
                                                        Text="Base color"
@@ -1227,32 +1241,32 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Metallic"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialMetallicInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Roughness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialRoughnessInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Pearlescence"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialPearlescenceInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Rust"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialRustInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Wear"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialWearInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Gunk"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="CollarMaterialGunkInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -1260,7 +1274,7 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeRotaryIndicatorExpander" Header="Indicator" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                             <CheckBox x:Name="IndicatorEnabledCheckBox"
                                                       Content="Enable"/>
 
@@ -1268,54 +1282,54 @@
                                                       Content="CAD walls"/>
 
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Shape"/>
                                                 <ComboBox Grid.Column="1" x:Name="IndicatorShapeCombo"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Relief"/>
                                                 <ComboBox Grid.Column="1" x:Name="IndicatorReliefCombo"/>
                                             </Grid>
 
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Profile"/>
                                                 <ComboBox Grid.Column="1" x:Name="IndicatorProfileCombo"/>
                                             </Grid>
 
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Width"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorWidthInput" Minimum="0.005" Maximum="0.35" Step="0.001" DecimalPlaces="3"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Length"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorLengthInput" Minimum="0.05" Maximum="0.8" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Position"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorPositionInput" Minimum="0.05" Maximum="0.9" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Thickness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorThicknessInput" Minimum="0" Maximum="0.08" Step="0.001" DecimalPlaces="3"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Edge roundness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorRoundnessInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Color blend"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="IndicatorColorBlendInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0"
                                                            Classes="param-label"
                                                            Text="Indicator color"
@@ -1335,12 +1349,22 @@
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorColorBInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
                                                 </StackPanel>
+                                                <Border Grid.Column="2"
+                                                        x:Name="IndicatorColorSwatch"
+                                                        Width="16"
+                                                        Height="16"
+                                                        CornerRadius="8"
+                                                        Background="{StaticResource Surface0Brush}"
+                                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                        BorderThickness="1"
+                                                        VerticalAlignment="Top"
+                                                        Margin="4,6,0,0"/>
                                             </Grid>
                                     </StackPanel>
                                 </Expander>
 
                                 <Expander x:Name="NodeIndicatorLightAssemblyExpander" Header="Indicator light assembly" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                             <TextBlock Text="Indicator assembly" Classes="section-title"/>
 
                                             <CheckBox x:Name="IndicatorAssemblyEnabledCheckBox"
@@ -1348,113 +1372,113 @@
 
 
                                             <Expander Header="Quick controls" IsExpanded="True">
-                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                                <StackPanel Spacing="5" Margin="0,6,0,0">
                                                     <TextBlock Text="Fast controls for on/off tuning." Classes="hint"/>
 
                                                     <CheckBox x:Name="IndicatorQuickLightOnCheckBox"
                                                               Content="Light on"/>
 
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Brightness"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorQuickBrightnessInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Glow"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorQuickGlowInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                     </Grid>
                                                 </StackPanel>
                                             </Expander>
 
-                                            <Expander Header="Geometry · Advanced" IsExpanded="False">
-                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                            <Expander Header="Geometry · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                                <StackPanel Spacing="5" Margin="0,6,0,0">
                                                     <TextBlock Classes="section-tag" Text="BASE"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base width"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorBaseWidthInput" Minimum="24" Maximum="1024" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base height"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorBaseHeightInput" Minimum="24" Maximum="1024" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base thickness"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorBaseThicknessInput" Minimum="2" Maximum="256" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
                                                     <TextBlock Classes="section-tag" Text="HOUSING"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Housing radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorHousingRadiusInput" Minimum="4" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Housing height"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorHousingHeightInput" Minimum="2" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
                                                     <TextBlock Classes="section-tag" Text="LENS"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Lens radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensRadiusInput" Minimum="2" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Lens height"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensHeightInput" Minimum="2" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Latitude segments"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensLatitudeSegmentsInput" Minimum="4" Maximum="64" Step="1" DecimalPlaces="0"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Longitude segments"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensLongitudeSegmentsInput" Minimum="6" Maximum="96" Step="1" DecimalPlaces="0"/>
                                                     </Grid>
 
                                                     <TextBlock Classes="section-tag" Text="REFLECTOR"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Base radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorReflectorBaseRadiusInput" Minimum="1" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Top radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorReflectorTopRadiusInput" Minimum="1" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Reflector depth"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorReflectorDepthInput" Minimum="1" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
                                                     <TextBlock Classes="section-tag" Text="EMITTER"/>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Emitter radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterRadiusInput" Minimum="0.5" Maximum="256" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Emitter spread"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSpreadInput" Minimum="0" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Emitter depth"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterDepthInput" Minimum="-256" Maximum="256" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Emitter count"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterCountInput" Minimum="1" Maximum="8" Step="1" DecimalPlaces="0"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Radial segments"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorRadialSegmentsInput" Minimum="8" Maximum="96" Step="1" DecimalPlaces="0"/>
                                                     </Grid>
@@ -1466,39 +1490,39 @@
                                                 </StackPanel>
                                             </Expander>
 
-                                            <Expander Header="Lens material · Advanced" IsExpanded="False">
-                                                <StackPanel Spacing="6" Margin="0,6,0,0">
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Expander Header="Lens material · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                                <StackPanel Spacing="5" Margin="0,6,0,0">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Transmission"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensTransmissionInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="IOR"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensIorInput" Minimum="1" Maximum="2.5" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Thickness"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensThicknessInput" Minimum="0" Maximum="10" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Absorption"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensAbsorptionInput" Minimum="0" Maximum="8" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Surface roughness"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensSurfaceRoughnessInput" Minimum="0.04" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Surface specular"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLensSurfaceSpecularInput" Minimum="0" Maximum="2.5" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0"
                                                                    Classes="param-label"
                                                                    Text="Tint"
@@ -1530,39 +1554,39 @@
                                                 </StackPanel>
                                             </Expander>
 
-                                            <Expander Header="Dynamic lights · Advanced" IsExpanded="False">
-                                                <StackPanel Spacing="6" Margin="0,6,0,0">
+                                            <Expander Header="Dynamic lights · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                                <StackPanel Spacing="5" Margin="0,6,0,0">
                                                     <CheckBox x:Name="IndicatorDynamicLightsEnabledCheckBox"
                                                               Content="Enable"/>
 
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Animation mode"/>
                                                         <ComboBox Grid.Column="1" x:Name="IndicatorLightAnimationModeCombo"/>
                                                     </Grid>
 
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Animation speed"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLightAnimationSpeedInput" Minimum="0" Maximum="10" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Flicker amount"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLightFlickerAmountInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Flicker dropout"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLightFlickerDropoutInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Flicker smoothing"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLightFlickerSmoothingInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Flicker seed"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorLightFlickerSeedInput" Minimum="1" Maximum="100000" Step="1" DecimalPlaces="0"/>
                                                     </Grid>
@@ -1578,9 +1602,9 @@
                                                 </StackPanel>
                                             </Expander>
 
-                                            <Expander Header="Emitter sources · Advanced" IsExpanded="False">
-                                                <StackPanel Spacing="6" Margin="0,6,0,0">
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Expander Header="Emitter sources · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                                <StackPanel Spacing="5" Margin="0,6,0,0">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Emitter"/>
                                                         <ComboBox Grid.Column="1" x:Name="IndicatorEmitterSourceCombo"/>
                                                     </Grid>
@@ -1593,7 +1617,7 @@
                                                         <Button x:Name="IndicatorEmitterSourceAutoPhaseButton" Content="Auto phase"/>
 
                                                     </StackPanel>
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Name"/>
                                                         <TextBox Grid.Column="1" x:Name="IndicatorEmitterSourceNameTextBox"/>
                                                     </Grid>
@@ -1602,42 +1626,42 @@
                                                               Content="Enabled"/>
 
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Phase offset"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourcePhaseOffsetInput" Minimum="-360" Maximum="360" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Offset X"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceXInput" Minimum="-512" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Offset Y"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceYInput" Minimum="-512" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Offset Z"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceZInput" Minimum="-512" Maximum="512" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Intensity"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceIntensityInput" Minimum="0" Maximum="8" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Radius"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceRadiusInput" Minimum="4" Maximum="2048" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0" Classes="param-label" Text="Falloff"/>
                                                         <controls:ValueInput Grid.Column="1" x:Name="IndicatorEmitterSourceFalloffInput" Minimum="0.05" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
 
-                                                    <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto" ColumnSpacing="8">
                                                         <TextBlock Grid.Column="0"
                                                                    Classes="param-label"
                                                                    Text="Color"
@@ -1664,7 +1688,7 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeMaterialExpander" Header="Material" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <StackPanel x:Name="MaterialListPanel"
                                                     Spacing="6"
                                                     IsVisible="False">
@@ -1681,7 +1705,7 @@
                                                               ColumnSpacing="8">
                                                             <Border Width="14"
                                                                     Height="14"
-                                                                    CornerRadius="3"
+                                                                    CornerRadius="7"
                                                                     VerticalAlignment="Center"
                                                                     Background="{ReflectionBinding SwatchBrush}"
                                                                     BorderBrush="{StaticResource BorderStrongBrush}"
@@ -1696,7 +1720,7 @@
                                                     </DataTemplate>
                                                 </ListBox.ItemTemplate>
                                             </ListBox>
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Material name"/>
                                                 <TextBox Grid.Column="1" x:Name="MaterialNameTextBox"
                                                          Watermark="Material name"/>
@@ -1708,7 +1732,7 @@
 
                                         <StackPanel x:Name="MaterialRegionPanel"
                                                     Spacing="6">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Material region"/>
                                                 <ComboBox Grid.Column="1" x:Name="MaterialRegionCombo"/>
                                             </Grid>
@@ -1718,7 +1742,7 @@
                                         <StackPanel x:Name="AssemblyMaterialPresetPanel"
                                                     Spacing="6"
                                                     IsVisible="False">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Assembly preset"/>
                                                 <ComboBox Grid.Column="1" x:Name="AssemblyMaterialPresetCombo"/>
                                             </Grid>
@@ -1729,7 +1753,7 @@
 
                                         <StackPanel x:Name="MaterialManualControlsPanel"
                                                     Spacing="6">
-                                            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0"
                                                            Classes="param-label"
                                                            Text="Base color"
@@ -1749,34 +1773,44 @@
                                                         <controls:ValueInput Grid.Column="1" x:Name="MaterialBaseBInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
                                                 </StackPanel>
+                                                <Border Grid.Column="2"
+                                                        x:Name="MaterialBaseColorSwatch"
+                                                        Width="16"
+                                                        Height="16"
+                                                        CornerRadius="8"
+                                                        Background="{StaticResource Surface0Brush}"
+                                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                        BorderThickness="1"
+                                                        VerticalAlignment="Top"
+                                                        Margin="4,6,0,0"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Metallic"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialMetallicInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Roughness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialRoughnessInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Pearlescence"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialPearlescenceInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Rust"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialRustInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Wear"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialWearInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Gunk"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="MaterialGunkInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
@@ -1793,8 +1827,8 @@
                                                        TextWrapping="Wrap"/>
 
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="MaterialAlbedoMapBrowseButton" Content="Browse..."/>
-                                                <Button x:Name="MaterialAlbedoMapClearButton" Content="Clear"/>
+                                                <Button x:Name="MaterialAlbedoMapBrowseButton" Classes="ghost-button" Content="Browse..."/>
+                                                <Button x:Name="MaterialAlbedoMapClearButton" Classes="ghost-button" Content="Clear"/>
                                             </StackPanel>
 
                                             <TextBlock Text="Normal map" Classes="param-label"/>
@@ -1805,13 +1839,13 @@
                                                        TextWrapping="Wrap"/>
 
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="MaterialNormalMapBrowseButton" Content="Browse..."/>
-                                                <Button x:Name="MaterialNormalMapClearButton" Content="Clear"/>
+                                                <Button x:Name="MaterialNormalMapBrowseButton" Classes="ghost-button" Content="Browse..."/>
+                                                <Button x:Name="MaterialNormalMapClearButton" Classes="ghost-button" Content="Clear"/>
                                             </StackPanel>
                                             <StackPanel x:Name="MaterialNormalMapStrengthPanel"
                                                         Spacing="6"
                                                         IsVisible="False">
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Normal strength"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="MaterialNormalMapStrengthInput" Minimum="0" Maximum="2" Step="0.01" DecimalPlaces="2" Suffix="x"/>
                                                 </Grid>
@@ -1825,8 +1859,8 @@
                                                        TextWrapping="Wrap"/>
 
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="MaterialRoughnessMapBrowseButton" Content="Browse..."/>
-                                                <Button x:Name="MaterialRoughnessMapClearButton" Content="Clear"/>
+                                                <Button x:Name="MaterialRoughnessMapBrowseButton" Classes="ghost-button" Content="Browse..."/>
+                                                <Button x:Name="MaterialRoughnessMapClearButton" Classes="ghost-button" Content="Clear"/>
                                             </StackPanel>
 
                                             <TextBlock Text="Metallic map" Classes="param-label"/>
@@ -1837,26 +1871,26 @@
                                                        TextWrapping="Wrap"/>
 
                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <Button x:Name="MaterialMetallicMapBrowseButton" Content="Browse..."/>
-                                                <Button x:Name="MaterialMetallicMapClearButton" Content="Clear"/>
+                                                <Button x:Name="MaterialMetallicMapBrowseButton" Classes="ghost-button" Content="Browse..."/>
+                                                <Button x:Name="MaterialMetallicMapClearButton" Classes="ghost-button" Content="Clear"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
                                 </Expander>
 
                                 <Expander x:Name="NodeSurfaceTextureExpander" Header="Surface texture" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Brush strength"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MaterialBrushStrengthInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Brush density"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MaterialBrushDensityInput" Minimum="4" Maximum="320" Step="0.1" DecimalPlaces="1"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Surface character"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MaterialCharacterInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -1864,28 +1898,28 @@
                                 </Expander>
 
                                 <Expander x:Name="NodeMicroDetailExpander" Header="Micro detail · Debug" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <CheckBox x:Name="SpiralNormalInfluenceCheckBox"
                                                   Content="Enable spiral normal influence"/>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Basis debug mode"/>
                                             <ComboBox Grid.Column="1" x:Name="BasisDebugModeCombo"/>
                                         </Grid>
 
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="LOD fade start"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MicroLodFadeStartInput" Minimum="0.1" Maximum="10" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="LOD fade end"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MicroLodFadeEndInput" Minimum="0.1" Maximum="12" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="LOD roughness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="MicroRoughnessLodBoostInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -1897,13 +1931,13 @@
 
                     <TabItem x:Name="BrushTabItem" Header="Brush">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="10" Margin="4">
+                            <StackPanel Spacing="6" Margin="4">
                                 <TextBlock Text="LMB: paint, Cmd+LMB: orbit, MMB: pan"
                                            Classes="hint"/>
 
 
                                 <Expander x:Name="BrushAdvancedExpander" Header="Brush controls" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <CheckBox x:Name="BrushPaintEnabledCheckBox"
                                                   Content="Enable painting"/>
 
@@ -1945,12 +1979,12 @@
                                                 <CheckBox x:Name="PaintLayerVisibleCheckBox"
                                                           Content="Visible"/>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Blend"/>
                                                     <ComboBox Grid.Column="1" x:Name="PaintLayerBlendModeCombo"/>
                                                 </Grid>
 
-                                                <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                                <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                     <TextBlock Grid.Column="0" Classes="param-label" Text="Opacity"/>
                                                     <controls:ValueInput Grid.Column="1" x:Name="PaintLayerOpacityInput"
                                                                      Minimum="0"
@@ -1975,7 +2009,7 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Channel"/>
                                             <ComboBox Grid.Column="1" x:Name="BrushPaintChannelCombo"/>
                                         </Grid>
@@ -2025,55 +2059,55 @@
                                         </StackPanel>
 
                                         <StackPanel x:Name="GeneralPaintPrimaryPanel" Spacing="6">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Brush type"/>
                                                 <ComboBox Grid.Column="1" x:Name="BrushTypeCombo"/>
                                             </Grid>
 
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Brush size"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="BrushSizeInput" Minimum="1" Maximum="320" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Brush opacity"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="BrushOpacityInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
                                         </StackPanel>
 
                                         <StackPanel x:Name="GeneralPaintAdvancedPanel" Spacing="6">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Brush darkness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="BrushDarknessInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Spray spread"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="BrushSpreadInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Coat metallic"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="PaintCoatMetallicInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Coat roughness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="PaintCoatRoughnessInput" Minimum="0.04" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Clear coat"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ClearCoatAmountInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="CC roughness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ClearCoatRoughnessInput" Minimum="0.04" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Aniso angle"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="AnisotropyAngleInput" Minimum="-180" Maximum="180" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                             </Grid>
@@ -2082,37 +2116,37 @@
                                         <StackPanel x:Name="ScratchPrimaryPanel" Spacing="6" IsVisible="False">
                                             <Separator Margin="0,4,0,4"/>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Abrasion type"/>
                                                 <ComboBox Grid.Column="1" x:Name="ScratchAbrasionTypeCombo"/>
                                             </Grid>
 
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Scratch width"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchWidthInput" Minimum="1" Maximum="320" Step="0.1" DecimalPlaces="1" Suffix=" px"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Scratch depth"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchDepthInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
                                         </StackPanel>
 
                                         <StackPanel x:Name="ScratchAdvancedPanel" Spacing="6" IsVisible="False">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Drag resistance"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchResistanceInput" Minimum="0" Maximum="0.98" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Depth ramp"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchDepthRampInput" Minimum="0" Maximum="0.02" Step="0.0001" DecimalPlaces="4"/>
                                             </Grid>
 
                                             <Separator Margin="0,4,0,4"/>
 
-                                            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" RowDefinitions="Auto" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0"
                                                            Classes="param-label"
                                                            Text="Exposed color"
@@ -2134,18 +2168,19 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Exposed metallic"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchExposeMetallicInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
 
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Exposed roughness"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="ScratchExposeRoughnessInput" Minimum="0.04" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                             </Grid>
                                         </StackPanel>
 
                                         <Button x:Name="ClearPaintMaskButton"
+                                                Classes="ghost-button"
                                                 Content="Clear mask"
                                                 MinWidth="100"/>
 
@@ -2157,14 +2192,14 @@
 
                     <TabItem x:Name="SceneTabItem" Header="Scene">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="10" Margin="4">
+                            <StackPanel Spacing="6" Margin="4">
                                 <Expander Header="Tone mapping" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Mode"/>
                                             <ComboBox Grid.Column="1" x:Name="EnvTonemapCombo"/>
                                         </Grid>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Exposure"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvExposureInput" Minimum="0.1" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -2172,21 +2207,21 @@
                                 </Expander>
 
                                 <Expander Header="Environment" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Preset"/>
                                             <ComboBox Grid.Column="1" x:Name="EnvPresetCombo"/>
                                         </Grid>
                                         <StackPanel x:Name="EnvironmentManualSettingsPanel" Spacing="6">
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Intensity"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="EnvIntensityInput" Minimum="0" Maximum="3" Step="0.001" DecimalPlaces="3"/>
                                             </Grid>
-                                            <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0" Classes="param-label" Text="Roughness response"/>
                                                 <controls:ValueInput Grid.Column="1" x:Name="EnvRoughnessMixInput" Minimum="0" Maximum="1" Step="0.001" DecimalPlaces="3"/>
                                             </Grid>
-                                            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0"
                                                            Classes="param-label"
                                                            Text="Sky color"
@@ -2206,8 +2241,18 @@
                                                         <controls:ValueInput Grid.Column="1" x:Name="EnvTopBInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
                                                 </StackPanel>
+                                                <Border Grid.Column="2"
+                                                        x:Name="EnvTopColorSwatch"
+                                                        Width="16"
+                                                        Height="16"
+                                                        CornerRadius="8"
+                                                        Background="{StaticResource Surface0Brush}"
+                                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                        BorderThickness="1"
+                                                        VerticalAlignment="Top"
+                                                        Margin="4,6,0,0"/>
                                             </Grid>
-                                            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
                                                 <TextBlock Grid.Column="0"
                                                            Classes="param-label"
                                                            Text="Ground color"
@@ -2227,14 +2272,24 @@
                                                         <controls:ValueInput Grid.Column="1" x:Name="EnvBottomBInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                                     </Grid>
                                                 </StackPanel>
+                                                <Border Grid.Column="2"
+                                                        x:Name="EnvBottomColorSwatch"
+                                                        Width="16"
+                                                        Height="16"
+                                                        CornerRadius="8"
+                                                        Background="{StaticResource Surface0Brush}"
+                                                        BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                        BorderThickness="1"
+                                                        VerticalAlignment="Top"
+                                                        Margin="4,6,0,0"/>
                                             </Grid>
                                         </StackPanel>
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander Header="HDRI · Advanced" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                <Expander Header="HDRI · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Path"/>
                                             <TextBox Grid.Column="1" x:Name="EnvHdriPathTextBox" Watermark="Path to .hdr/.exr/.png"/>
                                         </Grid>
@@ -2242,43 +2297,132 @@
                                             <Button x:Name="EnvHdriApplyButton" Content="Apply HDRI" MinWidth="100"/>
                                             <Button x:Name="EnvHdriClearButton" Content="Clear HDRI" MinWidth="100"/>
                                         </StackPanel>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="HDRI blend"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvHdriBlendInput" Minimum="0" Maximum="1" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="HDRI rotation"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvHdriRotationInput" Minimum="-360" Maximum="360" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander Header="Bloom · Advanced" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                <Expander Header="Bloom · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Kernel shape"/>
                                             <ComboBox Grid.Column="1" x:Name="EnvBloomKernelShapeCombo"/>
                                         </Grid>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Bloom strength"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvBloomStrengthInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Bloom threshold"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvBloomThresholdInput" Minimum="0" Maximum="16" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Bloom knee"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="EnvBloomKneeInput" Minimum="0.001" Maximum="8" Step="0.01" DecimalPlaces="2"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Bloom radius"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvBloomRadiusInput" Minimum="0.25" Maximum="4" Step="0.01" DecimalPlaces="2" Suffix="x"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Composite intensity"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvBloomCompositeIntensityInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Glare rotation"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvGlareRotationInput" Minimum="-180" Maximum="180" Step="0.1" DecimalPlaces="1" Suffix=" deg"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*,Auto" RowDefinitions="Auto" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0"
+                                                       Classes="param-label"
+                                                       Text="Bloom tint"
+                                                       VerticalAlignment="Top"
+                                                       Margin="0,6,0,0"/>
+                                            <StackPanel Grid.Column="1" Spacing="3">
+                                                <Grid ColumnDefinitions="18,*">
+                                                    <TextBlock Grid.Column="0" Text="R" Classes="channel-r"/>
+                                                    <controls:ValueInput Grid.Column="1" x:Name="EnvBloomTintRInput" Minimum="0" Maximum="2" Step="0.01" DecimalPlaces="2"/>
+                                                </Grid>
+                                                <Grid ColumnDefinitions="18,*">
+                                                    <TextBlock Grid.Column="0" Text="G" Classes="channel-g"/>
+                                                    <controls:ValueInput Grid.Column="1" x:Name="EnvBloomTintGInput" Minimum="0" Maximum="2" Step="0.01" DecimalPlaces="2"/>
+                                                </Grid>
+                                                <Grid ColumnDefinitions="18,*">
+                                                    <TextBlock Grid.Column="0" Text="B" Classes="channel-b"/>
+                                                    <controls:ValueInput Grid.Column="1" x:Name="EnvBloomTintBInput" Minimum="0" Maximum="2" Step="0.01" DecimalPlaces="2"/>
+                                                </Grid>
+                                            </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    x:Name="BloomTintColorSwatch"
+                                                    Width="16"
+                                                    Height="16"
+                                                    CornerRadius="8"
+                                                    Background="{StaticResource Surface0Brush}"
+                                                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    VerticalAlignment="Top"
+                                                    Margin="4,6,0,0"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
 
                                 <Expander Header="Reflections" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <TextBlock Classes="param-label"
-                                                   Text="Coming next: screen-space reflections plus environment probes for shiny glare and bounce."
-                                                   TextWrapping="Wrap"/>
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <TextBlock Text="Environment reflection and Fresnel controls." Classes="hint"/>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Strength"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvReflectionStrengthInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Fresnel bias"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvReflectionFresnelBiasInput" Minimum="0" Maximum="1" Step="0.001" DecimalPlaces="3"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Classes="param-label" Text="Clear coat strength"/>
+                                            <controls:ValueInput Grid.Column="1" x:Name="EnvClearCoatReflectionStrengthInput" Minimum="0" Maximum="4" Step="0.01" DecimalPlaces="2"/>
+                                        </Grid>
+                                        <CheckBox x:Name="EnvReflectionOnlyPreviewCheckBox"
+                                                  Content="Reflection-only preview"/>
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander Header="Debug axes" IsExpanded="False">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <TextBlock Text="Per-subsystem axis inversion for troubleshooting orientation issues." Classes="hint"/>
+
+                                        <TextBlock Classes="section-tag" Text="CAMERA BASIS"/>
+                                        <CheckBox x:Name="DebugCameraInvertXCheckBox" Content="Invert X"/>
+                                        <CheckBox x:Name="DebugCameraInvertYCheckBox" Content="Invert Y"/>
+                                        <CheckBox x:Name="DebugCameraInvertZCheckBox" Content="Invert Z"/>
+                                        <CheckBox x:Name="DebugCameraFlip180CheckBox" Content="Flip camera 180°"/>
+
+                                        <TextBlock Classes="section-tag" Text="LIGHT EFFECTS / ENV LOOKUP"/>
+                                        <CheckBox x:Name="DebugLightEffectInvertXCheckBox" Content="Invert X"/>
+                                        <CheckBox x:Name="DebugLightEffectInvertYCheckBox" Content="Invert Y"/>
+                                        <CheckBox x:Name="DebugLightEffectInvertZCheckBox" Content="Invert Z"/>
+
+                                        <TextBlock Classes="section-tag" Text="BLOOM / POST-PROCESS"/>
+                                        <CheckBox x:Name="DebugBloomCompositeInvertXCheckBox" Content="Composite invert X"/>
+                                        <CheckBox x:Name="DebugBloomCompositeInvertYCheckBox" Content="Composite invert Y"/>
+
+                                        <TextBlock Classes="section-tag" Text="GIZMO OVERLAY"/>
+                                        <CheckBox x:Name="DebugGizmoInvertXCheckBox" Content="Invert X"/>
+                                        <CheckBox x:Name="DebugGizmoInvertYCheckBox" Content="Invert Y"/>
+                                        <CheckBox x:Name="DebugGizmoInvertZCheckBox" Content="Invert Z"/>
+
+                                        <TextBlock Classes="section-tag" Text="GEOMETRY / WINDING"/>
+                                        <CheckBox x:Name="DebugInvertKnobWindingCheckBox" Content="Invert knob front-face winding"/>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                                            <Button x:Name="DebugResetAxesButton" Classes="ghost-button" Content="Reset all" MinWidth="80"/>
+                                            <Button x:Name="DebugPrintStateButton" Classes="ghost-button" Content="Print state" MinWidth="80"/>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Expander>
                             </StackPanel>
@@ -2287,13 +2431,13 @@
 
                     <TabItem x:Name="ShadowsTabItem" Header="Shadows">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="10" Margin="4">
+                            <StackPanel Spacing="6" Margin="4">
                                 <Expander Header="Enable" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
                                         <CheckBox x:Name="ShadowEnabledCheckBox"
                                                   Content="Enable shadows"/>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Source mode"/>
                                             <ComboBox Grid.Column="1" x:Name="ShadowSourceModeCombo"/>
                                         </Grid>
@@ -2302,13 +2446,13 @@
                                 </Expander>
 
                                 <Expander Header="Projection" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Distance"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowDistanceInput" Minimum="0" Maximum="2.5" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Scale"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowScaleInput" Minimum="0.7" Maximum="1.6" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -2316,32 +2460,32 @@
                                 </Expander>
 
                                 <Expander Header="Softness" IsExpanded="True">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Softness"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowSoftnessInput" Minimum="0" Maximum="1" Step="0.001" DecimalPlaces="3"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Quality"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowQualityInput" Minimum="0" Maximum="1" Step="0.001" DecimalPlaces="3"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander Header="Appearance · Advanced" IsExpanded="False">
-                                    <StackPanel Spacing="6" Margin="0,6,0,0">
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                <Expander Header="Appearance · Advanced" IsExpanded="False" Classes="advanced-expander">
+                                    <StackPanel Spacing="5" Margin="0,6,0,0">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Strength"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowStrengthInput" Minimum="0" Maximum="2.5" Step="0.001" DecimalPlaces="3"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Shadow gray"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowGrayInput" Minimum="0" Maximum="0.6" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
 
-                                        <Grid ColumnDefinitions="120,*" ColumnSpacing="8">
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
                                             <TextBlock Grid.Column="0" Classes="param-label" Text="Diffuse influence"/>
                                             <controls:ValueInput Grid.Column="1" x:Name="ShadowDiffuseInfluenceInput" Minimum="0" Maximum="2" Step="0.01" DecimalPlaces="2"/>
                                         </Grid>
@@ -2353,7 +2497,7 @@
 
                     <TabItem x:Name="MaterialGraphTabItem" Header="Graph">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="MaterialGraphPanel" Spacing="10" Margin="4">
+                            <StackPanel x:Name="MaterialGraphPanel" Spacing="6" Margin="4">
                                 <TextBlock Text="Build procedural materials by connecting nodes"
                                            Classes="hint"/>
 
@@ -2426,7 +2570,7 @@
                                 Height="14"
                                 Background="Transparent"
                                 HorizontalAlignment="Stretch"
-                                CornerRadius="4">
+                                CornerRadius="6">
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"

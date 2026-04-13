@@ -16,6 +16,12 @@ namespace KnobForge.Rendering;
 
 public sealed partial class KnobExporter
 {
+        private static float ApplyCameraDistanceScaleToZoom(float zoom, float cameraDistanceScale)
+        {
+            float safeDistanceScale = MathF.Max(0.0001f, cameraDistanceScale);
+            return Math.Clamp(zoom / safeDistanceScale, 0.2f, 32f);
+        }
+
         private static Camera BuildExportCamera(
             float referenceRadius,
             KnobExportSettings settings,
@@ -68,12 +74,13 @@ public sealed partial class KnobExporter
                     right = -right;
                 }
 
-                float distance = MathF.Max(1f, referenceRadius) * 6f;
+                float distance = MathF.Max(1f, referenceRadius) * 6f * MathF.Max(0.0001f, settings.CameraDistanceScale);
                 Vector3 position = -forward * distance;
                 float resolutionScale = renderResolution / (float)Math.Max(1, outputResolution);
                 float zoom = Math.Clamp(state.Zoom * resolutionScale, 0.2f, 32f);
                 SKPoint pan = new(state.PanPx.X * resolutionScale, state.PanPx.Y * resolutionScale);
                 zoom = MathF.Min(zoom, ComputeSafeZoomForFrame(referenceRadius, renderResolution, settings.Padding * resolutionScale, pan));
+                zoom = ApplyCameraDistanceScaleToZoom(zoom, settings.CameraDistanceScale);
                 return new Camera(position, forward, right, up, zoom, pan);
             }
 
@@ -87,6 +94,7 @@ public sealed partial class KnobExporter
             float padding = MathF.Max(0f, settings.Padding);
             float contentPixels = MathF.Max(1f, renderResolution - (padding * 2f));
             float fallbackZoom = contentPixels / MathF.Max(1f, referenceRadius * 2f);
+            fallbackZoom = ApplyCameraDistanceScaleToZoom(fallbackZoom, settings.CameraDistanceScale);
             return new Camera(fallbackPosition, fallbackForward, fallbackRight, fallbackUp, fallbackZoom, SKPoint.Empty);
         }
 
@@ -104,12 +112,14 @@ public sealed partial class KnobExporter
                 float zoom = Math.Clamp(state.Zoom * resolutionScale, 0.2f, 32f);
                 SKPoint pan = new(state.PanPx.X * resolutionScale, state.PanPx.Y * resolutionScale);
                 zoom = MathF.Min(zoom, ComputeSafeZoomForFrame(referenceRadius, renderResolution, settings.Padding * resolutionScale, pan));
+                zoom = ApplyCameraDistanceScaleToZoom(zoom, settings.CameraDistanceScale);
                 return new ViewportCameraState(state.OrbitYawDeg, state.OrbitPitchDeg, zoom, pan);
             }
 
             float padding = MathF.Max(0f, settings.Padding);
             float contentPixels = MathF.Max(1f, renderResolution - (padding * 2f));
             float zoomFallback = contentPixels / MathF.Max(1f, referenceRadius * 2f);
+            zoomFallback = ApplyCameraDistanceScaleToZoom(zoomFallback, settings.CameraDistanceScale);
             return new ViewportCameraState(30f, -20f, zoomFallback, SKPoint.Empty);
         }
 

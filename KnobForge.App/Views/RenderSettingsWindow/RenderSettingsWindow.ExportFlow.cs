@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private async void OnBrowseOutputButtonClick(object? sender, RoutedEventArgs e)
         {
@@ -196,11 +196,16 @@ namespace KnobForge.App.Views
                     throw new InvalidOperationException(orbitError);
                 }
 
-                ViewportCameraState exportCameraState = _cameraState with
-                {
-                    OrbitYawDeg = baseYawDeg,
-                    OrbitPitchDeg = basePitchDeg
-                };
+                float referenceRadius = GetSceneReferenceRadius();
+                int renderResolution = checked(settings.Resolution * settings.SupersampleScale);
+                ViewportCameraState exportCameraState = BuildPreviewCameraState(
+                    referenceRadius,
+                    settings.Resolution,
+                    renderResolution,
+                    settings.Padding,
+                    settings.CameraDistanceScale,
+                    baseYawDeg,
+                    basePitchDeg);
                 Action<int, int>? frameStateApplier = null;
 
                 // For non-rotary interactors, match export framing to the interactive preview fit pass.
@@ -220,9 +225,11 @@ namespace KnobForge.App.Views
                         FrameCount: settings.FrameCount,
                         Resolution: settings.Resolution,
                         SupersampleScale: settings.SupersampleScale,
-                        RenderResolution: checked(settings.Resolution * settings.SupersampleScale),
+                        RenderResolution: renderResolution,
                         Padding: settings.Padding,
-                        CameraState: exportCameraState);
+                        CameraState: exportCameraState,
+                        QualityTier: RenderQualityTier.Production,
+                        AutoFitCamera: true);
 
                     int fittingSamples = Math.Clamp(Math.Min(settings.FrameCount, 12), 4, 12);
                     ExportViewpoint[] resolvedViewpoints = ExportViewpointResolver.ResolveViewpoints(settings);

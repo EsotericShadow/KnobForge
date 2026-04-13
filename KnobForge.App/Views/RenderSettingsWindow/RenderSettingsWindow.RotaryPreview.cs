@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private bool SupportsRotaryPreview =>
             _project.ProjectType == InteractorProjectType.RotaryKnob ||
@@ -46,11 +46,11 @@ namespace KnobForge.App.Views
         {
             return _project.ProjectType switch
             {
-                InteractorProjectType.RotaryKnob => "Choose perspective, then click Create Rotary Preview. Drag to spin through output frames and inspect the current compression result.",
-                InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames and inspect the current compression result.",
-                InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames and inspect the current compression result.",
-                InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames and inspect the current compression result.",
-                InteractorProjectType.IndicatorLight => "Choose perspective, then click Create Indicator Preview. Drag to scrub the loop, validate emissive timing/framing, and inspect the current compression result.",
+                InteractorProjectType.RotaryKnob => "Choose perspective, then click Create Rotary Preview. Drag to spin through output frames and inspect render parity. Compression estimates stay below.",
+                InteractorProjectType.ThumbSlider => "Choose perspective, then click Create Slider Preview. Drag to scrub thumb travel frames and inspect render parity. Compression estimates stay below.",
+                InteractorProjectType.FlipSwitch => "Choose perspective, then click Create Switch Preview. Drag to scrub state frames and inspect render parity. Compression estimates stay below.",
+                InteractorProjectType.PushButton => "Choose perspective, then click Create Button Preview. Drag to scrub press-depth frames and inspect render parity. Compression estimates stay below.",
+                InteractorProjectType.IndicatorLight => "Choose perspective, then click Create Indicator Preview. Drag to scrub the loop, validate emissive timing/framing, and inspect render parity. Compression estimates stay below.",
                 _ => "Interactive preview is unavailable for this project type."
             };
         }
@@ -257,17 +257,20 @@ namespace KnobForge.App.Views
             bool anyOpaqueFrame = false;
             try
             {
-                int fittingSamples = Math.Clamp(Math.Min(frameCount, 12), 4, 12);
-                cameraState = await FitRotaryPreviewCameraAsync(
-                    request,
-                    cameraState,
-                    stateSnapshot.ModelRotations,
-                    stateSnapshot.ToggleStateIndex,
-                    stateSnapshot.ToggleStateBlendPosition,
-                    stateSnapshot.SliderThumbPositionNormalized,
-                    stateSnapshot.PushButtonPressAmountNormalized,
-                    fittingSamples,
-                    cancellationToken);
+                if (request.AutoFitCamera)
+                {
+                    int fittingSamples = Math.Clamp(Math.Min(frameCount, 12), 4, 12);
+                    cameraState = await FitRotaryPreviewCameraAsync(
+                        request,
+                        cameraState,
+                        stateSnapshot.ModelRotations,
+                        stateSnapshot.ToggleStateIndex,
+                        stateSnapshot.ToggleStateBlendPosition,
+                        stateSnapshot.SliderThumbPositionNormalized,
+                        stateSnapshot.PushButtonPressAmountNormalized,
+                        fittingSamples,
+                        cancellationToken);
+                }
 
                 for (int i = 0; i < frameCount; i++)
                 {
@@ -304,7 +307,8 @@ namespace KnobForge.App.Views
                                 request.RenderResolution,
                                 cameraState,
                                 out SKBitmap? frame,
-                                animationTimeSeconds))
+                                animationTimeSeconds,
+                                request.QualityTier))
                             {
                                 return frame;
                             }
@@ -372,14 +376,18 @@ namespace KnobForge.App.Views
             string outputPath = CreateRotaryPreviewTempPath();
             var previewEncodingSettings = new KnobExportSettings();
             compressionSettings.ApplyTo(previewEncodingSettings);
-            using SKData pngData = KnobExporter.EncodePreviewSpritesheetPng(
+            using SKData estimatedPngData = KnobExporter.EncodePreviewSpritesheetPng(
                 sheetBitmap,
                 previewEncodingSettings,
                 previewEncodingSettings.OptimizeSpritesheetPng);
+            using SKData previewPngData = KnobExporter.EncodePreviewSpritesheetPng(
+                sheetBitmap,
+                previewEncodingSettings,
+                allowOptimization: false);
             using FileStream outputStream = File.Create(outputPath);
-            pngData.SaveTo(outputStream);
+            previewPngData.SaveTo(outputStream);
 
-            return new RotaryPreviewSheet(outputPath, frameCount, columns, resolution, (long)pngData.Size);
+            return new RotaryPreviewSheet(outputPath, frameCount, columns, resolution, (long)estimatedPngData.Size);
         }
 
         private async Task<ViewportCameraState> FitRotaryPreviewCameraAsync(
@@ -440,7 +448,8 @@ namespace KnobForge.App.Views
                                     request.Resolution,
                                     cameraState,
                                     out SKBitmap? frame,
-                                    animationTimeSeconds))
+                                    animationTimeSeconds,
+                                    request.QualityTier))
                                 {
                                     return frame;
                                 }

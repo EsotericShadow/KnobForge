@@ -168,6 +168,14 @@ namespace KnobForge.App.Controls
             public GpuLight DynamicLight6;
             public GpuLight DynamicLight7;
             public Vector4 EnvironmentMapParams3;
+            public Vector4 BloomTintAndIntensity;
+            public Vector4 ReflectionParams;
+            public Vector4 DirectShadowCameraPosAndNear;
+            public Vector4 DirectShadowRightAndScaleX;
+            public Vector4 DirectShadowUpAndScaleY;
+            public Vector4 DirectShadowForwardAndFar;
+            public Vector4 DirectShadowProjectionOffsetsAndTexel;
+            public Vector4 DirectShadowParams;
         }
 
         private readonly record struct MeshShapeKey(

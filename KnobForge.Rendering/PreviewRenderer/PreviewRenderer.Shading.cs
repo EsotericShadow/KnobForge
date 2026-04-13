@@ -99,6 +99,8 @@ namespace KnobForge.Rendering
             float uvFootprint = 1f / MathF.Max(1e-5f, topRadius * 2f * _currentShadeZoom);
             float texelsPerPixel = 1f / MathF.Max(uvFootprint * SpiralNormalMapSize, 1e-5f);
             float microDetailVisibility = SmoothStep(fadeStart, fadeEnd, texelsPerPixel);
+            float brushPixelsPerCycle = (topRadius * 2f * _currentShadeZoom) / MathF.Max(brushDensity * 0.75f, 1f);
+            float brushDetailVisibility = SmoothStep(0.85f, 1.75f, brushPixelsPerCycle);
 
             if (spiralNormalMap != null && uvInside && topMask > 0f)
             {
@@ -191,6 +193,11 @@ namespace KnobForge.Rendering
                 (scratchMask * 0.10f),
                 0f,
                 1f);
+            float surfaceDetailVisibility = MathF.Min(microDetailVisibility, brushDetailVisibility);
+            float proceduralRoughnessAa =
+                (1f - surfaceDetailVisibility) *
+                (0.06f + (0.12f * brushStrength * topMask * (0.35f + (0.65f * surfaceCharacter))));
+            roughness = Math.Clamp(MathF.Sqrt(MathF.Max(roughness * roughness + proceduralRoughnessAa, 0f)), 0.04f, 1f);
             shininess = 4f + ((128f - 4f) * (1f - roughness));
 
             Vector3 radial = new(-centroid.Y, centroid.X, 0f);
@@ -207,8 +214,22 @@ namespace KnobForge.Rendering
             }
 
             Vector3 bitangent = Vector3.Normalize(Vector3.Cross(shadingNormal, tangent));
+            float anisotropyAngleRadians = _project.AnisotropyAngleDegrees * (MathF.PI / 180f);
+            if (MathF.Abs(anisotropyAngleRadians) > 1e-5f)
+            {
+                float angleCos = MathF.Cos(anisotropyAngleRadians);
+                float angleSin = MathF.Sin(anisotropyAngleRadians);
+                Vector3 rotatedTangent = Vector3.Normalize(tangent * angleCos + bitangent * angleSin);
+                Vector3 rotatedBitangent = Vector3.Cross(shadingNormal, rotatedTangent);
+                if (rotatedBitangent.LengthSquared() > 1e-8f)
+                {
+                    tangent = rotatedTangent;
+                    bitangent = Vector3.Normalize(rotatedBitangent);
+                }
+            }
+
             float anisotropy = Math.Clamp(
-                brushStrength * topMask * (0.35f + (0.65f * surfaceCharacter)) * Lerp(0.8f, 1.2f, brushDensityFactor),
+                brushStrength * topMask * (0.35f + (0.65f * surfaceCharacter)) * Lerp(0.8f, 1.2f, brushDensityFactor) * brushDetailVisibility,
                 0f,
                 0.95f);
             float alpha = MathF.Max(0.02f, roughness * roughness);
@@ -291,12 +312,30 @@ namespace KnobForge.Rendering
             Vector3 envBottom = _project.EnvironmentBottomColor;
             float envIntensity = MathF.Max(0f, _project.EnvironmentIntensity);
             float envRoughMix = Math.Clamp(_project.EnvironmentRoughnessMix, 0f, 1f);
+            float reflectionStrength = Math.Clamp(_project.ReflectionStrength, 0f, 4f);
 
             Vector3 reflection = Vector3.Reflect(-viewDir, shadingNormal);
-            float hemi = Math.Clamp(reflection.Y * 0.5f + 0.5f, 0f, 1f);
+            Vector3 bentReflection = reflection;
+            if (anisotropy > 1e-5f)
+            {
+                Vector3 anisotropicTangent = Vector3.Cross(bitangent, viewDir);
+                if (anisotropicTangent.LengthSquared() > 1e-8f)
+                {
+                    anisotropicTangent = Vector3.Normalize(anisotropicTangent);
+                    Vector3 anisotropicNormal = Vector3.Cross(anisotropicTangent, bitangent);
+                    if (anisotropicNormal.LengthSquared() > 1e-8f)
+                    {
+                        anisotropicNormal = Vector3.Normalize(anisotropicNormal);
+                        Vector3 bentNormal = Vector3.Normalize(Vector3.Lerp(shadingNormal, anisotropicNormal, anisotropy));
+                        bentReflection = Vector3.Reflect(-viewDir, bentNormal);
+                    }
+                }
+            }
+
+            float hemi = Math.Clamp(bentReflection.Y * 0.5f + 0.5f, 0f, 1f);
             Vector3 envBase = envBottom + ((envTop - envBottom) * hemi);
-            float horizonBand = MathF.Exp(-MathF.Abs(reflection.Y) * 12f);
-            float skyHotspot = MathF.Pow(Math.Clamp((reflection.Z * 0.5f) + 0.5f, 0f, 1f), 24f) * hemi;
+            float horizonBand = MathF.Exp(-MathF.Abs(bentReflection.Y) * 12f);
+            float skyHotspot = MathF.Pow(Math.Clamp((bentReflection.Z * 0.5f) + 0.5f, 0f, 1f), 24f) * hemi;
             Vector3 horizonColor = Vector3.Lerp(envTop, Vector3.One, 0.35f);
             Vector3 envColor = envBase + (horizonColor * (0.40f * horizonBand)) + (Vector3.One * (0.25f * skyHotspot));
             float envSpecWeight = 0.20f + (1.15f * metallic);
@@ -306,11 +345,11 @@ namespace KnobForge.Rendering
             float envDiffuseWeight = MathF.Max(0f, 1f - metallic);
             Vector3 envDiffuse = Hadamard(baseColor, envColor) * envDiffuseWeight;
             float envDiffuseEnergy = 0.35f;
-            float roughEnergy = 1.12f + ((0.45f - 1.12f) * (roughness * envRoughMix));
+            float roughEnergy = 1f + ((0.65f - 1f) * (roughness * envRoughMix));
             float anisotropicEnergy = 1f + ((1.35f - 1f) * anisotropy);
-            float envBrush = Lerp(1f, 1.08f, brushStrength * topMask * (0.35f + (0.65f * surfaceCharacter)));
+            float envBrush = Lerp(1f, 1.08f, brushStrength * topMask * (0.35f + (0.65f * surfaceCharacter)) * brushDetailVisibility);
             accum += envDiffuse * (envIntensity * envDiffuseEnergy);
-            accum += envSpecular * (envIntensity * roughEnergy * anisotropicEnergy * envBrush);
+            accum += envSpecular * (envIntensity * roughEnergy * anisotropicEnergy * envBrush * reflectionStrength);
 
             if (pearlescence > 1e-4f)
             {

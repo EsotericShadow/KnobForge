@@ -12,14 +12,14 @@ namespace KnobForge.App.Controls
 {
     public sealed class ValueInput : UserControl
     {
-        private static readonly Color FieldBackgroundColor = Color.Parse("#1A1E24");
-        private static readonly Color FieldBorderColor = Color.Parse("#3A4550");
+        private static readonly Color FieldBackgroundColor = Color.Parse("#0D1117");
+        private static readonly Color FieldBorderColor = Color.Parse("#2A3140");
         private static readonly Color TextColorValue = Color.Parse("#E6EEF5");
-        private static readonly Color ArrowColorValue = Color.Parse("#8899AA");
-        private static readonly Color ArrowHoverColorValue = Color.Parse("#BBCCDD");
-        private static readonly Color ButtonHoverBackgroundColor = Color.Parse("#2A3440");
-        private static readonly Color ButtonPressedBackgroundColor = Color.Parse("#354555");
-        private static readonly Color DividerColorValue = Color.Parse("#2E3740");
+        private static readonly Color ArrowColorValue = Color.Parse("#707C88");
+        private static readonly Color ArrowHoverColorValue = Color.Parse("#A8B4C0");
+        private static readonly Color ButtonHoverBackgroundColor = Color.Parse("#1E2430");
+        private static readonly Color ButtonPressedBackgroundColor = Color.Parse("#262D38");
+        private static readonly Color DividerColorValue = Color.Parse("#2A3140");
 
         private readonly Border _rootBorder;
         private readonly TextBox _textBox;
@@ -99,7 +99,7 @@ namespace KnobForge.App.Controls
         public ValueInput()
         {
             MinWidth = 80;
-            Height = 26;
+            Height = 28;
             HorizontalAlignment = HorizontalAlignment.Stretch;
 
             _textBox = new TextBox
@@ -109,7 +109,7 @@ namespace KnobForge.App.Controls
                 Foreground = new SolidColorBrush(TextColorValue),
                 VerticalContentAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Right,
-                FontSize = 12,
+                FontSize = 11,
                 Padding = new Thickness(8, 2, 6, 2)
             };
 
@@ -140,7 +140,7 @@ namespace KnobForge.App.Controls
                 Background = new SolidColorBrush(FieldBackgroundColor),
                 BorderBrush = new SolidColorBrush(FieldBorderColor),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(2.5),
+                CornerRadius = new CornerRadius(6),
                 Child = contentGrid
             };
 
@@ -154,7 +154,7 @@ namespace KnobForge.App.Controls
             _textBox.PointerReleased += OnTextBoxPointerReleased;
             _textBox.PointerCaptureLost += OnTextBoxPointerCaptureLost;
 
-            AddHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Bubble);
+            AddHandler(InputElement.PointerWheelChangedEvent, OnPointerWheelChanged, RoutingStrategies.Tunnel);
 
             UpdateDisplayedText(force: true);
         }
@@ -342,6 +342,11 @@ namespace KnobForge.App.Controls
 
         private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
         {
+            if (!IsPointerOver)
+            {
+                return;
+            }
+
             _lastKnownModifiers = e.KeyModifiers;
             double deltaY = e.Delta.Y;
             if (Math.Abs(deltaY) < double.Epsilon)

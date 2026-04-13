@@ -31,6 +31,7 @@ namespace KnobForge.App.Controls
             public static readonly IntPtr SetDevice = ObjC.sel_registerName("setDevice:");
             public static readonly IntPtr SetPixelFormat = ObjC.sel_registerName("setPixelFormat:");
             public static readonly IntPtr SetFramebufferOnly = ObjC.sel_registerName("setFramebufferOnly:");
+            public static readonly IntPtr SetPresentsWithTransaction = ObjC.sel_registerName("setPresentsWithTransaction:");
             public static readonly IntPtr SetContentsScale = ObjC.sel_registerName("setContentsScale:");
             public static readonly IntPtr SetDrawableSize = ObjC.sel_registerName("setDrawableSize:");
             public static readonly IntPtr NextDrawable = ObjC.sel_registerName("nextDrawable");
@@ -103,6 +104,12 @@ namespace KnobForge.App.Controls
 
             [DllImport("/usr/lib/libobjc.A.dylib")]
             public static extern IntPtr sel_registerName(string name);
+
+            [DllImport("/usr/lib/libobjc.A.dylib")]
+            public static extern IntPtr objc_autoreleasePoolPush();
+
+            [DllImport("/usr/lib/libobjc.A.dylib")]
+            public static extern void objc_autoreleasePoolPop(IntPtr pool);
 
             [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
             public static extern IntPtr IntPtr_objc_msgSend(IntPtr receiver, IntPtr selector);

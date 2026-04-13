@@ -494,6 +494,7 @@
                           Width="{Binding EffectiveKnobDiameter, RelativeSource={RelativeSource TemplatedParent}}"
                           Height="{Binding EffectiveKnobDiameter, RelativeSource={RelativeSource TemplatedParent}}">
                         <Image Source="{Binding CurrentFrame, RelativeSource={RelativeSource TemplatedParent}}"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"
                                Stretch="UniformToFill"/>
                     </Grid>
                 </ControlTemplate>

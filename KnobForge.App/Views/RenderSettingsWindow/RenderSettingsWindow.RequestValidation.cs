@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace KnobForge.App.Views
 {
-    public partial class RenderSettingsWindow : Window
+    public partial class RenderSettingsWindow : AppWindow
     {
         private bool TryBuildPreviewRequest(out PreviewRenderRequest request, out string error)
         {
@@ -101,12 +101,14 @@ namespace KnobForge.App.Views
                 basePitchDeg);
 
             request = new PreviewRenderRequest(
-                frameCount,
-                resolution,
-                supersampleScale,
-                renderResolution,
-                padding,
-                previewCamera);
+                FrameCount: frameCount,
+                Resolution: resolution,
+                SupersampleScale: supersampleScale,
+                RenderResolution: renderResolution,
+                Padding: padding,
+                CameraState: previewCamera,
+                QualityTier: RenderQualityTier.Production,
+                AutoFitCamera: _project.ProjectType != InteractorProjectType.RotaryKnob);
             return true;
         }
 
@@ -120,9 +122,9 @@ namespace KnobForge.App.Views
             float basePitchDeg)
         {
             float resolutionScale = renderResolution / (float)Math.Max(1, outputResolution);
-            float zoom = Math.Clamp(_cameraState.Zoom * resolutionScale, 0.2f, 32f);
-            SKPoint pan = new(_cameraState.PanPx.X * resolutionScale, _cameraState.PanPx.Y * resolutionScale);
-            zoom = MathF.Min(zoom, ComputeSafeZoomForFrame(referenceRadius, renderResolution, padding * resolutionScale, pan));
+            SKPoint pan = SKPoint.Empty;
+            float fitZoom = ComputeSafeZoomForFrame(referenceRadius, renderResolution, padding * resolutionScale, pan);
+            float zoom = Math.Clamp(fitZoom / MathF.Max(0.0001f, cameraDistanceScale), 0.2f, 32f);
 
             if (zoom <= 0.0001f)
             {

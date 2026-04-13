@@ -49,19 +49,19 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            string? pushButtonModelsDirectory = ResolvePushButtonModelsDirectory();
+            IReadOnlyList<string> pushButtonModelsDirectories = ResolvePushButtonModelsDirectories();
 
             _pushButtonBaseMeshOptions.Clear();
             _pushButtonCapMeshOptions.Clear();
 
             _pushButtonBaseMeshOptions.Add(new PushButtonMeshOption("Auto (procedural)", string.Empty));
-            foreach (string path in EnumerateDiscoveredPushButtonModelPaths(pushButtonModelsDirectory, PushButtonBaseDirectoryNames))
+            foreach (string path in EnumerateDiscoveredPushButtonModelPaths(pushButtonModelsDirectories, PushButtonBaseDirectoryNames))
             {
                 _pushButtonBaseMeshOptions.Add(new PushButtonMeshOption(BuildPushButtonMeshOptionLabel(path), path));
             }
 
             _pushButtonCapMeshOptions.Add(new PushButtonMeshOption("Auto (procedural)", string.Empty));
-            foreach (string path in EnumerateDiscoveredPushButtonModelPaths(pushButtonModelsDirectory, PushButtonCapDirectoryNames))
+            foreach (string path in EnumerateDiscoveredPushButtonModelPaths(pushButtonModelsDirectories, PushButtonCapDirectoryNames))
             {
                 _pushButtonCapMeshOptions.Add(new PushButtonMeshOption(BuildPushButtonMeshOptionLabel(path), path));
             }
@@ -96,7 +96,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            string normalized = NormalizePathForCompare(configuredPath);
+            string normalized = NormalizePathForCompare(ResolveBestPushButtonMeshPath(options, configuredPath));
             bool exists = options.Any(option => string.Equals(NormalizePathForCompare(option.MeshPath), normalized, StringComparison.OrdinalIgnoreCase));
             if (exists)
             {
@@ -113,7 +113,7 @@ namespace KnobForge.App.Views
                 return new PushButtonMeshOption("Auto (procedural)", string.Empty);
             }
 
-            string normalized = NormalizePathForCompare(configuredPath);
+            string normalized = NormalizePathForCompare(ResolveBestPushButtonMeshPath(options, configuredPath));
             if (string.IsNullOrWhiteSpace(normalized))
             {
                 return options[0];
@@ -134,25 +134,39 @@ namespace KnobForge.App.Views
             return string.Empty;
         }
 
-        private static IEnumerable<string> EnumerateDiscoveredPushButtonModelPaths(string? pushButtonModelsDirectory, string[] preferredDirectories)
+        private static IEnumerable<string> EnumerateDiscoveredPushButtonModelPaths(IEnumerable<string> pushButtonModelsDirectories, string[] preferredDirectories)
         {
-            if (string.IsNullOrWhiteSpace(pushButtonModelsDirectory) || !Directory.Exists(pushButtonModelsDirectory))
-            {
-                return Enumerable.Empty<string>();
-            }
-
             var paths = new List<string>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            for (int i = 0; i < preferredDirectories.Length; i++)
+            foreach (string pushButtonModelsDirectory in pushButtonModelsDirectories)
             {
-                string directory = Path.Combine(pushButtonModelsDirectory, preferredDirectories[i]);
-                if (!Directory.Exists(directory))
+                if (string.IsNullOrWhiteSpace(pushButtonModelsDirectory) || !Directory.Exists(pushButtonModelsDirectory))
                 {
                     continue;
                 }
 
-                foreach (string path in EnumerateSupportedPushButtonModelFiles(directory))
+                for (int i = 0; i < preferredDirectories.Length; i++)
+                {
+                    string directory = Path.Combine(pushButtonModelsDirectory, preferredDirectories[i]);
+                    if (!Directory.Exists(directory))
+                    {
+                        continue;
+                    }
+
+                    foreach (string path in EnumerateSupportedPushButtonModelFiles(directory))
+                    {
+                        string normalized = NormalizePathForCompare(path);
+                        if (!seen.Add(normalized))
+                        {
+                            continue;
+                        }
+
+                        paths.Add(path);
+                    }
+                }
+
+                foreach (string path in EnumerateSupportedPushButtonModelFiles(pushButtonModelsDirectory))
                 {
                     string normalized = NormalizePathForCompare(path);
                     if (!seen.Add(normalized))
@@ -162,17 +176,6 @@ namespace KnobForge.App.Views
 
                     paths.Add(path);
                 }
-            }
-
-            foreach (string path in EnumerateSupportedPushButtonModelFiles(pushButtonModelsDirectory))
-            {
-                string normalized = NormalizePathForCompare(path);
-                if (!seen.Add(normalized))
-                {
-                    continue;
-                }
-
-                paths.Add(path);
             }
 
             return paths;
@@ -202,21 +205,82 @@ namespace KnobForge.App.Views
                 path.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static string? ResolvePushButtonModelsDirectory()
+        private static string ResolveBestPushButtonMeshPath(IEnumerable<PushButtonMeshOption> options, string configuredPath)
         {
-            string desktopRoot = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "Monozukuri");
-            for (int i = 0; i < PushButtonModelsDirectoryCandidates.Length; i++)
+            if (string.IsNullOrWhiteSpace(configuredPath))
             {
-                string candidate = Path.Combine(desktopRoot, PushButtonModelsDirectoryCandidates[i]);
-                if (Directory.Exists(candidate))
+                return string.Empty;
+            }
+
+            string normalizedConfiguredPath = NormalizePathForCompare(configuredPath);
+            PushButtonMeshOption? directMatch = options.FirstOrDefault(option =>
+                string.Equals(NormalizePathForCompare(option.MeshPath), normalizedConfiguredPath, StringComparison.OrdinalIgnoreCase));
+            if (directMatch != null)
+            {
+                return directMatch.MeshPath;
+            }
+
+            string fileName = Path.GetFileName(configuredPath.Trim());
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return configuredPath;
+            }
+
+            PushButtonMeshOption? fileNameMatch = options.FirstOrDefault(option =>
+                string.Equals(Path.GetFileName(option.MeshPath), fileName, StringComparison.OrdinalIgnoreCase));
+            return fileNameMatch?.MeshPath ?? configuredPath;
+        }
+
+        private static IReadOnlyList<string> ResolvePushButtonModelsDirectories()
+        {
+            var directories = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string root in EnumeratePushButtonSearchRoots())
+            {
+                for (int i = 0; i < PushButtonModelsDirectoryCandidates.Length; i++)
                 {
-                    return candidate;
+                    TryAddExistingPushButtonDirectory(directories, seen, Path.Combine(root, PushButtonModelsDirectoryCandidates[i]));
                 }
             }
 
-            return null;
+            return directories;
+        }
+
+        private static IEnumerable<string> EnumeratePushButtonSearchRoots()
+        {
+            string currentDirectory = Environment.CurrentDirectory;
+            if (!string.IsNullOrWhiteSpace(currentDirectory))
+            {
+                yield return currentDirectory;
+            }
+
+            string? probe = AppContext.BaseDirectory;
+            for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+            {
+                yield return probe;
+                probe = Directory.GetParent(probe)?.FullName;
+            }
+
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (!string.IsNullOrWhiteSpace(desktop))
+            {
+                yield return Path.Combine(desktop, "Monozukuri");
+                yield return Path.Combine(desktop, "KnobForge");
+            }
+        }
+
+        private static void TryAddExistingPushButtonDirectory(ICollection<string> directories, ISet<string> seen, string candidate)
+        {
+            if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+            {
+                return;
+            }
+
+            string normalized = NormalizePathForCompare(candidate);
+            if (seen.Add(normalized))
+            {
+                directories.Add(candidate);
+            }
         }
     }
 }

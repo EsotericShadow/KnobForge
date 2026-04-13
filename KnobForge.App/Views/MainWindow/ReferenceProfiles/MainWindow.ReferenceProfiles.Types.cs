@@ -40,6 +40,16 @@ namespace KnobForge.App.Views
             public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
             public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
             public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
+            public float BloomRadius { get; set; } = 1f;
+            public float BloomTintR { get; set; } = 1f;
+            public float BloomTintG { get; set; } = 1f;
+            public float BloomTintB { get; set; } = 1f;
+            public float GlareRotationDegrees { get; set; }
+            public float BloomCompositeIntensity { get; set; } = 1f;
+            public float ReflectionStrength { get; set; } = 1f;
+            public float ReflectionFresnelBias { get; set; } = 0.04f;
+            public float ClearCoatReflectionStrength { get; set; } = 1f;
+            public bool ReflectionOnlyPreview { get; set; }
             public float EnvironmentExposure { get; set; } = 1f;
             public float EnvironmentBloomStrength { get; set; } = 0.40f;
             public float EnvironmentBloomThreshold { get; set; } = 1.10f;

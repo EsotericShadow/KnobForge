@@ -166,6 +166,9 @@ public static class ToggleAssemblyMeshBuilder
             : stateIndex;
         float maxAngle = Math.Clamp(project.ToggleMaxAngleDeg, 5f, 85f);
         float leverAngleDeg = ResolveLeverAngleDeg(stateCount, stateBlendPosition, maxAngle);
+        IReadOnlyList<string> toggleRootDirectories = ResolveToggleRootDirectories();
+        string baseImportedMeshPath = ResolveImportedMeshPath(project.ToggleBaseImportedMeshPath, toggleRootDirectories, TogglePartKind.Base);
+        string leverImportedMeshPath = ResolveImportedMeshPath(project.ToggleLeverImportedMeshPath, toggleRootDirectories, TogglePartKind.Lever);
         return new ToggleAssemblyConfig(
             Enabled: true,
             StateCount: stateCount,
@@ -212,10 +215,10 @@ public static class ToggleAssemblyMeshBuilder
             TipSleevePatternCount: tipSleevePatternCount,
             TipSleevePatternDepth: tipSleevePatternDepth,
             TipSleeveTipAmount: tipSleeveTipAmount,
-            BaseImportedMeshPath: string.Empty,
-            BaseImportedMeshTicks: 0L,
-            LeverImportedMeshPath: string.Empty,
-            LeverImportedMeshTicks: 0L);
+            BaseImportedMeshPath: baseImportedMeshPath,
+            BaseImportedMeshTicks: ResolveFileTicks(baseImportedMeshPath),
+            LeverImportedMeshPath: leverImportedMeshPath,
+            LeverImportedMeshTicks: ResolveFileTicks(leverImportedMeshPath));
     }
 
     private static int ScaleSegments(int baseCount, RenderQualityTier quality, int minimum, int maximum)
@@ -1471,38 +1474,36 @@ public static class ToggleAssemblyMeshBuilder
         return x * x * x * (x * ((x * 6f) - 15f) + 10f);
     }
 
-    private static string ResolveToggleRootDirectory()
+    private static IReadOnlyList<string> ResolveToggleRootDirectories()
     {
-        string desktopRoot = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "Monozukuri");
-        for (int i = 0; i < ToggleRootDirectoryCandidates.Length; i++)
+        var directories = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string root in EnumerateToggleSearchRoots())
         {
-            string candidate = Path.Combine(desktopRoot, ToggleRootDirectoryCandidates[i]);
-            if (Directory.Exists(candidate))
+            for (int i = 0; i < ToggleRootDirectoryCandidates.Length; i++)
             {
-                return candidate;
+                TryAddExistingToggleDirectory(directories, seen, Path.Combine(root, ToggleRootDirectoryCandidates[i]));
             }
         }
 
-        return Path.Combine(desktopRoot, ToggleRootDirectoryCandidates[0]);
+        return directories;
     }
 
     private static string ResolveImportedMeshPath(
         string configuredPath,
-        string toggleRootDirectory,
+        IReadOnlyList<string> toggleRootDirectories,
         TogglePartKind partKind)
     {
-        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, toggleRootDirectory);
+        string? explicitPath = TryResolveExplicitMeshPath(configuredPath, toggleRootDirectories);
         if (!string.IsNullOrWhiteSpace(explicitPath))
         {
             return explicitPath;
         }
 
-        return ResolveLibraryImportedMeshPath(toggleRootDirectory, partKind);
+        return ResolveLibraryImportedMeshPath(toggleRootDirectories, configuredPath, partKind);
     }
 
-    private static string? TryResolveExplicitMeshPath(string configuredPath, string toggleRootDirectory)
+    private static string? TryResolveExplicitMeshPath(string configuredPath, IReadOnlyList<string> toggleRootDirectories)
     {
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
@@ -1515,35 +1516,93 @@ public static class ToggleAssemblyMeshBuilder
             return File.Exists(trimmed) ? trimmed : null;
         }
 
-        if (string.IsNullOrWhiteSpace(toggleRootDirectory))
+        foreach (string root in EnumerateToggleSearchRoots())
         {
-            return null;
+            string combinedFromRoot = Path.GetFullPath(Path.Combine(root, trimmed));
+            if (File.Exists(combinedFromRoot))
+            {
+                return combinedFromRoot;
+            }
         }
 
-        string combined = Path.GetFullPath(Path.Combine(toggleRootDirectory, trimmed));
-        return File.Exists(combined) ? combined : null;
+        for (int i = 0; i < toggleRootDirectories.Count; i++)
+        {
+            string combined = Path.GetFullPath(Path.Combine(toggleRootDirectories[i], trimmed));
+            if (File.Exists(combined))
+            {
+                return combined;
+            }
+        }
+
+        return null;
     }
 
-    private static string ResolveLibraryImportedMeshPath(string toggleRootDirectory, TogglePartKind partKind)
+    private static string ResolveLibraryImportedMeshPath(
+        IReadOnlyList<string> toggleRootDirectories,
+        string configuredPath,
+        TogglePartKind partKind)
     {
-        if (string.IsNullOrWhiteSpace(toggleRootDirectory) || !Directory.Exists(toggleRootDirectory))
+        if (!string.IsNullOrWhiteSpace(configuredPath))
         {
-            return string.Empty;
+            string? fileNameMatch = TryResolveDiscoveredToggleModelPathByFileName(configuredPath, toggleRootDirectories, partKind);
+            if (!string.IsNullOrWhiteSpace(fileNameMatch))
+            {
+                return fileNameMatch;
+            }
         }
 
-        IEnumerable<string> directoryCandidates = EnumeratePartDirectories(toggleRootDirectory, partKind);
-        foreach (string directory in directoryCandidates)
+        for (int i = 0; i < toggleRootDirectories.Count; i++)
         {
-            string? model = TryGetFirstSupportedModel(directory);
-            if (!string.IsNullOrWhiteSpace(model))
+            string toggleRootDirectory = toggleRootDirectories[i];
+            if (string.IsNullOrWhiteSpace(toggleRootDirectory) || !Directory.Exists(toggleRootDirectory))
             {
-                return model;
+                continue;
+            }
+
+            IEnumerable<string> directoryCandidates = EnumeratePartDirectories(toggleRootDirectory, partKind);
+            foreach (string directory in directoryCandidates)
+            {
+                string? model = TryGetFirstSupportedModel(directory);
+                if (!string.IsNullOrWhiteSpace(model))
+                {
+                    return model;
+                }
             }
         }
 
         string preferredToken = partKind == TogglePartKind.Base ? "base" : "lever";
-        string? rootFallback = TryGetFirstSupportedModel(toggleRootDirectory, preferredToken);
-        return rootFallback ?? string.Empty;
+        for (int i = 0; i < toggleRootDirectories.Count; i++)
+        {
+            string? rootFallback = TryGetFirstSupportedModel(toggleRootDirectories[i], preferredToken);
+            if (!string.IsNullOrWhiteSpace(rootFallback))
+            {
+                return rootFallback;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string? TryResolveDiscoveredToggleModelPathByFileName(
+        string configuredPath,
+        IReadOnlyList<string> toggleRootDirectories,
+        TogglePartKind partKind)
+    {
+        string fileName = Path.GetFileName(configuredPath.Trim());
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return null;
+        }
+
+        foreach (string candidate in EnumerateDiscoveredToggleModelPaths(toggleRootDirectories, partKind))
+        {
+            if (string.Equals(Path.GetFileName(candidate), fileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     private static IEnumerable<string> EnumeratePartDirectories(string toggleRootDirectory, TogglePartKind partKind)
@@ -1558,6 +1617,90 @@ public static class ToggleAssemblyMeshBuilder
             {
                 yield return candidate;
             }
+        }
+    }
+
+    private static IEnumerable<string> EnumerateDiscoveredToggleModelPaths(IReadOnlyList<string> toggleRootDirectories, TogglePartKind partKind)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < toggleRootDirectories.Count; i++)
+        {
+            string toggleRootDirectory = toggleRootDirectories[i];
+            if (string.IsNullOrWhiteSpace(toggleRootDirectory) || !Directory.Exists(toggleRootDirectory))
+            {
+                continue;
+            }
+
+            foreach (string directory in EnumeratePartDirectories(toggleRootDirectory, partKind))
+            {
+                foreach (string file in Directory.EnumerateFiles(directory, "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    if (!IsSupportedModelPath(file))
+                    {
+                        continue;
+                    }
+
+                    if (seen.Add(file))
+                    {
+                        yield return file;
+                    }
+                }
+            }
+
+            foreach (string file in Directory.EnumerateFiles(toggleRootDirectory, "*.*", SearchOption.TopDirectoryOnly))
+            {
+                if (!IsSupportedModelPath(file))
+                {
+                    continue;
+                }
+
+                if (seen.Add(file))
+                {
+                    yield return file;
+                }
+            }
+        }
+    }
+
+    private static bool IsSupportedModelPath(string path)
+    {
+        return SupportedExtensions.Any(ext => path.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<string> EnumerateToggleSearchRoots()
+    {
+        string currentDirectory = Environment.CurrentDirectory;
+        if (!string.IsNullOrWhiteSpace(currentDirectory))
+        {
+            yield return currentDirectory;
+        }
+
+        string? probe = AppContext.BaseDirectory;
+        for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+        {
+            yield return probe;
+            probe = Directory.GetParent(probe)?.FullName;
+        }
+
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        if (!string.IsNullOrWhiteSpace(desktop))
+        {
+            yield return Path.Combine(desktop, "Monozukuri");
+            yield return Path.Combine(desktop, "KnobForge");
+        }
+    }
+
+    private static void TryAddExistingToggleDirectory(ICollection<string> directories, ISet<string> seen, string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+        {
+            return;
+        }
+
+        string normalized = Path.GetFullPath(candidate);
+        if (seen.Add(normalized))
+        {
+            directories.Add(candidate);
         }
     }
 

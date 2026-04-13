@@ -109,7 +109,9 @@
                                     <TextBox x:Name="CameraDistanceScaleTextBox"
                                              Grid.Row="4"
                                              Grid.Column="1"
-                                             Text="6.0"/>
+                                             Watermark="1 = fit, lower = closer"
+                                             ToolTip.Tip="1.0 fits the scene. Lower values move closer, higher values pull back."
+                                             Text="0.6"/>
 
                                     <TextBlock Grid.Row="5"
                                                Grid.Column="0"
