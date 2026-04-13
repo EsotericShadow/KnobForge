@@ -31,6 +31,16 @@ namespace KnobForge.App.Views
             public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
             public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
             public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
+            public float BloomRadius { get; set; } = 1f;
+            public float BloomTintR { get; set; } = 1f;
+            public float BloomTintG { get; set; } = 1f;
+            public float BloomTintB { get; set; } = 1f;
+            public float GlareRotationDegrees { get; set; }
+            public float BloomCompositeIntensity { get; set; } = 1f;
+            public float ReflectionStrength { get; set; } = 1f;
+            public float ReflectionFresnelBias { get; set; } = 0.04f;
+            public float ClearCoatReflectionStrength { get; set; } = 1f;
+            public bool ReflectionOnlyPreview { get; set; }
             public float EnvironmentExposure { get; set; } = 1f;
             public float EnvironmentBloomStrength { get; set; } = 0.40f;
             public float EnvironmentBloomThreshold { get; set; } = 1.10f;
@@ -90,6 +100,9 @@ namespace KnobForge.App.Views
             public bool HasModelMaterialSnapshot { get; set; }
             public UserReferenceProfileSnapshot? ModelMaterialSnapshot { get; set; }
             public List<MaterialNodeSnapshot> MaterialSnapshots { get; set; } = new();
+            public List<OwnedMaterialGroupSnapshot> OwnedMaterialSnapshots { get; set; } = new();
+            public MaterialOwnerTarget ActiveMaterialOwner { get; set; } = MaterialOwnerTarget.KnobSurface;
+            public int ActiveMaterialOwnerIndex { get; set; }
             public ReferenceKnobStyle ModelReferenceStyle { get; set; } = ReferenceKnobStyle.Custom;
             public string? SelectedUserReferenceProfileName { get; set; }
             public CollarStateSnapshot? CollarSnapshot { get; set; }
@@ -236,6 +249,12 @@ namespace KnobForge.App.Views
             public string? MetallicMapPath { get; set; }
             public float NormalMapStrength { get; set; } = 1f;
             public KnobForge.Core.MaterialGraph.MaterialGraph? Graph { get; set; }
+        }
+
+        private sealed class OwnedMaterialGroupSnapshot
+        {
+            public MaterialOwnerTarget Owner { get; set; } = MaterialOwnerTarget.KnobSurface;
+            public List<MaterialNodeSnapshot> Materials { get; set; } = new();
         }
 
         private sealed class LightStateSnapshot

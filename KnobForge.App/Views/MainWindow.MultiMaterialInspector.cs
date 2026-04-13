@@ -11,12 +11,16 @@ namespace KnobForge.App.Views
 {
     public partial class MainWindow
     {
-        private void RefreshMaterialInspectorUi(ModelNode? model, CollarNode? collar, MaterialNode[] materials)
+        private void RefreshMaterialInspectorUi(
+            ModelNode? model,
+            CollarNode? collar,
+            MaterialOwnerTarget owner,
+            MaterialNode[] materials)
         {
-            int selectedIndex = ClampSelectedMaterialIndex(materials);
-            bool importedMesh = collar != null && CollarNode.IsImportedMeshPreset(collar.Preset);
-            bool showMultiMaterialList = importedMesh && materials.Length > 1;
-            bool showMaterialRegion = model != null && !importedMesh;
+            _activeMaterialOwnerTarget = owner;
+            int selectedIndex = ClampSelectedMaterialIndex(owner, materials);
+            bool showMultiMaterialList = materials.Length > 1;
+            bool showMaterialRegion = model != null && owner == MaterialOwnerTarget.KnobSurface;
 
             SyncMaterialInspectorItems(materials);
             RefreshMaterialRegionUi(showMaterialRegion);
@@ -266,6 +270,44 @@ namespace KnobForge.App.Views
                    projectType == InteractorProjectType.PushButton;
         }
 
+        private MaterialOwnerTarget ResolveActiveMaterialOwnerTarget(CollarNode? collar)
+        {
+            if (collar is not null &&
+                collar.UsesImportedMaterialOwner &&
+                _project.SelectedNode is CollarNode &&
+                _project.GetMaterialNodes(collar.ImportedMaterialOwnerTarget).Count > 0)
+            {
+                _activeMaterialOwnerTarget = collar.ImportedMaterialOwnerTarget;
+                return _activeMaterialOwnerTarget;
+            }
+
+            _activeMaterialOwnerTarget = MaterialOwnerTarget.KnobSurface;
+            return _activeMaterialOwnerTarget;
+        }
+
+        private int GetSelectedMaterialIndex(MaterialOwnerTarget owner)
+        {
+            if (!owner.IsImportedPartMaterial())
+            {
+                return _selectedMaterialIndex;
+            }
+
+            return _selectedOwnedMaterialIndices.TryGetValue(owner, out int selectedIndex)
+                ? selectedIndex
+                : 0;
+        }
+
+        private void SetSelectedMaterialIndex(MaterialOwnerTarget owner, int index)
+        {
+            if (!owner.IsImportedPartMaterial())
+            {
+                _selectedMaterialIndex = index;
+                return;
+            }
+
+            _selectedOwnedMaterialIndices[owner] = Math.Max(0, index);
+        }
+
         private void OnMaterialListSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (_updatingUi || _materialListBox == null)
@@ -273,7 +315,7 @@ namespace KnobForge.App.Views
                 return;
             }
 
-            SelectMaterialIndex(_materialListBox.SelectedIndex, syncSceneSelection: true);
+            SelectMaterialIndex(_activeMaterialOwnerTarget, _materialListBox.SelectedIndex, syncSceneSelection: true);
         }
 
         private void OnMaterialNameTextChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -289,7 +331,7 @@ namespace KnobForge.App.Views
             }
 
             string updatedName = string.IsNullOrWhiteSpace(_materialNameTextBox.Text)
-                ? $"Material {_selectedMaterialIndex + 1}"
+                ? $"Material {GetSelectedMaterialIndex(_activeMaterialOwnerTarget) + 1}"
                 : _materialNameTextBox.Text.Trim();
             if (string.Equals(material.Name, updatedName, StringComparison.Ordinal))
             {
@@ -297,62 +339,96 @@ namespace KnobForge.App.Views
             }
 
             material.Name = updatedName;
-            SyncMaterialInspectorItems(GetAvailableMaterialNodes());
+            SyncMaterialInspectorItems(GetAvailableMaterialNodes(_activeMaterialOwnerTarget));
             RefreshSceneTree();
             CaptureUndoSnapshotIfChanged();
         }
 
         private void SelectMaterialIndex(int index, bool syncSceneSelection)
         {
-            MaterialNode[] materials = GetAvailableMaterialNodes();
+            SelectMaterialIndex(_activeMaterialOwnerTarget, index, syncSceneSelection);
+        }
+
+        private void SelectMaterialIndex(MaterialOwnerTarget owner, int index, bool syncSceneSelection)
+        {
+            MaterialNode[] materials = GetAvailableMaterialNodes(owner);
             if (materials.Length == 0)
             {
-                _selectedMaterialIndex = 0;
+                SetSelectedMaterialIndex(owner, 0);
                 return;
             }
 
             int clampedIndex = Math.Clamp(index, 0, materials.Length - 1);
-            if (clampedIndex == _selectedMaterialIndex &&
-                (!syncSceneSelection || ReferenceEquals(_project.SelectedNode, materials[clampedIndex])))
+            SceneNode? expectedSelection = owner.IsImportedPartMaterial()
+                ? GetCollarNode()
+                : materials[clampedIndex];
+            if (clampedIndex == GetSelectedMaterialIndex(owner) &&
+                (!syncSceneSelection || ReferenceEquals(_project.SelectedNode, expectedSelection)))
             {
                 return;
             }
 
-            _selectedMaterialIndex = clampedIndex;
+            SetSelectedMaterialIndex(owner, clampedIndex);
+            _activeMaterialOwnerTarget = owner;
             if (syncSceneSelection)
             {
-                _project.SetSelectedNode(materials[clampedIndex]);
-                RefreshSceneTree();
+                if (expectedSelection != null)
+                {
+                    _project.SetSelectedNode(expectedSelection);
+                    RefreshSceneTree();
+                }
             }
 
             RefreshInspectorFromProject(InspectorRefreshTabPolicy.PreserveCurrentTab);
         }
 
-        private MaterialNode[] GetAvailableMaterialNodes()
+        private MaterialNode[] GetAvailableMaterialNodes(MaterialOwnerTarget? owner = null)
         {
-            return GetModelNode()?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
+            MaterialOwnerTarget resolvedOwner = owner ?? _activeMaterialOwnerTarget;
+            return _project.GetMaterialNodes(resolvedOwner).ToArray();
         }
 
-        private int ClampSelectedMaterialIndex(MaterialNode[] materials)
+        private int ClampSelectedMaterialIndex(MaterialOwnerTarget owner, MaterialNode[] materials)
         {
             if (materials.Length == 0)
             {
-                _selectedMaterialIndex = 0;
+                SetSelectedMaterialIndex(owner, 0);
                 return -1;
             }
 
-            if (_project.SelectedNode is MaterialNode selectedNode)
+            if (!owner.IsImportedPartMaterial() &&
+                _project.SelectedNode is MaterialNode selectedNode)
             {
                 int selectedNodeIndex = Array.FindIndex(materials, material => ReferenceEquals(material, selectedNode));
                 if (selectedNodeIndex >= 0)
                 {
-                    _selectedMaterialIndex = selectedNodeIndex;
+                    SetSelectedMaterialIndex(owner, selectedNodeIndex);
                     return selectedNodeIndex;
                 }
             }
 
-            _selectedMaterialIndex = Math.Clamp(_selectedMaterialIndex, 0, materials.Length - 1);
-            return _selectedMaterialIndex;
+            int clampedIndex = Math.Clamp(GetSelectedMaterialIndex(owner), 0, materials.Length - 1);
+            SetSelectedMaterialIndex(owner, clampedIndex);
+            return clampedIndex;
+        }
+
+        private bool TryGetSelectedMaterialNode(MaterialOwnerTarget owner, out MaterialNode material)
+        {
+            material = null!;
+            MaterialNode[] materials = GetAvailableMaterialNodes(owner);
+            if (materials.Length == 0)
+            {
+                return false;
+            }
+
+            int selectedIndex = ClampSelectedMaterialIndex(owner, materials);
+            if (selectedIndex < 0 || selectedIndex >= materials.Length)
+            {
+                return false;
+            }
+
+            material = materials[selectedIndex];
+            return true;
         }
 
         private void SyncMaterialInspectorItems(MaterialNode[] materials)

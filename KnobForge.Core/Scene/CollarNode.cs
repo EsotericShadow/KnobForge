@@ -75,22 +75,65 @@ namespace KnobForge.Core.Scene
                    preset == CollarPreset.MeshyOuroborosRingTextured;
         }
 
+        public MaterialOwnerTarget ImportedMaterialOwnerTarget => MaterialOwnerTarget.CollarImported;
+
+        public bool UsesImportedMaterialOwner => IsImportedMeshPreset(Preset);
+
         public static string ResolveImportedMeshPath(CollarPreset preset, string? customPath)
         {
             return preset switch
             {
-                CollarPreset.MeshyOuroborosRing => Path.Combine(GetDesktopKnobForgeDirectory(), MeshyOuroborosRingFileName),
-                CollarPreset.MeshyOuroborosRingTextured => Path.Combine(GetDesktopKnobForgeDirectory(), MeshyOuroborosRingTexturedFileName),
+                CollarPreset.MeshyOuroborosRing => Path.Combine(GetPreferredKnobForgeDirectory(MeshyOuroborosRingFileName), MeshyOuroborosRingFileName),
+                CollarPreset.MeshyOuroborosRingTextured => Path.Combine(GetPreferredKnobForgeDirectory(MeshyOuroborosRingTexturedFileName), MeshyOuroborosRingTexturedFileName),
                 CollarPreset.ImportedStl => customPath?.Trim() ?? string.Empty,
                 _ => string.Empty
             };
         }
 
-        private static string GetDesktopKnobForgeDirectory()
+        private static string GetPreferredKnobForgeDirectory(string fileName)
         {
-            return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "Monozukuri");
+            string? probe = AppContext.BaseDirectory;
+            for (int i = 0; i < 8 && !string.IsNullOrWhiteSpace(probe); i++)
+            {
+                if (File.Exists(Path.Combine(probe, fileName)))
+                {
+                    return probe;
+                }
+
+                probe = Directory.GetParent(probe)?.FullName;
+            }
+
+            string currentDirectory = Environment.CurrentDirectory;
+            if (!string.IsNullOrWhiteSpace(currentDirectory) &&
+                File.Exists(Path.Combine(currentDirectory, fileName)))
+            {
+                return currentDirectory;
+            }
+
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (!string.IsNullOrWhiteSpace(desktop))
+            {
+                string monozukuri = Path.Combine(desktop, "Monozukuri");
+                if (File.Exists(Path.Combine(monozukuri, fileName)))
+                {
+                    return monozukuri;
+                }
+
+                string legacy = Path.Combine(desktop, "KnobForge");
+                if (File.Exists(Path.Combine(legacy, fileName)))
+                {
+                    return legacy;
+                }
+
+                return monozukuri;
+            }
+
+            if (!string.IsNullOrWhiteSpace(AppContext.BaseDirectory))
+            {
+                return AppContext.BaseDirectory;
+            }
+
+            return string.IsNullOrWhiteSpace(currentDirectory) ? "Monozukuri" : currentDirectory;
         }
 
         public float InnerRadiusRatio

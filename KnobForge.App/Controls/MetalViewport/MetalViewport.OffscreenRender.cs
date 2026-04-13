@@ -296,6 +296,41 @@ namespace KnobForge.App.Controls
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorReflector ? _indicatorReflectorResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorEmitters ? _indicatorEmitterResources : null);
                 sceneReferenceRadius = IncludeReferenceRadius(sceneReferenceRadius, drawIndicatorAura ? _indicatorAuraResources : null);
+                GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
+                bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
+                bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
+                    ? !frontFacingClockwiseBase
+                    : frontFacingClockwiseBase;
+                bool frontFacingClockwiseAssembly = !frontFacingClockwiseBase;
+                bool frontFacingClockwiseToggleBase = _project?.ToggleInvertBaseFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
+                bool frontFacingClockwiseToggleLever = _project?.ToggleInvertLeverFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
+                bool frontFacingClockwiseToggleSleeve = _project?.ToggleInvertLeverFrontFaceWinding == true
+                    ? !frontFacingClockwiseAssembly
+                    : frontFacingClockwiseAssembly;
+                bool frontFacingClockwiseCollar = frontFacingClockwiseBase;
+                if (drawCollar &&
+                    IsImportedCollarPreset(collarNode) &&
+                    _invertImportedStlFrontFaceWinding)
+                {
+                    frontFacingClockwiseCollar = !frontFacingClockwiseCollar;
+                }
+
+                nuint directShadowMapSize = (nuint)Math.Clamp(
+                    (int)MathF.Ceiling(MathF.Max((float)width, (float)height)),
+                    (int)DirectShadowMinMapSize,
+                    (int)DirectShadowMaxMapSize);
+                DirectShadowMapConfig directShadowConfig = ResolveDirectShadowMapConfig(
+                    _project,
+                    sceneReferenceRadius,
+                    right,
+                    up,
+                    forward,
+                    directShadowMapSize);
+                IReadOnlyList<ShadowPassConfig> shadowConfigs = ResolveShadowPassConfigs(_project, right, up, forward, width, height);
                 EnsureEnvironmentMapTexture(_project);
                 EnsureBrdfLutTexture();
                 GpuUniforms knobUniforms = BuildUniformsForPixels(
@@ -306,12 +341,18 @@ namespace KnobForge.App.Controls
                     height,
                     dynamicLightAnimationTimeSeconds);
                 knobUniforms.EnvironmentMapParams.Y = _environmentMapTexture != IntPtr.Zero ? 1f : 0f;
+                ApplyDirectShadowConfig(ref knobUniforms, directShadowConfig);
                 GpuUniforms postProcessUniforms = knobUniforms;
                 if (drawCollar)
                 {
                     ApplyImportedCollarMirrorToEnvironmentOrientation(ref postProcessUniforms, collarNode);
                 }
-                MaterialNode? materialNode = modelNode?.GetMaterialByIndex(0);
+                MaterialNode? materialNode = _project?.GetMaterialByIndex(MaterialOwnerTarget.KnobSurface, 0)
+                    ?? modelNode?.GetKnobMaterialByIndex(0);
+                IReadOnlyList<MaterialNode> knobMaterialNodes = _project?.GetMaterialNodes(MaterialOwnerTarget.KnobSurface)
+                    ?? Array.Empty<MaterialNode>();
+                IReadOnlyList<MaterialNode> collarMaterialNodes = _project?.GetMaterialNodes(MaterialOwnerTarget.CollarImported)
+                    ?? Array.Empty<MaterialNode>();
                 AssemblyPartMaterialState sliderBackplateMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 0, accentPart: false);
                 AssemblyPartMaterialState sliderThumbMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 1, accentPart: true);
                 AssemblyPartMaterialState toggleBaseMaterial = ResolveAssemblyPartMaterialState(_project, materialNode, 0, accentPart: false);
@@ -344,13 +385,13 @@ namespace KnobForge.App.Controls
                         sliderThumbMaterial.DiffuseStrength,
                         sliderThumbMaterial.SpecularStrength)
                     : default;
-                float toggleSleeveRust = _project.ToggleTipSleeveRustAmount;
-                float toggleSleeveWear = _project.ToggleTipSleeveWearAmount;
-                float toggleSleeveGunk = _project.ToggleTipSleeveGunkAmount;
-                float toggleBushingAnisotropyStrength = _project.ToggleUpperBushingAnisotropyStrength;
-                float toggleBushingAnisotropyDensity = _project.ToggleUpperBushingAnisotropyDensity;
-                float toggleBushingSurfaceCharacter = _project.ToggleUpperBushingSurfaceCharacter;
-                float toggleBushingAnisotropyAngle = _project.ToggleUpperBushingAnisotropyAngleDegrees * (MathF.PI / 180f);
+                float toggleSleeveRust = _project!.ToggleTipSleeveRustAmount;
+                float toggleSleeveWear = _project!.ToggleTipSleeveWearAmount;
+                float toggleSleeveGunk = _project!.ToggleTipSleeveGunkAmount;
+                float toggleBushingAnisotropyStrength = _project!.ToggleUpperBushingAnisotropyStrength;
+                float toggleBushingAnisotropyDensity = _project!.ToggleUpperBushingAnisotropyDensity;
+                float toggleBushingSurfaceCharacter = _project!.ToggleUpperBushingSurfaceCharacter;
+                float toggleBushingAnisotropyAngle = _project!.ToggleUpperBushingAnisotropyAngleDegrees * (MathF.PI / 180f);
                 GpuUniforms toggleBaseUniforms = drawToggleBase
                     ? BuildSliderPartUniforms(
                         knobUniforms,
@@ -514,6 +555,85 @@ namespace KnobForge.App.Controls
                 EnsurePaintMask2Texture(_project);
                 ApplyPendingPaintStamps(commandBuffer);
 
+                if (directShadowConfig.Enabled)
+                {
+                    IntPtr directShadowEncoderPtr = BeginDirectShadowMapPass(commandBuffer, directShadowMapSize);
+                    if (directShadowEncoderPtr != IntPtr.Zero)
+                    {
+                        try
+                        {
+                            if (drawSliderBackplate)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, sliderBackplateUniforms, _sliderBackplateResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawSliderThumb)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, sliderThumbUniforms, _sliderThumbResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawToggleBase)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, toggleBaseUniforms, _toggleBaseResources, frontFacingClockwiseToggleBase);
+                            }
+
+                            if (drawToggleLever)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, toggleLeverUniforms, _toggleLeverResources, frontFacingClockwiseToggleLever);
+                            }
+
+                            if (drawToggleSleeve)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, toggleSleeveUniforms, _toggleSleeveResources, frontFacingClockwiseToggleSleeve);
+                            }
+
+                            if (drawPushButtonBase)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, pushButtonBaseUniforms, _pushButtonBaseResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawPushButtonCap)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, pushButtonCapUniforms, _pushButtonCapResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawPushButtonSkirt)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, pushButtonSkirtUniforms, _pushButtonSkirtResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawIndicatorBase)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, indicatorBaseUniforms, _indicatorBaseResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawIndicatorHousing)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, indicatorHousingUniforms, _indicatorHousingResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawIndicatorReflector)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, indicatorReflectorUniforms, _indicatorReflectorResources, frontFacingClockwiseAssembly);
+                            }
+
+                            if (drawCollar)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, collarUniforms, _collarResources, frontFacingClockwiseCollar);
+                            }
+
+                            if (drawKnob)
+                            {
+                                RenderDirectShadowCaster(directShadowEncoderPtr, knobUniforms, _meshResources, frontFacingClockwiseKnob);
+                            }
+                        }
+                        finally
+                        {
+                            ObjC.Void_objc_msgSend(directShadowEncoderPtr, Selectors.EndEncoding);
+                        }
+                    }
+                }
+
                 IntPtr encoderPtr = ObjC.IntPtr_objc_msgSend_IntPtr(commandBuffer, Selectors.RenderCommandEncoderWithDescriptor, passDescriptor);
                 if (encoderPtr == IntPtr.Zero)
                 {
@@ -553,35 +673,17 @@ namespace KnobForge.App.Controls
                         Selectors.SetFragmentTextureAtIndex,
                         _brdfLutTexture,
                         9);
+                    ObjC.Void_objc_msgSend_IntPtr_UInt(
+                        encoderPtr,
+                        Selectors.SetFragmentTextureAtIndex,
+                        _directShadowTexture,
+                        10);
                     BindMaterialTextures(encoderPtr, materialNode);
                     ObjC.Void_objc_msgSend_IntPtr_UInt(
                         encoderPtr,
                         Selectors.SetFragmentTextureAtIndex,
                         _paintMask2Texture,
                         8);
-                    GetCameraBasis(out Vector3 right, out Vector3 up, out Vector3 forward);
-                    bool frontFacingClockwiseBase = ResolveFrontFacingClockwise(right, up, forward);
-                    bool frontFacingClockwiseKnob = _invertKnobFrontFaceWinding
-                        ? !frontFacingClockwiseBase
-                        : frontFacingClockwiseBase;
-                    bool frontFacingClockwiseAssembly = !frontFacingClockwiseBase;
-                    bool frontFacingClockwiseToggleBase = _project?.ToggleInvertBaseFrontFaceWinding == true
-                        ? !frontFacingClockwiseAssembly
-                        : frontFacingClockwiseAssembly;
-                    bool frontFacingClockwiseToggleLever = _project?.ToggleInvertLeverFrontFaceWinding == true
-                        ? !frontFacingClockwiseAssembly
-                        : frontFacingClockwiseAssembly;
-                    bool frontFacingClockwiseToggleSleeve = _project?.ToggleInvertLeverFrontFaceWinding == true
-                        ? !frontFacingClockwiseAssembly
-                        : frontFacingClockwiseAssembly;
-                    bool frontFacingClockwiseCollar = frontFacingClockwiseBase;
-                    if (drawCollar &&
-                        IsImportedCollarPreset(collarNode) &&
-                        _invertImportedStlFrontFaceWinding)
-                    {
-                        frontFacingClockwiseCollar = !frontFacingClockwiseCollar;
-                    }
-                    IReadOnlyList<ShadowPassConfig> shadowConfigs = ResolveShadowPassConfigs(_project, right, up, forward, width, height);
 
                     bool collarDrawExecuted = false;
                     if (drawSliderBackplate)
@@ -878,7 +980,7 @@ namespace KnobForge.App.Controls
                         encoderPtr,
                         _collarResources!,
                         collarUniforms,
-                        modelNode,
+                        collarMaterialNodes,
                         frontFacingClockwiseCollar,
                         allowPartMaterials: false);
                     collarDrawExecuted = true;
@@ -899,7 +1001,7 @@ namespace KnobForge.App.Controls
                         encoderPtr,
                         _meshResources!,
                         knobUniforms,
-                        modelNode,
+                        knobMaterialNodes,
                         frontFacingClockwiseAssembly,
                         allowPartMaterials: true);
                 }

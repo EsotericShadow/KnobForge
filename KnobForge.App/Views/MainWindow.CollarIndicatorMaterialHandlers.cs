@@ -188,8 +188,8 @@ namespace KnobForge.App.Views
             float wear = (float)_collarMaterialWearInput.Value;
             float gunk = (float)_collarMaterialGunkInput.Value;
 
-            if (CollarNode.IsImportedMeshPreset(collar.Preset) &&
-                TryGetSelectedMaterialNode(out MaterialNode importedMaterial))
+            if (collar.UsesImportedMaterialOwner &&
+                TryGetSelectedMaterialNode(collar.ImportedMaterialOwnerTarget, out MaterialNode importedMaterial))
             {
                 importedMaterial.BaseColor = baseColor;
                 importedMaterial.Metallic = metallic;
@@ -288,6 +288,11 @@ namespace KnobForge.App.Views
                 (float)_indicatorColorGInput.Value,
                 (float)_indicatorColorBInput.Value);
 
+            UpdateColorSwatch(_indicatorColorSwatch,
+                _indicatorColorRInput.Value,
+                _indicatorColorGInput.Value,
+                _indicatorColorBInput.Value);
+
             NotifyProjectStateChanged();
         }
 
@@ -318,6 +323,11 @@ namespace KnobForge.App.Views
                 EnsurePartMaterialsEnabled(material);
                 SetPartBaseColor(material, region, color);
             }
+
+            UpdateColorSwatch(_materialBaseColorSwatch,
+                _materialBaseRInput.Value,
+                _materialBaseGInput.Value,
+                _materialBaseBInput.Value);
 
             NotifyProjectStateChanged();
         }
@@ -573,21 +583,7 @@ namespace KnobForge.App.Views
 
         private bool TryGetSelectedMaterialNode(out MaterialNode material)
         {
-            material = null!;
-            MaterialNode[] materials = GetAvailableMaterialNodes();
-            if (materials.Length == 0)
-            {
-                return false;
-            }
-
-            int selectedIndex = ClampSelectedMaterialIndex(materials);
-            if (selectedIndex < 0 || selectedIndex >= materials.Length)
-            {
-                return false;
-            }
-
-            material = materials[selectedIndex];
-            return true;
+            return TryGetSelectedMaterialNode(_activeMaterialOwnerTarget, out material);
         }
 
         private MaterialRegionTarget ResolveSelectedMaterialRegion()
@@ -746,6 +742,11 @@ namespace KnobForge.App.Views
             {
                 _updatingUi = previousUpdatingUi;
             }
+
+            UpdateColorSwatch(_materialBaseColorSwatch,
+                _materialBaseRInput.Value,
+                _materialBaseGInput.Value,
+                _materialBaseBInput.Value);
 
             UpdateReadouts();
         }

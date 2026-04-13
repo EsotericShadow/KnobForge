@@ -342,14 +342,19 @@ namespace KnobForge.Core.Scene
         {
         }
 
-        public MaterialNode[] GetMaterialNodes()
+        public MaterialNode[] GetKnobMaterialNodes()
         {
             return Children.OfType<MaterialNode>().ToArray();
         }
 
-        public MaterialNode? GetMaterialByIndex(int index)
+        public MaterialNode[] GetMaterialNodes()
         {
-            MaterialNode[] materials = GetMaterialNodes();
+            return GetKnobMaterialNodes();
+        }
+
+        public MaterialNode? GetKnobMaterialByIndex(int index)
+        {
+            MaterialNode[] materials = GetKnobMaterialNodes();
             if (materials.Length == 0)
             {
                 return null;
@@ -358,6 +363,11 @@ namespace KnobForge.Core.Scene
             return index >= 0 && index < materials.Length
                 ? materials[index]
                 : materials[0];
+        }
+
+        public MaterialNode? GetMaterialByIndex(int index)
+        {
+            return GetKnobMaterialByIndex(index);
         }
     }
 }

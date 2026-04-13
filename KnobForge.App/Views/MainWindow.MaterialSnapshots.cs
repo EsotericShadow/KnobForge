@@ -145,22 +145,106 @@ namespace KnobForge.App.Views
             return CreateMaterialNodeFromSnapshot(CaptureMaterialNodeSnapshot(material));
         }
 
-        private void SetProjectMaterialNodes(IReadOnlyList<MaterialNode> materials)
+        private static OwnedMaterialGroupSnapshot CaptureOwnedMaterialSnapshot(
+            MaterialOwnerTarget owner,
+            IReadOnlyList<MaterialNode> materials)
         {
-            _project.SetMaterialNodes(materials);
-            if (_project.SelectedNode is MaterialNode)
+            return new OwnedMaterialGroupSnapshot
             {
-                MaterialNode[] available = _project.GetMaterialNodes().ToArray();
+                Owner = owner,
+                Materials = materials
+                    .Select(CaptureMaterialNodeSnapshot)
+                    .Select(CloneMaterialNodeSnapshot)
+                    .ToList()
+            };
+        }
+
+        private static OwnedMaterialGroupSnapshot CloneOwnedMaterialSnapshot(OwnedMaterialGroupSnapshot snapshot)
+        {
+            return new OwnedMaterialGroupSnapshot
+            {
+                Owner = snapshot.Owner,
+                Materials = snapshot.Materials
+                    .Select(CloneMaterialNodeSnapshot)
+                    .ToList()
+            };
+        }
+
+        private List<OwnedMaterialGroupSnapshot> CaptureOwnedMaterialSnapshots()
+        {
+            var snapshots = new List<OwnedMaterialGroupSnapshot>();
+            foreach (MaterialOwnerTarget owner in Enum.GetValues<MaterialOwnerTarget>())
+            {
+                if (!owner.IsImportedPartMaterial())
+                {
+                    continue;
+                }
+
+                MaterialNode[] materials = _project.GetMaterialNodes(owner).ToArray();
+                if (materials.Length == 0)
+                {
+                    continue;
+                }
+
+                snapshots.Add(CaptureOwnedMaterialSnapshot(owner, materials));
+            }
+
+            return snapshots;
+        }
+
+        private void ApplyOwnedMaterialSnapshots(IReadOnlyList<OwnedMaterialGroupSnapshot> snapshots)
+        {
+            foreach (MaterialOwnerTarget owner in Enum.GetValues<MaterialOwnerTarget>())
+            {
+                if (owner.IsImportedPartMaterial())
+                {
+                    _project.ClearMaterialNodes(owner);
+                }
+            }
+
+            foreach (OwnedMaterialGroupSnapshot snapshot in snapshots ?? Array.Empty<OwnedMaterialGroupSnapshot>())
+            {
+                if (!snapshot.Owner.IsImportedPartMaterial())
+                {
+                    continue;
+                }
+
+                SetProjectMaterialNodes(
+                    snapshot.Materials
+                        .Select(CloneMaterialNodeSnapshot)
+                        .Select(CreateMaterialNodeFromSnapshot)
+                        .ToArray(),
+                    snapshot.Owner);
+            }
+        }
+
+        private void SetProjectMaterialNodes(
+            IReadOnlyList<MaterialNode> materials,
+            MaterialOwnerTarget owner = MaterialOwnerTarget.KnobSurface)
+        {
+            _project.SetMaterialNodes(owner, materials);
+            MaterialNode[] available = _project.GetMaterialNodes(owner).ToArray();
+            ClampSelectedMaterialIndex(owner, available);
+
+            if (!owner.IsImportedPartMaterial() && _project.SelectedNode is MaterialNode)
+            {
                 if (available.Length > 0)
                 {
-                    int clampedIndex = Math.Clamp(_selectedMaterialIndex, 0, available.Length - 1);
-                    _selectedMaterialIndex = clampedIndex;
+                    int clampedIndex = Math.Clamp(GetSelectedMaterialIndex(owner), 0, available.Length - 1);
+                    SetSelectedMaterialIndex(owner, clampedIndex);
                     _project.SetSelectedNode(available[clampedIndex]);
                 }
                 else
                 {
                     _project.SetSelectedNode(_project.EnsureMaterialNode());
                 }
+            }
+
+            if (owner.IsImportedPartMaterial() &&
+                available.Length == 0 &&
+                _activeMaterialOwnerTarget == owner)
+            {
+                _activeMaterialOwnerTarget = MaterialOwnerTarget.KnobSurface;
             }
         }
 

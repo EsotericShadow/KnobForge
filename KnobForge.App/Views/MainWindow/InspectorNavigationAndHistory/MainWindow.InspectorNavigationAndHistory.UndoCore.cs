@@ -184,7 +184,7 @@ namespace KnobForge.App.Views
         private InspectorUndoSnapshot CaptureInspectorUndoSnapshot()
         {
             ModelNode? model = GetModelNode();
-            MaterialNode[] materials = model?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
+            MaterialNode[] materials = _project.GetMaterialNodes(MaterialOwnerTarget.KnobSurface).ToArray();
             MaterialNode? material = materials.FirstOrDefault();
             CollarNode? collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
 
@@ -209,6 +209,16 @@ namespace KnobForge.App.Views
                 EnvironmentPreset = _project.EnvironmentPreset,
                 ToneMappingOperator = _project.ToneMappingOperator,
                 BloomKernelShape = _project.BloomKernelShape,
+                BloomRadius = _project.BloomRadius,
+                BloomTintR = _project.BloomTintR,
+                BloomTintG = _project.BloomTintG,
+                BloomTintB = _project.BloomTintB,
+                GlareRotationDegrees = _project.GlareRotationDegrees,
+                BloomCompositeIntensity = _project.BloomCompositeIntensity,
+                ReflectionStrength = _project.ReflectionStrength,
+                ReflectionFresnelBias = _project.ReflectionFresnelBias,
+                ClearCoatReflectionStrength = _project.ClearCoatReflectionStrength,
+                ReflectionOnlyPreview = _project.ReflectionOnlyPreview,
                 EnvironmentExposure = _project.EnvironmentExposure,
                 EnvironmentBloomStrength = _project.EnvironmentBloomStrength,
                 EnvironmentBloomThreshold = _project.EnvironmentBloomThreshold,
@@ -268,6 +278,11 @@ namespace KnobForge.App.Views
                 HasModelMaterialSnapshot = modelMaterialSnapshot != null,
                 ModelMaterialSnapshot = modelMaterialSnapshot != null ? CloneSnapshot(modelMaterialSnapshot) : null,
                 MaterialSnapshots = materials.Select(CaptureMaterialNodeSnapshot).Select(CloneMaterialNodeSnapshot).ToList(),
+                OwnedMaterialSnapshots = CaptureOwnedMaterialSnapshots()
+                    .Select(CloneOwnedMaterialSnapshot)
+                    .ToList(),
+                ActiveMaterialOwner = _activeMaterialOwnerTarget,
+                ActiveMaterialOwnerIndex = GetSelectedMaterialIndex(_activeMaterialOwnerTarget),
                 ModelReferenceStyle = model?.ReferenceStyle ?? ReferenceKnobStyle.Custom,
                 SelectedUserReferenceProfileName = _selectedUserReferenceProfileName,
                 CollarSnapshot = collar != null ? CaptureCollarStateSnapshot(collar) : null,

@@ -92,7 +92,7 @@ namespace KnobForge.App.Controls
             IntPtr encoderPtr,
             MetalMeshGpuResources resources,
             in GpuUniforms baseUniforms,
-            ModelNode? modelNode,
+            IReadOnlyList<MaterialNode>? materialNodes,
             bool frontFacingClockwise,
             bool allowPartMaterials)
         {
@@ -118,7 +118,7 @@ namespace KnobForge.App.Controls
                     }
                 };
 
-            List<MergedSubMeshDraw>? mergedSubmeshes = MergeSubmeshesByMaterial(resources, modelNode, allowPartMaterials);
+            List<MergedSubMeshDraw>? mergedSubmeshes = MergeSubmeshesByMaterial(resources, materialNodes, allowPartMaterials);
             if (mergedSubmeshes is { Count: > 0 } && _context != null)
             {
                 foreach (MergedSubMeshDraw mergedSubmesh in mergedSubmeshes)
@@ -160,7 +160,7 @@ namespace KnobForge.App.Controls
                     continue;
                 }
 
-                MaterialNode? materialNode = modelNode?.GetMaterialByIndex(subMesh.MaterialIndex);
+                MaterialNode? materialNode = ResolveMaterialByIndex(materialNodes, subMesh.MaterialIndex);
                 GpuUniforms subUniforms = baseUniforms;
                 ApplyMaterialToUniforms(ref subUniforms, materialNode, allowPartMaterials);
                 BindMaterialTextures(encoderPtr, materialNode);
@@ -179,7 +179,7 @@ namespace KnobForge.App.Controls
 
         private List<MergedSubMeshDraw>? MergeSubmeshesByMaterial(
             MetalMeshGpuResources resources,
-            ModelNode? modelNode,
+            IReadOnlyList<MaterialNode>? materialNodes,
             bool allowPartMaterials)
         {
             if (resources.SubMeshes.Length <= 1 || resources.Indices.Length == 0)
@@ -198,7 +198,7 @@ namespace KnobForge.App.Controls
                     continue;
                 }
 
-                MaterialNode? materialNode = modelNode?.GetMaterialByIndex(subMesh.MaterialIndex);
+                MaterialNode? materialNode = ResolveMaterialByIndex(materialNodes, subMesh.MaterialIndex);
                 MaterialIdentity identity = BuildMaterialIdentity(materialNode, allowPartMaterials);
                 if (!lookup.TryGetValue(identity, out int groupIndex))
                 {
@@ -238,6 +238,18 @@ namespace KnobForge.App.Controls
             }
 
             return mergedDraws;
+        }
+
+        private static MaterialNode? ResolveMaterialByIndex(IReadOnlyList<MaterialNode>? materialNodes, int index)
+        {
+            if (materialNodes == null || materialNodes.Count == 0)
+            {
+                return null;
+            }
+
+            return index >= 0 && index < materialNodes.Count
+                ? materialNodes[index]
+                : materialNodes[0];
         }
 
         private static MaterialIdentity BuildMaterialIdentity(MaterialNode? materialNode, bool allowPartMaterials)

@@ -21,7 +21,7 @@ using System.Reflection;
 
 namespace KnobForge.App.Views
 {
-        public partial class MainWindow : Window
+        public partial class MainWindow : AppWindow
         {
             private readonly KnobProject _project;
             private readonly MetalViewport? _metalViewport;
@@ -94,12 +94,13 @@ namespace KnobForge.App.Views
         private readonly ValueInput? _directionInput;
         private readonly ValueInput? _intensityInput;
         private readonly ValueInput? _falloffInput;
-        private readonly ValueInput? _lightRInput;
-        private readonly ValueInput? _lightGInput;
-        private readonly ValueInput? _lightBInput;
-        private readonly ValueInput? _diffuseBoostInput;
-        private readonly ValueInput? _specularBoostInput;
-        private readonly ValueInput? _specularPowerInput;
+            private readonly ValueInput? _lightRInput;
+            private readonly ValueInput? _lightGInput;
+            private readonly ValueInput? _lightBInput;
+            private readonly Border? _lightColorSwatch;
+            private readonly ValueInput? _diffuseBoostInput;
+            private readonly ValueInput? _specularBoostInput;
+            private readonly ValueInput? _specularPowerInput;
         private readonly ValueInput? _modelRadiusInput;
         private readonly ValueInput? _modelHeightInput;
         private readonly ValueInput? _modelTopScaleInput;
@@ -269,6 +270,7 @@ namespace KnobForge.App.Views
         private readonly ValueInput? _indicatorColorRInput;
         private readonly ValueInput? _indicatorColorGInput;
         private readonly ValueInput? _indicatorColorBInput;
+        private readonly Border? _indicatorColorSwatch;
         private readonly CheckBox? _indicatorAssemblyEnabledCheckBox;
         private readonly CheckBox? _indicatorQuickLightOnCheckBox;
         private readonly ValueInput? _indicatorQuickBrightnessInput;
@@ -332,6 +334,7 @@ namespace KnobForge.App.Views
         private readonly ValueInput? _materialBaseRInput;
         private readonly ValueInput? _materialBaseGInput;
         private readonly ValueInput? _materialBaseBInput;
+        private readonly Border? _materialBaseColorSwatch;
         private readonly StackPanel? _materialListPanel;
         private readonly ListBox? _materialListBox;
         private readonly TextBox? _materialNameTextBox;
@@ -368,19 +371,32 @@ namespace KnobForge.App.Views
         private readonly ValueInput? _envRoughnessMixInput;
         private readonly Button? _envIntensityResetButton;
         private readonly Button? _envRoughnessMixResetButton;
-        private readonly ValueInput? _envTopRInput;
-        private readonly ValueInput? _envTopGInput;
-        private readonly ValueInput? _envTopBInput;
-        private readonly ValueInput? _envBottomRInput;
-        private readonly ValueInput? _envBottomGInput;
-        private readonly ValueInput? _envBottomBInput;
+            private readonly ValueInput? _envTopRInput;
+            private readonly ValueInput? _envTopGInput;
+            private readonly ValueInput? _envTopBInput;
+            private readonly Border? _envTopColorSwatch;
+            private readonly ValueInput? _envBottomRInput;
+            private readonly ValueInput? _envBottomGInput;
+            private readonly ValueInput? _envBottomBInput;
+            private readonly Border? _envBottomColorSwatch;
         private readonly ComboBox? _envPresetCombo;
         private readonly ComboBox? _envTonemapCombo;
         private readonly ValueInput? _envExposureInput;
         private readonly ValueInput? _envBloomStrengthInput;
         private readonly ValueInput? _envBloomThresholdInput;
         private readonly ValueInput? _envBloomKneeInput;
-        private readonly ComboBox? _envBloomKernelShapeCombo;
+        private readonly ValueInput? _envBloomRadiusInput;
+        private readonly ValueInput? _envBloomCompositeIntensityInput;
+        private readonly ValueInput? _envGlareRotationInput;
+            private readonly ValueInput? _envBloomTintRInput;
+            private readonly ValueInput? _envBloomTintGInput;
+            private readonly ValueInput? _envBloomTintBInput;
+            private readonly Border? _bloomTintColorSwatch;
+            private readonly ComboBox? _envBloomKernelShapeCombo;
+        private readonly ValueInput? _envReflectionStrengthInput;
+        private readonly ValueInput? _envReflectionFresnelBiasInput;
+        private readonly ValueInput? _envClearCoatReflectionStrengthInput;
+        private readonly CheckBox? _envReflectionOnlyPreviewCheckBox;
         private readonly StackPanel? _environmentManualSettingsPanel;
         private readonly TextBox? _envHdriPathTextBox;
         private readonly Button? _envHdriApplyButton;
@@ -399,6 +415,21 @@ namespace KnobForge.App.Views
         private readonly Button? _shadowQualityResetButton;
         private readonly ValueInput? _shadowGrayInput;
         private readonly ValueInput? _shadowDiffuseInfluenceInput;
+        private readonly CheckBox? _debugCameraInvertXCheckBox;
+        private readonly CheckBox? _debugCameraInvertYCheckBox;
+        private readonly CheckBox? _debugCameraInvertZCheckBox;
+        private readonly CheckBox? _debugCameraFlip180CheckBox;
+        private readonly CheckBox? _debugLightEffectInvertXCheckBox;
+        private readonly CheckBox? _debugLightEffectInvertYCheckBox;
+        private readonly CheckBox? _debugLightEffectInvertZCheckBox;
+        private readonly CheckBox? _debugBloomCompositeInvertXCheckBox;
+        private readonly CheckBox? _debugBloomCompositeInvertYCheckBox;
+        private readonly CheckBox? _debugGizmoInvertXCheckBox;
+        private readonly CheckBox? _debugGizmoInvertYCheckBox;
+        private readonly CheckBox? _debugGizmoInvertZCheckBox;
+        private readonly CheckBox? _debugInvertKnobWindingCheckBox;
+        private readonly Button? _debugResetAxesButton;
+        private readonly Button? _debugPrintStateButton;
         private readonly CheckBox? _brushPaintEnabledCheckBox;
             private readonly ComboBox? _brushPaintChannelCombo;
             private readonly ComboBox? _brushTypeCombo;
@@ -498,6 +529,8 @@ namespace KnobForge.App.Views
             private int _discoveredCollarLibraryCount;
             private readonly List<PaintLayerListItem> _paintLayerItems = new();
             private int _selectedMaterialIndex;
+            private readonly Dictionary<MaterialOwnerTarget, int> _selectedOwnedMaterialIndices = new();
+            private MaterialOwnerTarget _activeMaterialOwnerTarget = MaterialOwnerTarget.KnobSurface;
             private string? _selectedUserReferenceProfileName;
             private string? _currentProjectFilePath;
             private int _uiRefreshDepth;
@@ -575,6 +608,20 @@ namespace KnobForge.App.Views
                     }
                 }, DispatcherPriority.Background);
             }
+        }
+
+        private void UpdateColorSwatch(Border? swatch, double r, double g, double b, double channelMax = 1.0)
+        {
+            if (swatch == null)
+            {
+                return;
+            }
+
+            double normalizedMax = Math.Max(channelMax, double.Epsilon);
+            byte rByte = (byte)Math.Clamp((r / normalizedMax) * 255.0, 0, 255);
+            byte gByte = (byte)Math.Clamp((g / normalizedMax) * 255.0, 0, 255);
+            byte bByte = (byte)Math.Clamp((b / normalizedMax) * 255.0, 0, 255);
+            swatch.Background = new SolidColorBrush(Color.FromRgb(rByte, gByte, bByte));
         }
 
         public MainWindow()
@@ -663,6 +710,7 @@ namespace KnobForge.App.Views
             _lightRInput = this.FindControl<ValueInput>("LightRInput");
             _lightGInput = this.FindControl<ValueInput>("LightGInput");
             _lightBInput = this.FindControl<ValueInput>("LightBInput");
+            _lightColorSwatch = this.FindControl<Border>("LightColorSwatch");
             _diffuseBoostInput = this.FindControl<ValueInput>("DiffuseBoostInput");
             _specularBoostInput = this.FindControl<ValueInput>("SpecularBoostInput");
             _specularPowerInput = this.FindControl<ValueInput>("SpecularPowerInput");
@@ -835,6 +883,7 @@ namespace KnobForge.App.Views
             _indicatorColorRInput = this.FindControl<ValueInput>("IndicatorColorRInput");
             _indicatorColorGInput = this.FindControl<ValueInput>("IndicatorColorGInput");
             _indicatorColorBInput = this.FindControl<ValueInput>("IndicatorColorBInput");
+            _indicatorColorSwatch = this.FindControl<Border>("IndicatorColorSwatch");
             _indicatorAssemblyEnabledCheckBox = this.FindControl<CheckBox>("IndicatorAssemblyEnabledCheckBox");
             _indicatorQuickLightOnCheckBox = this.FindControl<CheckBox>("IndicatorQuickLightOnCheckBox");
             _indicatorQuickBrightnessInput = this.FindControl<ValueInput>("IndicatorQuickBrightnessInput");
@@ -898,6 +947,7 @@ namespace KnobForge.App.Views
             _materialBaseRInput = this.FindControl<ValueInput>("MaterialBaseRInput");
             _materialBaseGInput = this.FindControl<ValueInput>("MaterialBaseGInput");
             _materialBaseBInput = this.FindControl<ValueInput>("MaterialBaseBInput");
+            _materialBaseColorSwatch = this.FindControl<Border>("MaterialBaseColorSwatch");
             _materialListPanel = this.FindControl<StackPanel>("MaterialListPanel");
             _materialListBox = this.FindControl<ListBox>("MaterialListBox");
             _materialNameTextBox = this.FindControl<TextBox>("MaterialNameTextBox");
@@ -937,16 +987,29 @@ namespace KnobForge.App.Views
             _envTopRInput = this.FindControl<ValueInput>("EnvTopRInput");
             _envTopGInput = this.FindControl<ValueInput>("EnvTopGInput");
             _envTopBInput = this.FindControl<ValueInput>("EnvTopBInput");
+            _envTopColorSwatch = this.FindControl<Border>("EnvTopColorSwatch");
             _envBottomRInput = this.FindControl<ValueInput>("EnvBottomRInput");
             _envBottomGInput = this.FindControl<ValueInput>("EnvBottomGInput");
             _envBottomBInput = this.FindControl<ValueInput>("EnvBottomBInput");
+            _envBottomColorSwatch = this.FindControl<Border>("EnvBottomColorSwatch");
             _envPresetCombo = this.FindControl<ComboBox>("EnvPresetCombo");
             _envTonemapCombo = this.FindControl<ComboBox>("EnvTonemapCombo");
             _envExposureInput = this.FindControl<ValueInput>("EnvExposureInput");
             _envBloomStrengthInput = this.FindControl<ValueInput>("EnvBloomStrengthInput");
             _envBloomThresholdInput = this.FindControl<ValueInput>("EnvBloomThresholdInput");
             _envBloomKneeInput = this.FindControl<ValueInput>("EnvBloomKneeInput");
+            _envBloomRadiusInput = this.FindControl<ValueInput>("EnvBloomRadiusInput");
+            _envBloomCompositeIntensityInput = this.FindControl<ValueInput>("EnvBloomCompositeIntensityInput");
+            _envGlareRotationInput = this.FindControl<ValueInput>("EnvGlareRotationInput");
+            _envBloomTintRInput = this.FindControl<ValueInput>("EnvBloomTintRInput");
+            _envBloomTintGInput = this.FindControl<ValueInput>("EnvBloomTintGInput");
+            _envBloomTintBInput = this.FindControl<ValueInput>("EnvBloomTintBInput");
+            _bloomTintColorSwatch = this.FindControl<Border>("BloomTintColorSwatch");
             _envBloomKernelShapeCombo = this.FindControl<ComboBox>("EnvBloomKernelShapeCombo");
+            _envReflectionStrengthInput = this.FindControl<ValueInput>("EnvReflectionStrengthInput");
+            _envReflectionFresnelBiasInput = this.FindControl<ValueInput>("EnvReflectionFresnelBiasInput");
+            _envClearCoatReflectionStrengthInput = this.FindControl<ValueInput>("EnvClearCoatReflectionStrengthInput");
+            _envReflectionOnlyPreviewCheckBox = this.FindControl<CheckBox>("EnvReflectionOnlyPreviewCheckBox");
             _environmentManualSettingsPanel = this.FindControl<StackPanel>("EnvironmentManualSettingsPanel");
             _envHdriPathTextBox = this.FindControl<TextBox>("EnvHdriPathTextBox");
             _envHdriApplyButton = this.FindControl<Button>("EnvHdriApplyButton");
@@ -965,6 +1028,21 @@ namespace KnobForge.App.Views
             _shadowQualityResetButton = this.FindControl<Button>("ShadowQualityResetButton");
             _shadowGrayInput = this.FindControl<ValueInput>("ShadowGrayInput");
             _shadowDiffuseInfluenceInput = this.FindControl<ValueInput>("ShadowDiffuseInfluenceInput");
+            _debugCameraInvertXCheckBox = this.FindControl<CheckBox>("DebugCameraInvertXCheckBox");
+            _debugCameraInvertYCheckBox = this.FindControl<CheckBox>("DebugCameraInvertYCheckBox");
+            _debugCameraInvertZCheckBox = this.FindControl<CheckBox>("DebugCameraInvertZCheckBox");
+            _debugCameraFlip180CheckBox = this.FindControl<CheckBox>("DebugCameraFlip180CheckBox");
+            _debugLightEffectInvertXCheckBox = this.FindControl<CheckBox>("DebugLightEffectInvertXCheckBox");
+            _debugLightEffectInvertYCheckBox = this.FindControl<CheckBox>("DebugLightEffectInvertYCheckBox");
+            _debugLightEffectInvertZCheckBox = this.FindControl<CheckBox>("DebugLightEffectInvertZCheckBox");
+            _debugBloomCompositeInvertXCheckBox = this.FindControl<CheckBox>("DebugBloomCompositeInvertXCheckBox");
+            _debugBloomCompositeInvertYCheckBox = this.FindControl<CheckBox>("DebugBloomCompositeInvertYCheckBox");
+            _debugGizmoInvertXCheckBox = this.FindControl<CheckBox>("DebugGizmoInvertXCheckBox");
+            _debugGizmoInvertYCheckBox = this.FindControl<CheckBox>("DebugGizmoInvertYCheckBox");
+            _debugGizmoInvertZCheckBox = this.FindControl<CheckBox>("DebugGizmoInvertZCheckBox");
+            _debugInvertKnobWindingCheckBox = this.FindControl<CheckBox>("DebugInvertKnobWindingCheckBox");
+            _debugResetAxesButton = this.FindControl<Button>("DebugResetAxesButton");
+            _debugPrintStateButton = this.FindControl<Button>("DebugPrintStateButton");
             _brushPaintEnabledCheckBox = this.FindControl<CheckBox>("BrushPaintEnabledCheckBox");
             _brushPaintChannelCombo = this.FindControl<ComboBox>("BrushPaintChannelCombo");
             _brushTypeCombo = this.FindControl<ComboBox>("BrushTypeCombo");
@@ -1055,6 +1133,7 @@ namespace KnobForge.App.Views
             InitializeViewportAndSceneBindings();
             WireButtonHandlers();
             WireControlPropertyHandlers();
+            InitializeDebugAxesInspector();
             InitializeUpdatePolicy();
             InitializePrecisionControls();
             InitializeBrushContextAndHudUx();

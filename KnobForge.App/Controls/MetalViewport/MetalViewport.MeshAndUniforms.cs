@@ -707,7 +707,8 @@ namespace KnobForge.App.Controls
             float radius = MathF.Max(1f, referenceRadius);
             Vector3 cameraPos = -forward * (radius * 6f);
 
-            MaterialNode? materialNode = modelNode?.GetMaterialByIndex(0);
+            MaterialNode? materialNode = project?.GetMaterialByIndex(MaterialOwnerTarget.KnobSurface, 0)
+                ?? modelNode?.GetKnobMaterialByIndex(0);
             Vector3 baseColor = materialNode?.BaseColor ?? new Vector3(0.55f, 0.16f, 0.16f);
             float metallic = Math.Clamp(materialNode?.Metallic ?? 0f, 0f, 1f);
             float roughness = Math.Clamp(materialNode?.Roughness ?? 0.5f, 0.04f, 1f);
@@ -817,6 +818,17 @@ namespace KnobForge.App.Controls
                 uniforms.MicroDetailParams = new Vector4(1f, 0.55f, 2.4f, 0.20f);
             }
 
+            // Phase 14 defaults — set before project-aware overrides so they serve as
+            // fallbacks when project is null rather than clobbering project values.
+            uniforms.BloomTintAndIntensity = new Vector4(1f, 1f, 1f, 0f);
+            uniforms.ReflectionParams = new Vector4(1f, 0.04f, 1f, 0f);
+            uniforms.DirectShadowCameraPosAndNear = Vector4.Zero;
+            uniforms.DirectShadowRightAndScaleX = Vector4.Zero;
+            uniforms.DirectShadowUpAndScaleY = Vector4.Zero;
+            uniforms.DirectShadowForwardAndFar = Vector4.Zero;
+            uniforms.DirectShadowProjectionOffsetsAndTexel = Vector4.Zero;
+            uniforms.DirectShadowParams = Vector4.Zero;
+
             if (project != null)
             {
                 Vector3 envTop = project.EnvironmentTopColor;
@@ -837,6 +849,16 @@ namespace KnobForge.App.Controls
 
                 uniforms.EnvironmentTopColorAndIntensity = new Vector4(envTop, envIntensity);
                 uniforms.EnvironmentBottomColorAndRoughnessMix = new Vector4(envBottom, envRoughMix);
+                uniforms.ReflectionParams = new Vector4(
+                    Math.Clamp(project.ReflectionStrength, 0f, 4f),
+                    Math.Clamp(project.ReflectionFresnelBias, 0f, 1f),
+                    Math.Clamp(project.ClearCoatReflectionStrength, 0f, 4f),
+                    project.ReflectionOnlyPreview ? 1f : 0f);
+                uniforms.BloomTintAndIntensity = new Vector4(
+                    Math.Clamp(project.BloomTintR, 0f, 2f),
+                    Math.Clamp(project.BloomTintG, 0f, 2f),
+                    Math.Clamp(project.BloomTintB, 0f, 2f),
+                    Math.Clamp(project.BloomCompositeIntensity, 0f, 4f));
             }
             else
             {

@@ -716,8 +716,8 @@ namespace KnobForge.App.Views
 
         private MaterialNode? GetSelectedMaterialNodeOrNull()
         {
-            MaterialNode[] materials = GetAvailableMaterialNodes();
-            int index = ClampSelectedMaterialIndex(materials);
+            MaterialNode[] materials = GetAvailableMaterialNodes(_activeMaterialOwnerTarget);
+            int index = ClampSelectedMaterialIndex(_activeMaterialOwnerTarget, materials);
             return index >= 0 && index < materials.Length ? materials[index] : null;
         }
 

@@ -18,13 +18,9 @@ namespace KnobForge.App.Views
 
             CollarNode? collar = model.Children.OfType<CollarNode>().FirstOrDefault();
             if (collar == null ||
-                !CollarNode.IsImportedMeshPreset(collar.Preset))
+                !collar.UsesImportedMaterialOwner)
             {
-                if (model.GetMaterialNodes().Length > 1)
-                {
-                    CollapseProjectMaterialsToSingleNode();
-                }
-
+                SetProjectMaterialNodes(Array.Empty<MaterialNode>(), MaterialOwnerTarget.CollarImported);
                 return;
             }
 
@@ -33,22 +29,18 @@ namespace KnobForge.App.Views
                 !File.Exists(resolvedImportedMeshPath) ||
                 !string.Equals(Path.GetExtension(resolvedImportedMeshPath), ".glb", StringComparison.OrdinalIgnoreCase))
             {
-                if (model.GetMaterialNodes().Length > 1)
-                {
-                    CollapseProjectMaterialsToSingleNode();
-                }
-
+                SetProjectMaterialNodes(Array.Empty<MaterialNode>(), collar.ImportedMaterialOwnerTarget);
                 return;
             }
 
-            if (ImportedStlCollarMeshBuilder.TryBuildMaterialNodesFromPath(resolvedImportedMeshPath, out MaterialNode[] materials) &&
+            if (ImportedMeshMaterialBuilder.TryBuildMaterialNodesFromPath(resolvedImportedMeshPath, out MaterialNode[] materials) &&
                 materials.Length > 0)
             {
-                SetProjectMaterialNodes(materials);
+                SetProjectMaterialNodes(materials, collar.ImportedMaterialOwnerTarget);
             }
-            else if (model.GetMaterialNodes().Length > 1)
+            else
             {
-                CollapseProjectMaterialsToSingleNode();
+                SetProjectMaterialNodes(Array.Empty<MaterialNode>(), collar.ImportedMaterialOwnerTarget);
             }
         }
     }

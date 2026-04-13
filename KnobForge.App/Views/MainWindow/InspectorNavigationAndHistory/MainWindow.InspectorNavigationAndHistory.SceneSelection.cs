@@ -34,6 +34,16 @@ namespace KnobForge.App.Views
             _project.EnvironmentPreset = snapshot.EnvironmentPreset;
             _project.ToneMappingOperator = snapshot.ToneMappingOperator;
             _project.BloomKernelShape = snapshot.BloomKernelShape;
+            _project.BloomRadius = snapshot.BloomRadius;
+            _project.BloomTintR = snapshot.BloomTintR;
+            _project.BloomTintG = snapshot.BloomTintG;
+            _project.BloomTintB = snapshot.BloomTintB;
+            _project.GlareRotationDegrees = snapshot.GlareRotationDegrees;
+            _project.BloomCompositeIntensity = snapshot.BloomCompositeIntensity;
+            _project.ReflectionStrength = snapshot.ReflectionStrength;
+            _project.ReflectionFresnelBias = snapshot.ReflectionFresnelBias;
+            _project.ClearCoatReflectionStrength = snapshot.ClearCoatReflectionStrength;
+            _project.ReflectionOnlyPreview = snapshot.ReflectionOnlyPreview;
             _project.EnvironmentExposure = snapshot.EnvironmentExposure;
             _project.EnvironmentBloomStrength = snapshot.EnvironmentBloomStrength;
             _project.EnvironmentBloomThreshold = snapshot.EnvironmentBloomThreshold;
@@ -237,10 +247,24 @@ namespace KnobForge.App.Views
                 _project.RemoveCollarNode();
             }
 
-            if (snapshot.MaterialSnapshots.Count == 0)
+            if (snapshot.OwnedMaterialSnapshots.Count > 0)
+            {
+                ApplyOwnedMaterialSnapshots(snapshot.OwnedMaterialSnapshots
+                    .Select(CloneOwnedMaterialSnapshot)
+                    .ToArray());
+            }
+            else
             {
                 SyncImportedCollarMaterialNodes();
-                material = _project.EnsureMaterialNode();
+            }
+
+            material = _project.EnsureMaterialNode();
+            _activeMaterialOwnerTarget = snapshot.ActiveMaterialOwner;
+            SetSelectedMaterialIndex(_activeMaterialOwnerTarget, snapshot.ActiveMaterialOwnerIndex);
+            if (_activeMaterialOwnerTarget.IsImportedPartMaterial() &&
+                _project.GetMaterialNodes(_activeMaterialOwnerTarget).Count == 0)
+            {
+                _activeMaterialOwnerTarget = MaterialOwnerTarget.KnobSurface;
             }
 
             RebuildReferenceStyleOptions();

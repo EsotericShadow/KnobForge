@@ -374,10 +374,20 @@ namespace KnobForge.Core
         private float _environmentBloomStrength = 0.40f;
         private float _environmentBloomThreshold = 1.10f;
         private float _environmentBloomKnee = 0.55f;
+        private float _bloomRadius = 1.0f;
+        private float _bloomTintR = 1.0f;
+        private float _bloomTintG = 1.0f;
+        private float _bloomTintB = 1.0f;
+        private float _glareRotationDegrees;
+        private float _bloomCompositeIntensity = 1.0f;
+        private float _reflectionStrength = 1.0f;
+        private float _reflectionFresnelBias = 0.04f;
+        private float _clearCoatReflectionStrength = 1.0f;
         private float _environmentHdriBlend;
         private float _environmentHdriRotationDegrees;
         private string _environmentHdriPath = string.Empty;
         private readonly List<PaintLayer> _paintLayers = new();
+        private readonly Dictionary<MaterialOwnerTarget, List<MaterialNode>> _ownedMaterialNodes = new();
         private byte[] _paintMaskRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private byte[] _paintColorRgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
         private byte[] _paintMask2Rgba8 = new byte[DefaultPaintMaskSize * DefaultPaintMaskSize * 4];
@@ -399,6 +409,52 @@ namespace KnobForge.Core
         public EnvironmentPreset EnvironmentPreset { get; set; } = EnvironmentPreset.Custom;
         public TonemapOperator ToneMappingOperator { get; set; } = TonemapOperator.Aces;
         public BloomKernelShape BloomKernelShape { get; set; } = BloomKernelShape.Soft;
+        public float BloomRadius
+        {
+            get => _bloomRadius;
+            set => _bloomRadius = ClampFinite(value, 1.0f, 0.25f, 4.0f);
+        }
+        public float BloomTintR
+        {
+            get => _bloomTintR;
+            set => _bloomTintR = ClampFinite(value, 1.0f, 0f, 2.0f);
+        }
+        public float BloomTintG
+        {
+            get => _bloomTintG;
+            set => _bloomTintG = ClampFinite(value, 1.0f, 0f, 2.0f);
+        }
+        public float BloomTintB
+        {
+            get => _bloomTintB;
+            set => _bloomTintB = ClampFinite(value, 1.0f, 0f, 2.0f);
+        }
+        public float GlareRotationDegrees
+        {
+            get => _glareRotationDegrees;
+            set => _glareRotationDegrees = ClampFinite(value, 0f, -180f, 180f);
+        }
+        public float BloomCompositeIntensity
+        {
+            get => _bloomCompositeIntensity;
+            set => _bloomCompositeIntensity = ClampFinite(value, 1.0f, 0f, 4.0f);
+        }
+        public float ReflectionStrength
+        {
+            get => _reflectionStrength;
+            set => _reflectionStrength = ClampFinite(value, 1.0f, 0f, 4.0f);
+        }
+        public float ReflectionFresnelBias
+        {
+            get => _reflectionFresnelBias;
+            set => _reflectionFresnelBias = ClampFinite(value, 0.04f, 0f, 1.0f);
+        }
+        public float ClearCoatReflectionStrength
+        {
+            get => _clearCoatReflectionStrength;
+            set => _clearCoatReflectionStrength = ClampFinite(value, 1.0f, 0f, 4.0f);
+        }
+        public bool ReflectionOnlyPreview { get; set; }
         public float EnvironmentExposure
         {
             get => _environmentExposure;
@@ -1328,6 +1384,20 @@ namespace KnobForge.Core
             ToggleMaterialPreset = ToggleMaterialPresetId.Custom;
             SliderMaterialPreset = SliderMaterialPresetId.Custom;
             PushButtonMaterialPreset = PushButtonMaterialPresetId.Custom;
+            EnvironmentExposure = 1.0f;
+            EnvironmentBloomStrength = 0.40f;
+            EnvironmentBloomThreshold = 1.10f;
+            EnvironmentBloomKnee = 0.55f;
+            BloomRadius = 1.0f;
+            BloomTintR = 1.0f;
+            BloomTintG = 1.0f;
+            BloomTintB = 1.0f;
+            GlareRotationDegrees = 0f;
+            BloomCompositeIntensity = 1.0f;
+            ReflectionStrength = 1.0f;
+            ReflectionFresnelBias = 0.04f;
+            ClearCoatReflectionStrength = 1.0f;
+            ReflectionOnlyPreview = false;
             ToggleStateBlendPosition = float.NaN;
             DynamicLightRig.Enabled = false;
             DynamicLightRig.AnimationMode = DynamicLightAnimationMode.Steady;
@@ -1337,6 +1407,9 @@ namespace KnobForge.Core
                 case InteractorProjectType.ThumbSlider:
                     SliderMode = SliderAssemblyMode.Enabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
+                    EnvironmentPreset = EnvironmentPreset.Rack;
+                    EnvironmentBloomStrength = 0.30f;
+                    BloomKernelShape = BloomKernelShape.Soft;
                     break;
                 case InteractorProjectType.FlipSwitch:
                     SliderMode = SliderAssemblyMode.Disabled;
@@ -1360,10 +1433,16 @@ namespace KnobForge.Core
                     ToggleTipSleeveEnabled = true;
                     ToggleTipSleeveStyle = ToggleTipSleeveStyle.Round;
                     ToggleTipSleeveTipStyle = ToggleTipSleeveTipStyle.Rounded;
+                    EnvironmentPreset = EnvironmentPreset.Studio;
+                    EnvironmentBloomStrength = 0.35f;
+                    BloomKernelShape = BloomKernelShape.Soft;
                     break;
                 case InteractorProjectType.PushButton:
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
+                    EnvironmentPreset = EnvironmentPreset.Showroom;
+                    EnvironmentBloomStrength = 0.45f;
+                    BloomKernelShape = BloomKernelShape.Soft;
                     break;
                 case InteractorProjectType.IndicatorLight:
                     SliderMode = SliderAssemblyMode.Disabled;
@@ -1371,10 +1450,17 @@ namespace KnobForge.Core
                     DynamicLightRig.Enabled = true;
                     EnsureIndicatorAssemblyDefaults(forceReset: true);
                     DynamicLightRig.EnsureIndicatorDefaults();
+                    EnvironmentPreset = EnvironmentPreset.Dark;
+                    EnvironmentBloomStrength = 0.80f;
+                    EnvironmentBloomThreshold = 0.60f;
+                    BloomKernelShape = BloomKernelShape.Star4;
                     break;
                 default:
                     SliderMode = SliderAssemblyMode.Disabled;
                     ToggleMode = ToggleAssemblyMode.Disabled;
+                    EnvironmentPreset = EnvironmentPreset.Studio;
+                    EnvironmentBloomStrength = 0.40f;
+                    BloomKernelShape = BloomKernelShape.Soft;
                     break;
             }
 
@@ -1515,55 +1601,131 @@ namespace KnobForge.Core
             return model;
         }
 
-        public MaterialNode EnsureMaterialNode()
+        private static List<MaterialNode> NormalizeMaterialNodes(IEnumerable<MaterialNode> materials)
         {
-            ModelNode model = EnsureModelNode();
-            MaterialNode? material = model.GetMaterialByIndex(0);
-            if (material != null)
+            var normalized = new List<MaterialNode>();
+            foreach (MaterialNode material in materials)
             {
+                if (material != null)
+                {
+                    normalized.Add(material);
+                }
+            }
+
+            return normalized;
+        }
+
+        public MaterialNode EnsureMaterialNode(MaterialOwnerTarget target = MaterialOwnerTarget.KnobSurface)
+        {
+            if (!target.IsImportedPartMaterial())
+            {
+                ModelNode model = EnsureModelNode();
+                MaterialNode? material = model.GetKnobMaterialByIndex(0);
+                if (material != null)
+                {
+                    return material;
+                }
+
+                material = new MaterialNode(target.GetDefaultMaterialName());
+                model.AddChild(material);
                 return material;
             }
 
-            material = new MaterialNode("DefaultMaterial");
-            model.AddChild(material);
-            return material;
+            if (_ownedMaterialNodes.TryGetValue(target, out List<MaterialNode>? ownedMaterials) &&
+                ownedMaterials.Count > 0)
+            {
+                return ownedMaterials[0];
+            }
+
+            var importedMaterial = new MaterialNode(target.GetDefaultMaterialName());
+            _ownedMaterialNodes[target] = new List<MaterialNode> { importedMaterial };
+            return importedMaterial;
         }
 
-        public IReadOnlyList<MaterialNode> GetMaterialNodes()
+        public MaterialNode? GetMaterialByIndex(MaterialOwnerTarget target, int index)
         {
-            return EnsureModelNode().GetMaterialNodes();
+            IReadOnlyList<MaterialNode> materials = GetMaterialNodes(target);
+            if (materials.Count == 0)
+            {
+                return null;
+            }
+
+            return index >= 0 && index < materials.Count
+                ? materials[index]
+                : materials[0];
+        }
+
+        public IReadOnlyList<MaterialNode> GetMaterialNodes(MaterialOwnerTarget target = MaterialOwnerTarget.KnobSurface)
+        {
+            if (!target.IsImportedPartMaterial())
+            {
+                return EnsureModelNode().GetKnobMaterialNodes();
+            }
+
+            if (_ownedMaterialNodes.TryGetValue(target, out List<MaterialNode>? ownedMaterials))
+            {
+                return ownedMaterials;
+            }
+
+            return Array.Empty<MaterialNode>();
         }
 
         public void SetMaterialNodes(IEnumerable<MaterialNode> materials)
+        {
+            SetMaterialNodes(MaterialOwnerTarget.KnobSurface, materials);
+        }
+
+        public void SetMaterialNodes(MaterialOwnerTarget target, IEnumerable<MaterialNode> materials)
         {
             if (materials == null)
             {
                 throw new ArgumentNullException(nameof(materials));
             }
 
-            ModelNode model = EnsureModelNode();
-            MaterialNode[] existingMaterials = model.GetMaterialNodes();
-            for (int i = 0; i < existingMaterials.Length; i++)
+            if (!target.IsImportedPartMaterial())
             {
-                model.RemoveChild(existingMaterials[i]);
-            }
-
-            bool addedAny = false;
-            foreach (MaterialNode material in materials)
-            {
-                if (material == null)
+                ModelNode model = EnsureModelNode();
+                MaterialNode[] existingMaterials = model.GetKnobMaterialNodes();
+                for (int i = 0; i < existingMaterials.Length; i++)
                 {
-                    continue;
+                    model.RemoveChild(existingMaterials[i]);
                 }
 
-                model.AddChild(material);
-                addedAny = true;
+                List<MaterialNode> normalized = NormalizeMaterialNodes(materials);
+                bool addedAny = false;
+                foreach (MaterialNode material in normalized)
+                {
+                    model.AddChild(material);
+                    addedAny = true;
+                }
+
+                if (!addedAny)
+                {
+                    model.AddChild(new MaterialNode(target.GetDefaultMaterialName()));
+                }
+
+                return;
             }
 
-            if (!addedAny)
+            List<MaterialNode> importedMaterials = NormalizeMaterialNodes(materials);
+            if (importedMaterials.Count == 0)
             {
-                model.AddChild(new MaterialNode("DefaultMaterial"));
+                _ownedMaterialNodes.Remove(target);
+                return;
             }
+
+            _ownedMaterialNodes[target] = importedMaterials;
+        }
+
+        public void ClearMaterialNodes(MaterialOwnerTarget target)
+        {
+            if (!target.IsImportedPartMaterial())
+            {
+                SetMaterialNodes(target, Array.Empty<MaterialNode>());
+                return;
+            }
+
+            _ownedMaterialNodes.Remove(target);
         }
 
         public CollarNode EnsureCollarNode()
@@ -1598,6 +1760,11 @@ namespace KnobForge.Core
             if (removed && SelectedNode != null && SelectedNode.Id == collar.Id)
             {
                 SetSelectedNode(model);
+            }
+
+            if (removed)
+            {
+                ClearMaterialNodes(MaterialOwnerTarget.CollarImported);
             }
 
             return removed;

@@ -20,7 +20,7 @@ using System.Reflection;
 
 namespace KnobForge.App.Views
 {
-        public partial class MainWindow : Window
+        public partial class MainWindow : AppWindow
         {
         private async void OnRenderButtonClick(object? sender, RoutedEventArgs e)
         {
@@ -349,12 +349,16 @@ namespace KnobForge.App.Views
                 }
                 ApplyProjectTypeInspectorVisibility();
                 var model = GetModelNode();
-                MaterialNode[] materials = model?.GetMaterialNodes() ?? Array.Empty<MaterialNode>();
-                int selectedMaterialIndex = ClampSelectedMaterialIndex(materials);
+                var collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
+                MaterialOwnerTarget activeMaterialOwner = ResolveActiveMaterialOwnerTarget(collar);
+                MaterialNode[] materials = GetAvailableMaterialNodes(activeMaterialOwner);
+                int selectedMaterialIndex = ClampSelectedMaterialIndex(activeMaterialOwner, materials);
                 MaterialNode? material = selectedMaterialIndex >= 0 && selectedMaterialIndex < materials.Length
                     ? materials[selectedMaterialIndex]
                     : null;
-                var collar = model?.Children.OfType<CollarNode>().FirstOrDefault();
+                MaterialNode? collarMaterial = TryGetSelectedMaterialNode(MaterialOwnerTarget.CollarImported, out MaterialNode selectedCollarMaterial)
+                    ? selectedCollarMaterial
+                    : null;
 
                 _lightingModeCombo.SelectedItem = project.Mode;
 
@@ -857,15 +861,15 @@ namespace KnobForge.App.Views
                     if (collar != null)
                     {
                         bool importedCollarUsesMaterialNode =
-                            CollarNode.IsImportedMeshPreset(collar.Preset) &&
-                            material != null;
-                        Vector3 collarBaseColor = importedCollarUsesMaterialNode ? material!.BaseColor : collar.BaseColor;
-                        float collarMetallic = importedCollarUsesMaterialNode ? material!.Metallic : collar.Metallic;
-                        float collarRoughness = importedCollarUsesMaterialNode ? material!.Roughness : collar.Roughness;
-                        float collarPearlescence = importedCollarUsesMaterialNode ? material!.Pearlescence : collar.Pearlescence;
-                        float collarRust = importedCollarUsesMaterialNode ? material!.RustAmount : collar.RustAmount;
-                        float collarWear = importedCollarUsesMaterialNode ? material!.WearAmount : collar.WearAmount;
-                        float collarGunk = importedCollarUsesMaterialNode ? material!.GunkAmount : collar.GunkAmount;
+                            collar.UsesImportedMaterialOwner &&
+                            collarMaterial != null;
+                        Vector3 collarBaseColor = importedCollarUsesMaterialNode ? collarMaterial!.BaseColor : collar.BaseColor;
+                        float collarMetallic = importedCollarUsesMaterialNode ? collarMaterial!.Metallic : collar.Metallic;
+                        float collarRoughness = importedCollarUsesMaterialNode ? collarMaterial!.Roughness : collar.Roughness;
+                        float collarPearlescence = importedCollarUsesMaterialNode ? collarMaterial!.Pearlescence : collar.Pearlescence;
+                        float collarRust = importedCollarUsesMaterialNode ? collarMaterial!.RustAmount : collar.RustAmount;
+                        float collarWear = importedCollarUsesMaterialNode ? collarMaterial!.WearAmount : collar.WearAmount;
+                        float collarGunk = importedCollarUsesMaterialNode ? collarMaterial!.GunkAmount : collar.GunkAmount;
 
                         _collarEnabledCheckBox.IsChecked = collar.Enabled;
                         CollarPresetOption collarOption = ResolveCollarPresetOptionForState(collar.Preset, collar.ImportedMeshPath);
@@ -946,6 +950,10 @@ namespace KnobForge.App.Views
                     _indicatorColorRInput.Value = model.IndicatorColor.X;
                     _indicatorColorGInput.Value = model.IndicatorColor.Y;
                     _indicatorColorBInput.Value = model.IndicatorColor.Z;
+                    UpdateColorSwatch(_indicatorColorSwatch,
+                        _indicatorColorRInput.Value,
+                        _indicatorColorGInput.Value,
+                        _indicatorColorBInput.Value);
                     if (_indicatorAssemblyEnabledCheckBox != null)
                     {
                         _indicatorAssemblyEnabledCheckBox.IsChecked = project.IndicatorAssemblyEnabled;
@@ -1834,7 +1842,7 @@ namespace KnobForge.App.Views
                     _clearPaintMaskButton.IsEnabled = hasModel;
                 }
 
-                RefreshMaterialInspectorUi(model, collar, materials);
+                RefreshMaterialInspectorUi(model, collar, activeMaterialOwner, materials);
 
                 if (material != null)
                 {
@@ -1846,6 +1854,10 @@ namespace KnobForge.App.Views
                     _materialBrushStrengthInput.Value = material.RadialBrushStrength;
                     _materialBrushDensityInput.Value = material.RadialBrushDensity;
                     _materialCharacterInput.Value = material.SurfaceCharacter;
+                }
+                else
+                {
+                    UpdateColorSwatch(_materialBaseColorSwatch, 0d, 0d, 0d);
                 }
 
                 RefreshMaterialGraphEditorUi(material);
@@ -1877,6 +1889,8 @@ namespace KnobForge.App.Views
                 _envBottomRInput.Value = effectiveEnvBottom.X;
                 _envBottomGInput.Value = effectiveEnvBottom.Y;
                 _envBottomBInput.Value = effectiveEnvBottom.Z;
+                UpdateColorSwatch(_envTopColorSwatch, effectiveEnvTop.X, effectiveEnvTop.Y, effectiveEnvTop.Z);
+                UpdateColorSwatch(_envBottomColorSwatch, effectiveEnvBottom.X, effectiveEnvBottom.Y, effectiveEnvBottom.Z);
                 SelectEnvironmentPresetOption(project.EnvironmentPreset);
                 if (_envTonemapCombo != null)
                 {
@@ -1898,7 +1912,51 @@ namespace KnobForge.App.Views
                 {
                     _envBloomKneeInput.Value = project.EnvironmentBloomKnee;
                 }
+                if (_envBloomRadiusInput != null)
+                {
+                    _envBloomRadiusInput.Value = project.BloomRadius;
+                }
+                if (_envBloomCompositeIntensityInput != null)
+                {
+                    _envBloomCompositeIntensityInput.Value = project.BloomCompositeIntensity;
+                }
+                if (_envGlareRotationInput != null)
+                {
+                    _envGlareRotationInput.Value = project.GlareRotationDegrees;
+                }
+                if (_envBloomTintRInput != null)
+                {
+                    _envBloomTintRInput.Value = project.BloomTintR;
+                }
+                if (_envBloomTintGInput != null)
+                {
+                    _envBloomTintGInput.Value = project.BloomTintG;
+                }
+                if (_envBloomTintBInput != null)
+                {
+                    _envBloomTintBInput.Value = project.BloomTintB;
+                }
+                UpdateColorSwatch(_bloomTintColorSwatch,
+                    _envBloomTintRInput?.Value ?? 1d,
+                    _envBloomTintGInput?.Value ?? 1d,
+                    _envBloomTintBInput?.Value ?? 1d);
                 SelectBloomKernelShapeOption(project.BloomKernelShape);
+                if (_envReflectionStrengthInput != null)
+                {
+                    _envReflectionStrengthInput.Value = project.ReflectionStrength;
+                }
+                if (_envReflectionFresnelBiasInput != null)
+                {
+                    _envReflectionFresnelBiasInput.Value = project.ReflectionFresnelBias;
+                }
+                if (_envClearCoatReflectionStrengthInput != null)
+                {
+                    _envClearCoatReflectionStrengthInput.Value = project.ClearCoatReflectionStrength;
+                }
+                if (_envReflectionOnlyPreviewCheckBox != null)
+                {
+                    _envReflectionOnlyPreviewCheckBox.IsChecked = project.ReflectionOnlyPreview;
+                }
                 UpdateEnvironmentManualControlsAppearance(project.EnvironmentPreset);
                 if (_envHdriPathTextBox != null)
                 {
@@ -1987,6 +2045,11 @@ namespace KnobForge.App.Views
                     _specularBoostInput.Value = selectedLight.SpecularBoost;
                     _specularPowerInput.Value = selectedLight.SpecularPower;
                 }
+                UpdateColorSwatch(_lightColorSwatch,
+                    selectedLight?.Color.Red ?? 0,
+                    selectedLight?.Color.Green ?? 0,
+                    selectedLight?.Color.Blue ?? 0,
+                    255.0);
 
                 ApplyInspectorTabPolicy(tabPolicy, preservedTab);
                 UpdateNodeInspectorForSelection(_project.SelectedNode);
