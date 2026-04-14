@@ -1172,8 +1172,9 @@ namespace KnobForge.App.Controls
                 }
 
                 IntPtr finalColorTexture = colorTexture;
+                bool canBlitToFinalTexture = pipelineManager.HasFullscreenBlitPipeline;
                 bool bloomEnabled = _project.EnvironmentBloomStrength > 0.001f && pipelineManager.HasBloomPipelines;
-                if (bloomEnabled)
+                if (canBlitToFinalTexture)
                 {
                     IntPtr postDescriptor = ObjC.IntPtr_objc_msgSend_UInt_UInt_UInt_Bool(
                         ObjCClasses.MTLTextureDescriptor,
@@ -1189,16 +1190,24 @@ namespace KnobForge.App.Controls
                         postColorTexture = ObjC.IntPtr_objc_msgSend_IntPtr(_context.Device.Handle, Selectors.NewTextureWithDescriptor, postDescriptor);
                     }
 
-                    if (postColorTexture != IntPtr.Zero &&
-                        RenderBloomPasses(
-                            commandBuffer,
-                            postColorTexture,
-                            colorTexture,
-                            (nuint)width,
-                            (nuint)height,
-                            postProcessUniforms))
+                    if (postColorTexture != IntPtr.Zero)
                     {
-                        finalColorTexture = postColorTexture;
+                        if (bloomEnabled &&
+                            RenderBloomPasses(
+                                commandBuffer,
+                                postColorTexture,
+                                colorTexture,
+                                (nuint)width,
+                                (nuint)height,
+                                postProcessUniforms))
+                        {
+                            finalColorTexture = postColorTexture;
+                        }
+                        else
+                        {
+                            RenderFullscreenBlitPass(commandBuffer, postColorTexture, colorTexture);
+                            finalColorTexture = postColorTexture;
+                        }
                     }
                 }
 
@@ -1228,6 +1237,8 @@ namespace KnobForge.App.Controls
                 }
 
                 // GPU blending writes premultiplied color/alpha; keep Premul to preserve soft shadow alpha on export.
+                // Do not apply a post-readback Y flip here: preview/export parity should come from the
+                // shared camera, projection, and rotary frame-state pipeline rather than image-space hacks.
                 bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul));
                 IntPtr destination = bitmap.GetPixels();
                 Marshal.Copy(pixelBytes, 0, destination, byteCount);

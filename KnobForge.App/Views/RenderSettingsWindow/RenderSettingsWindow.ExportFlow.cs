@@ -191,6 +191,8 @@ namespace KnobForge.App.Views
                         .GetAwaiter()
                         .GetResult();
 
+                SyncPreviewBaseOrbitFromViewportIfTracking();
+
                 if (!TryBuildManualOrbitAngles(out float baseYawDeg, out float basePitchDeg, out string orbitError))
                 {
                     throw new InvalidOperationException(orbitError);

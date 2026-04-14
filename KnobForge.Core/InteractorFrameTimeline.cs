@@ -56,6 +56,14 @@ namespace KnobForge.Core
             return progress * loopDurationSeconds;
         }
 
+        public static float ResolveRotarySouthStartRotationRadians(int frameIndex, int frameCount)
+        {
+            // Canonical rotary export contract: frame 0 starts at south so preview/export
+            // share a stable reference orientation independent from the live editor orbit.
+            float progress = ResolveLoopNormalizedProgress(frameIndex, frameCount);
+            return MathF.PI + (progress * MathF.Tau);
+        }
+
         public static int ResolveToggleStateIndex(
             int frameIndex,
             int frameCount,

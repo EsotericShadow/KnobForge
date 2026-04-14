@@ -29,6 +29,10 @@ internal static class Program
             RunTest("Project type resolver defaults to rotary when ambiguous", failures, ProjectTypeResolverDefaultsToRotaryWhenAmbiguous);
             RunTest("Loop timeline uses exclusive endpoint progression", failures, LoopTimelineUsesExclusiveEndpointProgression);
             RunTest("Legacy normalized timeline keeps inclusive endpoint progression", failures, LegacyTimelineKeepsInclusiveEndpointProgression);
+            RunTest("Rotary timeline starts south and advances exclusively", failures, RotaryTimelineStartsSouthAndAdvancesExclusively);
+            RunTest("Absolute export viewpoints override base camera state", failures, AbsoluteExportViewpointOverridesBaseCameraState);
+            RunTest("Relative export viewpoints compose with base camera state", failures, RelativeExportViewpointComposesWithBaseCameraState);
+            RunTest("Viewport framing without seed uses centered fit", failures, ViewportFramingWithoutSeedUsesCenteredFit);
             RunTest("Hybrid modules prune collar on slider defaults", failures, HybridModulesPruneCollarOnSliderDefaults);
             RunTest("Hybrid modules reattach collar for rotary defaults", failures, HybridModulesReattachCollarForRotaryDefaults);
             RunTest("Hybrid modules keep collar when prune disabled", failures, HybridModulesKeepCollarWhenPruneDisabled);
@@ -419,6 +423,106 @@ internal static class Program
         if (Math.Abs(endSeconds - 1d) > 1e-6)
         {
             throw new InvalidOperationException($"expected legacy animation time end at 1s, got {endSeconds:0.######}.");
+        }
+    }
+
+    private static void RotaryTimelineStartsSouthAndAdvancesExclusively()
+    {
+        const int frameCount = 24;
+        float start = InteractorFrameTimeline.ResolveRotarySouthStartRotationRadians(0, frameCount);
+        float next = InteractorFrameTimeline.ResolveRotarySouthStartRotationRadians(1, frameCount);
+        float end = InteractorFrameTimeline.ResolveRotarySouthStartRotationRadians(frameCount - 1, frameCount);
+        float expectedStep = MathF.Tau / frameCount;
+
+        if (MathF.Abs(start - MathF.PI) > 1e-6f)
+        {
+            throw new InvalidOperationException($"expected rotary start angle at pi (south), got {start:0.######}.");
+        }
+
+        if (MathF.Abs((next - start) - expectedStep) > 1e-6f)
+        {
+            throw new InvalidOperationException(
+                $"expected rotary step {expectedStep:0.######}, got {(next - start):0.######}.");
+        }
+
+        float expectedEnd = MathF.PI + (((frameCount - 1) / (float)frameCount) * MathF.Tau);
+        if (MathF.Abs(end - expectedEnd) > 1e-6f)
+        {
+            throw new InvalidOperationException($"expected rotary end angle {expectedEnd:0.######}, got {end:0.######}.");
+        }
+    }
+
+    private static void AbsoluteExportViewpointOverridesBaseCameraState()
+    {
+        var baseState = new ViewportCameraState(30f, -20f, 3.5f, new SKPoint(18f, -12f));
+        var viewpoint = new ExportViewpoint
+        {
+            Name = "Primary",
+            FileTag = string.Empty,
+            Enabled = true,
+            Order = 0,
+            UseAbsoluteCamera = true,
+            OrbitYawDeg = -8f,
+            OrbitPitchDeg = -8f,
+            OverrideZoom = true,
+            Zoom = 2.25f,
+            OverridePan = true,
+            PanXPx = 10f,
+            PanYPx = -4f
+        };
+
+        ViewportCameraState resolved = ExportViewpointResolver.ApplyViewpoint(baseState, viewpoint);
+        AssertNearlyEqual(-8f, resolved.OrbitYawDeg, 1e-6f, "absolute yaw");
+        AssertNearlyEqual(-8f, resolved.OrbitPitchDeg, 1e-6f, "absolute pitch");
+        AssertNearlyEqual(2.25f, resolved.Zoom, 1e-6f, "absolute zoom");
+        AssertNearlyEqual(10f, resolved.PanPx.X, 1e-6f, "absolute pan x");
+        AssertNearlyEqual(-4f, resolved.PanPx.Y, 1e-6f, "absolute pan y");
+    }
+
+    private static void RelativeExportViewpointComposesWithBaseCameraState()
+    {
+        var baseState = new ViewportCameraState(12f, -18f, 4f, new SKPoint(-6f, 14f));
+        var viewpoint = new ExportViewpoint
+        {
+            Name = "Over Right",
+            FileTag = "over_right",
+            Enabled = true,
+            Order = 1,
+            UseAbsoluteCamera = false,
+            YawOffsetDeg = 14f,
+            PitchOffsetDeg = 9f,
+            OverrideZoom = false,
+            OverridePan = false
+        };
+
+        ViewportCameraState resolved = ExportViewpointResolver.ApplyViewpoint(baseState, viewpoint);
+        AssertNearlyEqual(26f, resolved.OrbitYawDeg, 1e-6f, "relative yaw");
+        AssertNearlyEqual(-9f, resolved.OrbitPitchDeg, 1e-6f, "relative pitch");
+        AssertNearlyEqual(4f, resolved.Zoom, 1e-6f, "relative zoom");
+        AssertNearlyEqual(-6f, resolved.PanPx.X, 1e-6f, "relative pan x");
+        AssertNearlyEqual(14f, resolved.PanPx.Y, 1e-6f, "relative pan y");
+    }
+
+    private static void ViewportFramingWithoutSeedUsesCenteredFit()
+    {
+        ViewportCameraState framed = ViewportCameraFraming.BuildViewportCameraState(
+            referenceRadius: 220f,
+            outputResolution: 300,
+            renderResolution: 600,
+            padding: 12f,
+            cameraDistanceScale: 0.5f,
+            yawDeg: -8f,
+            pitchDeg: -8f,
+            seedCameraState: null);
+
+        AssertNearlyEqual(-8f, framed.OrbitYawDeg, 1e-6f, "framed yaw");
+        AssertNearlyEqual(-8f, framed.OrbitPitchDeg, 1e-6f, "framed pitch");
+        AssertNearlyEqual(0f, framed.PanPx.X, 1e-6f, "framed pan x");
+        AssertNearlyEqual(0f, framed.PanPx.Y, 1e-6f, "framed pan y");
+
+        if (!(framed.Zoom > 0.2f))
+        {
+            throw new InvalidOperationException($"expected framed zoom to stay above minimum, got {framed.Zoom:0.######}.");
         }
     }
 

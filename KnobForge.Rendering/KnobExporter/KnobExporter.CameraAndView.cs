@@ -18,8 +18,7 @@ public sealed partial class KnobExporter
 {
         private static float ApplyCameraDistanceScaleToZoom(float zoom, float cameraDistanceScale)
         {
-            float safeDistanceScale = MathF.Max(0.0001f, cameraDistanceScale);
-            return Math.Clamp(zoom / safeDistanceScale, 0.2f, 32f);
+            return ViewportCameraFraming.ApplyCameraDistanceScaleToZoom(zoom, cameraDistanceScale);
         }
 
         private static Camera BuildExportCamera(
@@ -105,22 +104,17 @@ public sealed partial class KnobExporter
             int renderResolution,
             ViewportCameraState? cameraState)
         {
-            if (cameraState.HasValue)
-            {
-                ViewportCameraState state = cameraState.Value;
-                float resolutionScale = renderResolution / (float)Math.Max(1, outputResolution);
-                float zoom = Math.Clamp(state.Zoom * resolutionScale, 0.2f, 32f);
-                SKPoint pan = new(state.PanPx.X * resolutionScale, state.PanPx.Y * resolutionScale);
-                zoom = MathF.Min(zoom, ComputeSafeZoomForFrame(referenceRadius, renderResolution, settings.Padding * resolutionScale, pan));
-                zoom = ApplyCameraDistanceScaleToZoom(zoom, settings.CameraDistanceScale);
-                return new ViewportCameraState(state.OrbitYawDeg, state.OrbitPitchDeg, zoom, pan);
-            }
-
-            float padding = MathF.Max(0f, settings.Padding);
-            float contentPixels = MathF.Max(1f, renderResolution - (padding * 2f));
-            float zoomFallback = contentPixels / MathF.Max(1f, referenceRadius * 2f);
-            zoomFallback = ApplyCameraDistanceScaleToZoom(zoomFallback, settings.CameraDistanceScale);
-            return new ViewportCameraState(30f, -20f, zoomFallback, SKPoint.Empty);
+            float yaw = cameraState?.OrbitYawDeg ?? 30f;
+            float pitch = cameraState?.OrbitPitchDeg ?? -20f;
+            return ViewportCameraFraming.BuildViewportCameraState(
+                referenceRadius,
+                outputResolution,
+                renderResolution,
+                settings.Padding,
+                settings.CameraDistanceScale,
+                yaw,
+                pitch,
+                cameraState);
         }
 
         private static float ComputeSafeZoomForFrame(
@@ -129,12 +123,7 @@ public sealed partial class KnobExporter
             float paddingPx,
             SKPoint panPx)
         {
-            float radius = MathF.Max(1f, referenceRadius);
-            float halfWidthAvailable = MathF.Max(1f, (renderResolution * 0.5f) - paddingPx - MathF.Abs(panPx.X));
-            float halfHeightAvailable = MathF.Max(1f, (renderResolution * 0.5f) - paddingPx - MathF.Abs(panPx.Y));
-            float halfSpan = MathF.Min(halfWidthAvailable, halfHeightAvailable);
-            // Leave a little guard band so rotating protrusions don't clip due rasterization/AA.
-            return MathF.Max(0.2f, (halfSpan * 0.96f) / radius);
+            return ViewportCameraFraming.ComputeSafeZoomForFrame(referenceRadius, renderResolution, paddingPx, panPx);
         }
 
         private float GetSceneReferenceRadius()

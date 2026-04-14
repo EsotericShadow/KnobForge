@@ -446,11 +446,11 @@ namespace KnobForge.Rendering
             {
                 case InteractorProjectType.RotaryKnob:
                 {
-                    float angle = frameIndex * angleStep;
+                    float angleDelta = InteractorFrameTimeline.ResolveRotarySouthStartRotationRadians(frameIndex, frameCount) - MathF.PI;
                     for (int modelIndex = 0; modelIndex < originalRotations.Count; modelIndex++)
                     {
                         var entry = originalRotations[modelIndex];
-                        entry.Model.RotationRadians = entry.Rotation + angle;
+                        entry.Model.RotationRadians = entry.Rotation + angleDelta;
                     }
 
                     _project.ToggleStateIndex = originalToggleStateIndex;

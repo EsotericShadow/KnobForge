@@ -30,6 +30,8 @@ namespace KnobForge.App.Views
             request = default;
             error = string.Empty;
 
+            SyncPreviewBaseOrbitFromViewportIfTracking();
+
             if (!TryParseInt(_frameCountTextBox.Text, MinFrameCount, MaxFrameCount, "FrameCount", out int frameCount, out error))
             {
                 return false;
@@ -91,6 +93,10 @@ namespace KnobForge.App.Views
             }
 
             float referenceRadius = GetSceneReferenceRadius();
+            // Canonical render parity contract: preview/export derive from render-window state,
+            // seeded from the camera snapshot captured when this dialog opened rather than the
+            // live viewport mutating underneath the dialog. Framing still starts from a centered,
+            // fitted export camera rather than inheriting the editor viewport's zoom/pan.
             ViewportCameraState previewCamera = BuildPreviewCameraState(
                 referenceRadius,
                 resolution,
@@ -121,19 +127,15 @@ namespace KnobForge.App.Views
             float baseYawDeg,
             float basePitchDeg)
         {
-            float resolutionScale = renderResolution / (float)Math.Max(1, outputResolution);
-            SKPoint pan = SKPoint.Empty;
-            float fitZoom = ComputeSafeZoomForFrame(referenceRadius, renderResolution, padding * resolutionScale, pan);
-            float zoom = Math.Clamp(fitZoom / MathF.Max(0.0001f, cameraDistanceScale), 0.2f, 32f);
-
-            if (zoom <= 0.0001f)
-            {
-                float contentPixels = MathF.Max(1f, renderResolution - (MathF.Max(0f, padding) * 2f));
-                float fallbackZoom = contentPixels / MathF.Max(1f, MathF.Max(referenceRadius, cameraDistanceScale) * 2f);
-                zoom = Math.Clamp(fallbackZoom, 0.2f, 32f);
-            }
-
-            return new ViewportCameraState(baseYawDeg, basePitchDeg, zoom, pan);
+            return ViewportCameraFraming.BuildViewportCameraState(
+                referenceRadius,
+                outputResolution,
+                renderResolution,
+                padding,
+                cameraDistanceScale,
+                baseYawDeg,
+                basePitchDeg,
+                seedCameraState: null);
         }
 
         private float GetSceneReferenceRadius()
@@ -164,19 +166,6 @@ namespace KnobForge.App.Views
             }
 
             return maxReferenceRadius;
-        }
-
-        private static float ComputeSafeZoomForFrame(
-            float referenceRadius,
-            int renderResolution,
-            float paddingPx,
-            SKPoint panPx)
-        {
-            float radius = MathF.Max(1f, referenceRadius);
-            float halfWidthAvailable = MathF.Max(1f, (renderResolution * 0.5f) - paddingPx - MathF.Abs(panPx.X));
-            float halfHeightAvailable = MathF.Max(1f, (renderResolution * 0.5f) - paddingPx - MathF.Abs(panPx.Y));
-            float halfSpan = MathF.Min(halfWidthAvailable, halfHeightAvailable);
-            return MathF.Max(0.2f, (halfSpan * 0.96f) / radius);
         }
 
         private static bool WouldHorizontalLayoutOverflow(int frameCount, int resolution, int paddingPx)

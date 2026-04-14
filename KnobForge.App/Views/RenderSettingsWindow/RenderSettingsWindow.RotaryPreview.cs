@@ -500,7 +500,7 @@ namespace KnobForge.App.Views
                     {
                         float paddingScale = request.RenderResolution / (float)Math.Max(1, request.Resolution);
                         float paddingPx = MathF.Max(0f, request.Padding) * paddingScale;
-                        float safeZoom = ComputeSafeZoomForFrame(
+                        float safeZoom = ViewportCameraFraming.ComputeSafeZoomForFrame(
                             GetSceneReferenceRadius(),
                             request.RenderResolution,
                             paddingPx,
@@ -628,8 +628,8 @@ namespace KnobForge.App.Views
             {
                 case InteractorProjectType.RotaryKnob:
                 {
-                    float angle = frameIndex * angleStep;
-                    ApplyModelRotationDelta(snapshots, angle);
+                    float angleDelta = InteractorFrameTimeline.ResolveRotarySouthStartRotationRadians(frameIndex, frameCount) - MathF.PI;
+                    ApplyModelRotationDelta(snapshots, angleDelta);
                     _project.ToggleStateIndex = originalToggleStateIndex;
                     _project.ToggleStateBlendPosition = originalToggleStateBlendPosition;
                     _project.SliderThumbPositionNormalized = originalSliderThumbPositionNormalized;

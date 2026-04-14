@@ -38,6 +38,9 @@ namespace KnobForge.App.Views
 
         private void ResetViewpointsFromOrbit(bool useCurrentCameraForPrimary)
         {
+            _previewBaseCameraFollowsViewport = true;
+            SyncPreviewBaseOrbitFromViewportIfTracking(force: true);
+
             bool includeOrbitVariants = _exportOrbitVariantsCheckBox.IsChecked == true;
             var defaults = new KnobExportSettings();
             float yawOffset = defaults.OrbitVariantYawOffsetDeg;
@@ -79,6 +82,8 @@ namespace KnobForge.App.Views
             {
                 return;
             }
+
+            SyncPreviewBaseOrbitFromViewportIfTracking();
 
             bool includeOrbitVariants = _exportOrbitVariantsCheckBox.IsChecked == true;
             if (!TryParseFloat(_orbitYawOffsetTextBox.Text, MinOrbitOffsetDeg, MaxOrbitYawOffsetDeg, "Orbit yaw offset", out float yawOffset, out _))

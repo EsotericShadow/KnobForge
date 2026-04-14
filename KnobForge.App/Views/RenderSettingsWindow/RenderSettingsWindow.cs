@@ -149,6 +149,8 @@ namespace KnobForge.App.Views
         private bool _isApplyingPngOptimizationPreset;
         private bool _isUpdatingViewpointUi;
         private bool _viewpointsDirtyFromOrbit = true;
+        private bool _previewBaseCameraFollowsViewport = true;
+        private bool _isSyncingPreviewBaseOrbit;
         private long? _lastPreviewEncodedSheetBytes;
         private bool CanUseGpuExport => _gpuViewport?.CanRenderOffscreen == true;
 
@@ -622,6 +624,12 @@ namespace KnobForge.App.Views
 
         private void OnLiveValidationTextChanged(object? sender, TextChangedEventArgs e)
         {
+            if ((ReferenceEquals(sender, _previewBaseYawTextBox) || ReferenceEquals(sender, _previewBasePitchTextBox)) &&
+                !_isSyncingPreviewBaseOrbit)
+            {
+                _previewBaseCameraFollowsViewport = false;
+            }
+
             if (ReferenceEquals(sender, _orbitYawOffsetTextBox) || ReferenceEquals(sender, _orbitPitchOffsetTextBox))
             {
                 TrySyncViewpointsFromOrbitBaseline();
@@ -681,6 +689,28 @@ namespace KnobForge.App.Views
                 ReferenceEquals(sender, _pngMaxVisibleAlphaDeltaTextBox) ||
                 ReferenceEquals(sender, _pngMeanVisibleLumaDeltaTextBox) ||
                 ReferenceEquals(sender, _pngMeanVisibleAlphaDeltaTextBox);
+        }
+
+        private void SyncPreviewBaseOrbitFromViewportIfTracking(bool force = false)
+        {
+            if ((!force && (!_previewBaseCameraFollowsViewport || !_viewpointsDirtyFromOrbit)) ||
+                _previewBaseYawTextBox == null ||
+                _previewBasePitchTextBox == null)
+            {
+                return;
+            }
+
+            ViewportCameraState camera = _gpuViewport?.CurrentCameraState ?? _cameraState;
+            _isSyncingPreviewBaseOrbit = true;
+            try
+            {
+                _previewBaseYawTextBox.Text = camera.OrbitYawDeg.ToString("0.###", CultureInfo.InvariantCulture);
+                _previewBasePitchTextBox.Text = camera.OrbitPitchDeg.ToString("0.###", CultureInfo.InvariantCulture);
+            }
+            finally
+            {
+                _isSyncingPreviewBaseOrbit = false;
+            }
         }
 
         private string GetDefaultOutputFolder()
